@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bazaar — Discover Local Businesses</title>
+<link rel="stylesheet" href="/css/main.css">
+</head>
+<body>
+<nav class="navbar">
+  <a href="/" class="navbar-brand">Bazaar<span class="brand-dot">.</span></a>
+  <div class="navbar-search">
+    <span class="search-icon">🔍</span>
+    <input type="text" id="main-search" placeholder="Search businesses, food, services..." onkeydown="if(event.key==='Enter')window.location.href='/search/?q='+this.value">
+  </div>
+  <div class="navbar-actions">
+    <button class="nav-link" onclick="openCart()" style="position:relative;">
+      🛒 Cart <span class="cart-count" style="position:absolute;top:-4px;right:-4px;background:var(--saffron);color:white;border-radius:50%;width:18px;height:18px;font-size:0.65rem;font-weight:700;display:none;align-items:center;justify-content:center;"></span>
+    </button>
+    <span data-guest-only>
+      <a href="/login/" class="nav-link">Log in</a>
+      <a href="/register/" class="btn-nav">Sign up</a>
+    </span>
+    <span data-auth-required style="display:none;">
+      <a href="/dashboard/" class="nav-link">Dashboard</a>
+      <button onclick="doLogout()" class="nav-link" style="color:var(--danger);">Log out</button>
+    </span>
+  </div>
+</nav>
+
+<section class="hero">
+  <div class="hero-content">
+    <h1>Discover <em>Local Businesses</em> Near You</h1>
+    <p>Your neighbourhood marketplace — find restaurants, shops, services and more.</p>
+    <div class="hero-search">
+      <input type="text" id="hero-search" placeholder="Search for biryani, salons, pharmacies...">
+      <button onclick="doSearch()">Search</button>
+    </div>
+    <div class="hero-stats">
+      <div class="hero-stat"><div class="stat-num">500+</div><div class="stat-label">Local Businesses</div></div>
+      <div class="hero-stat"><div class="stat-num">30+</div><div class="stat-label">Categories</div></div>
+      <div class="hero-stat"><div class="stat-num">10K+</div><div class="stat-label">Happy Customers</div></div>
+    </div>
+  </div>
+</section>
+
+<div class="categories-bar">
+  <div class="categories-list" id="categories-list">
+    <button class="category-pill active" onclick="filterCategory(null,this)"><span>🌐</span> All</button>
+  </div>
+</div>
+
+<main class="container">
+  <div id="location-prompt" style="margin:1.5rem 0;padding:1.25rem 1.5rem;background:var(--saffron-light);border-radius:var(--radius-md);border:1.5px solid rgba(232,99,10,0.2);display:flex;align-items:center;justify-content:space-between;gap:1rem;">
+    <div><strong style="color:var(--saffron-dark);">📍 Enable Location</strong><p style="margin:0.25rem 0 0;font-size:0.875rem;">See businesses near you with accurate distances.</p></div>
+    <button class="btn btn-primary btn-sm" onclick="detectLocation()">Enable</button>
+  </div>
+
+  <section class="section">
+    <div class="section-header"><div><h2>Featured Businesses</h2><p>Handpicked businesses worth exploring</p></div></div>
+    <div class="grid-3" id="featured-grid">
+      <div class="skeleton" style="height:260px;border-radius:18px;"></div>
+      <div class="skeleton" style="height:260px;border-radius:18px;"></div>
+      <div class="skeleton" style="height:260px;border-radius:18px;"></div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-header">
+      <div><h2 id="biz-heading">All Businesses</h2><p id="biz-sub">Explore everything on Bazaar</p></div>
+      <div style="display:flex;gap:0.75rem;align-items:center;">
+        <select class="form-input" style="width:auto;" onchange="sortBiz(this.value)">
+          <option value="-average_rating">Top Rated</option>
+          <option value="-total_orders">Most Popular</option>
+          <option value="-created_at">Newest</option>
+        </select>
+        <label style="display:flex;align-items:center;gap:0.4rem;font-size:0.875rem;cursor:pointer;">
+          <input type="checkbox" id="open-now" onchange="filterOpenNow(this.checked)"> Open Now
+        </label>
+      </div>
+    </div>
+    <div class="grid-3" id="biz-grid">
+      <div class="skeleton" style="height:260px;border-radius:18px;"></div>
+      <div class="skeleton" style="height:260px;border-radius:18px;"></div>
+      <div class="skeleton" style="height:260px;border-radius:18px;"></div>
+      <div class="skeleton" style="height:260px;border-radius:18px;"></div>
+      <div class="skeleton" style="height:260px;border-radius:18px;"></div>
+      <div class="skeleton" style="height:260px;border-radius:18px;"></div>
+    </div>
+    <div style="text-align:center;margin-top:2rem;" id="load-more-wrap"></div>
+  </section>
+
+  <section class="section">
+    <div class="section-header"><h2>Browse by Category</h2></div>
+    <div class="grid-4" id="cat-grid"></div>
+  </section>
+</main>
+
+<div class="cart-drawer" id="cart-drawer">
+  <div class="cart-header"><h3 style="font-family:var(--font-body);font-size:1rem;font-weight:700;">Your Cart</h3><button onclick="closeCart()" style="font-size:1.2rem;color:var(--slate-light);">✕</button></div>
+  <div class="cart-items" id="cart-items"></div>
+  <div class="cart-footer">
+    <div class="cart-total-row"><span>Subtotal</span><span id="cs">Rs. 0</span></div>
+    <div class="cart-total-row"><span>Delivery</span><span>Rs. 50</span></div>
+    <div class="cart-total-row cart-total-main" style="padding-top:0.5rem;border-top:1px solid var(--border);margin-top:0.25rem;"><span>Total</span><span id="ct">Rs. 50</span></div>
+    <button class="btn btn-primary" style="width:100%;margin-top:1rem;justify-content:center;" onclick="goCheckout()">Checkout →</button>
+  </div>
+</div>
+<div id="cart-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.3);z-index:199;" onclick="closeCart()"></div>
+
+<footer class="footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div><div class="footer-brand">Bazaar.</div><p style="font-size:0.875rem;max-width:260px;">Your neighbourhood's digital marketplace — connecting customers with local businesses.</p></div>
+      <div><h4>Explore</h4><ul><li><a href="/search/?category=restaurants">Restaurants</a></li><li><a href="/search/?category=grocery">Grocery</a></li><li><a href="/search/?category=salons">Salons</a></li><li><a href="/search/?category=pharmacies">Pharmacies</a></li></ul></div>
+      <div><h4>For Business</h4><ul><li><a href="/register/">List Your Business</a></li><li><a href="/business-dashboard/">Dashboard</a></li></ul></div>
+      <div><h4>Company</h4><ul><li><a href="#">About Us</a></li><li><a href="#">Contact</a></li><li><a href="#">Privacy Policy</a></li></ul></div>
+    </div>
+    <div class="footer-bottom"><span>© 2025 Bazaar. All rights reserved.</span><span>🇳🇵 Nepal</span></div>
+  </div>
+</footer>
+
+<div class="toast-container"></div>
+<script src="/js/app.js"></script>
+<script>
+let params = { ordering: '-average_rating' };
+let page = 1;
+let userLoc = null;
+
+async function init() {
+  await loadCategories();
+  await loadFeatured();
+  await loadBusinesses();
+  const saved = Location.get();
+  if (saved) { userLoc = saved; document.getElementById('location-prompt').style.display = 'none'; await loadBusinesses(); }
+}
+
+async function loadCategories() {
+  const resp = await API.getCategories();
+  if (!resp.ok) return;
+  const cats = resp.data.results || resp.data;
+  const list = document.getElementById('categories-list');
+  const grid = document.getElementById('cat-grid');
+  cats.forEach(c => {
+    const pill = document.createElement('button');
+    pill.className = 'category-pill';
+    pill.innerHTML = `${c.icon} ${c.name}`;
+    pill.onclick = () => filterCategory(c.slug, pill);
+    list.appendChild(pill);
+    const card = document.createElement('div');
+    card.style.cssText = 'background:white;border-radius:var(--radius-md);padding:1.5rem 1rem;text-align:center;border:1px solid var(--border);cursor:pointer;transition:all 0.2s;';
+    card.innerHTML = `<div style="font-size:2rem;margin-bottom:0.5rem;">${c.icon}</div><div style="font-weight:600;font-size:0.875rem;">${c.name}</div><div style="font-size:0.75rem;color:var(--slate-light);margin-top:0.2rem;">${c.business_count} shops</div>`;
+    card.onmouseover = () => { card.style.transform = 'translateY(-2px)'; card.style.boxShadow = 'var(--shadow-md)'; card.style.borderColor = 'var(--saffron)'; };
+    card.onmouseout = () => { card.style.transform = ''; card.style.boxShadow = ''; card.style.borderColor = 'var(--border)'; };
+    card.onclick = () => filterCategory(c.slug, null);
+    grid.appendChild(card);
+  });
+}
+
+async function loadFeatured() {
+  const resp = await API.getFeatured();
+  const grid = document.getElementById('featured-grid');
+  if (!resp.ok || !(resp.data.results || resp.data).length) { grid.innerHTML = '<p style="color:var(--slate-light);">No featured businesses yet.</p>'; return; }
+  grid.innerHTML = (resp.data.results || resp.data).map(b => renderBusinessCard(b, userLoc?.lat, userLoc?.lon)).join('');
+}
+
+async function loadBusinesses(append = false) {
+  const grid = document.getElementById('biz-grid');
+  if (!append) UI.loading(grid);
+  const p = { ...params, page };
+  if (document.getElementById('open-now').checked) p.open_now = 'true';
+  if (userLoc) { p.lat = userLoc.lat; p.lon = userLoc.lon; }
+  const resp = await API.getBusinesses(p);
+  const bizs = resp.data?.results || resp.data || [];
+  const html = bizs.map(b => renderBusinessCard(b, userLoc?.lat, userLoc?.lon)).join('');
+  if (append) grid.innerHTML += html;
+  else grid.innerHTML = html || '<div class="empty-state"><div class="empty-icon">🔍</div><h3>No businesses found</h3><p>Try adjusting filters.</p></div>';
+  const wrap = document.getElementById('load-more-wrap');
+  wrap.innerHTML = resp.data?.next ? `<button class="btn btn-secondary" onclick="page++;loadBusinesses(true)">Load More</button>` : '';
+}
+
+function filterCategory(slug, btn) {
+  document.querySelectorAll('.category-pill').forEach(p => p.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  if (slug) params.category = slug; else delete params.category;
+  page = 1;
+  document.getElementById('biz-heading').textContent = slug ? slug.replace('-', ' ') : 'All Businesses';
+  loadBusinesses();
+}
+function sortBiz(v) { params.ordering = v; page = 1; loadBusinesses(); }
+function filterOpenNow(v) { if (v) params.open_now = 'true'; else delete params.open_now; loadBusinesses(); }
+function doSearch() { const q = document.getElementById('hero-search').value.trim(); if (q) window.location.href = `/search/?q=${encodeURIComponent(q)}`; }
+document.getElementById('hero-search').addEventListener('keydown', e => { if (e.key === 'Enter') doSearch(); });
+
+async function detectLocation() {
+  try {
+    userLoc = await Location.detect();
+    document.getElementById('location-prompt').style.display = 'none';
+    UI.toast('Location detected!', 'success');
+    await loadBusinesses();
+  } catch { UI.toast('Could not detect location.', 'error'); }
+}
+
+function openCart() { renderCart(); document.getElementById('cart-drawer').classList.add('open'); document.getElementById('cart-overlay').style.display = 'block'; }
+function closeCart() { document.getElementById('cart-drawer').classList.remove('open'); document.getElementById('cart-overlay').style.display = 'none'; }
+function renderCart() {
+  const cart = Cart.get();
+  const c = document.getElementById('cart-items');
+  if (!cart.items.length) { c.innerHTML = '<div class="empty-state" style="padding:2rem;"><div class="empty-icon">🛒</div><h3 style="font-size:1rem;">Cart is empty</h3></div>'; document.getElementById('cs').textContent = 'Rs. 0'; document.getElementById('ct').textContent = 'Rs. 50'; return; }
+  c.innerHTML = cart.items.map(i => `<div class="cart-item"><div style="flex:1;"><div class="cart-item-name">${i.name}</div><div class="cart-item-price">${UI.formatPrice(i.price)}</div><div class="qty-control"><button class="qty-btn" onclick="cQty(${i.id},${i.qty-1})">−</button><span class="qty-num">${i.qty}</span><button class="qty-btn" onclick="cQty(${i.id},${i.qty+1})">+</button><button style="margin-left:auto;font-size:0.75rem;color:var(--danger);" onclick="cRemove(${i.id})">Remove</button></div></div></div>`).join('');
+  const sub = cart.items.reduce((s,i) => s+i.price*i.qty, 0);
+  document.getElementById('cs').textContent = UI.formatPrice(sub);
+  document.getElementById('ct').textContent = UI.formatPrice(sub+50);
+}
+function cQty(id, qty) { Cart.updateQty(id, qty); renderCart(); updateCartBadge(); }
+function cRemove(id) { Cart.remove(id); renderCart(); updateCartBadge(); }
+function goCheckout() { if (!Auth.isLoggedIn()) { closeCart(); window.location.href = '/login/'; return; } window.location.href = '/checkout/'; }
+
+init();
+</script>
+</body>
+</html>

@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Dashboard — Bazaar</title>
+<link rel="stylesheet" href="/css/main.css">
+<style>
+.order-card{background:white;border-radius:var(--radius-md);border:1px solid var(--border);padding:1.25rem;margin-bottom:1rem;}
+.timeline{display:flex;align-items:center;margin:1rem 0;overflow-x:auto;}
+.t-step{display:flex;flex-direction:column;align-items:center;flex:1;min-width:60px;}
+.t-dot{width:24px;height:24px;border-radius:50%;border:2px solid var(--border);background:white;display:flex;align-items:center;justify-content:center;font-size:0.7rem;z-index:1;}
+.t-dot.done{background:var(--saffron);border-color:var(--saffron);color:white;}
+.t-dot.cur{background:var(--saffron-light);border-color:var(--saffron);}
+.t-label{font-size:0.65rem;color:var(--slate-light);margin-top:0.3rem;text-align:center;}
+.t-line{flex:1;height:2px;background:var(--border);margin-top:-22px;}
+.t-line.done{background:var(--saffron);}
+</style>
+</head>
+<body>
+<nav class="navbar">
+  <a href="/" class="navbar-brand">Bazaar<span class="brand-dot">.</span></a>
+  <div class="navbar-actions">
+    <a href="/" class="nav-link">🏠 Home</a>
+    <button onclick="doLogout()" class="nav-link" style="color:var(--danger);">Log Out</button>
+  </div>
+</nav>
+
+<div class="dashboard-layout">
+  <div class="sidebar">
+    <div style="padding:1.25rem 1.5rem;border-bottom:1px solid var(--border);margin-bottom:0.5rem;">
+      <div id="avatar" style="width:48px;height:48px;border-radius:50%;background:var(--saffron-light);display:flex;align-items:center;justify-content:center;font-size:1.4rem;font-weight:700;color:var(--saffron-dark);margin-bottom:0.5rem;"></div>
+      <div id="uname" style="font-weight:700;font-size:0.95rem;"></div>
+      <div id="uemail" style="font-size:0.78rem;color:var(--slate-light);"></div>
+    </div>
+    <div onclick="show('orders')" class="sidebar-nav-item active" id="nav-orders">📦 My Orders</div>
+    <div onclick="show('saved')" class="sidebar-nav-item" id="nav-saved">❤️ Saved Businesses</div>
+    <div onclick="show('profile')" class="sidebar-nav-item" id="nav-profile">👤 Profile</div>
+    <div onclick="show('notifications')" class="sidebar-nav-item" id="nav-notifications">🔔 Notifications</div>
+    <div onclick="doLogout()" class="sidebar-nav-item" style="color:var(--danger);margin-top:2rem;">🚪 Log Out</div>
+  </div>
+
+  <div class="dashboard-content">
+    <div id="sec-orders">
+      <h2 style="font-family:var(--font-body);font-weight:700;font-size:1.25rem;margin-bottom:1.5rem;">My Orders</h2>
+      <div id="orders-list"><div style="text-align:center;padding:3rem;"><div class="spinner" style="margin:0 auto;"></div></div></div>
+    </div>
+
+    <div id="sec-saved" style="display:none;">
+      <h2 style="font-family:var(--font-body);font-weight:700;font-size:1.25rem;margin-bottom:1.5rem;">Saved Businesses</h2>
+      <div id="saved-grid" class="grid-3" style="grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:1.25rem;"></div>
+    </div>
+
+    <div id="sec-profile" style="display:none;">
+      <h2 style="font-family:var(--font-body);font-weight:700;font-size:1.25rem;margin-bottom:1.5rem;">Profile Settings</h2>
+      <div style="max-width:520px;">
+        <div class="dash-card">
+          <h3 style="font-family:var(--font-body);font-size:1rem;font-weight:700;margin-bottom:1.25rem;">Personal Info</h3>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+            <div class="form-group" style="margin-bottom:0;"><label class="form-label">First Name</label><input type="text" id="p-fn" class="form-input"></div>
+            <div class="form-group" style="margin-bottom:0;"><label class="form-label">Last Name</label><input type="text" id="p-ln" class="form-input"></div>
+          </div>
+          <div class="form-group" style="margin-top:1rem;"><label class="form-label">Email</label><input type="email" id="p-email" class="form-input" disabled style="opacity:0.6;"></div>
+          <div class="form-group"><label class="form-label">Phone</label><input type="tel" id="p-phone" class="form-input"></div>
+          <button onclick="saveProfile()" class="btn btn-primary">Save Changes</button>
+        </div>
+        <div class="dash-card">
+          <h3 style="font-family:var(--font-body);font-size:1rem;font-weight:700;margin-bottom:1.25rem;">Change Password</h3>
+          <div class="form-group"><label class="form-label">Current Password</label><input type="password" id="p-old" class="form-input"></div>
+          <div class="form-group"><label class="form-label">New Password</label><input type="password" id="p-new" class="form-input"></div>
+          <button onclick="changePwd()" class="btn btn-secondary">Update Password</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="sec-notifications" style="display:none;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;">
+        <h2 style="font-family:var(--font-body);font-weight:700;font-size:1.25rem;">Notifications</h2>
+        <button onclick="markAllRead()" class="btn btn-secondary btn-sm">Mark all read</button>
+      </div>
+      <div id="notif-list" style="max-width:600px;"></div>
+    </div>
+  </div>
+</div>
+
+<div class="toast-container"></div>
+<script src="/js/app.js"></script>
+<script>
+if (!Auth.isLoggedIn()) window.location.href = '/login/';
+
+const user = Auth.getUser();
+if (user) {
+  const ini = ((user.first_name?.[0]||'')+(user.last_name?.[0]||'')).toUpperCase()||user.email[0].toUpperCase();
+  document.getElementById('avatar').textContent = ini;
+  document.getElementById('uname').textContent = `${user.first_name} ${user.last_name}`.trim()||user.username;
+  document.getElementById('uemail').textContent = user.email;
+  document.getElementById('p-fn').value = user.first_name||'';
+  document.getElementById('p-ln').value = user.last_name||'';
+  document.getElementById('p-email').value = user.email||'';
+  document.getElementById('p-phone').value = user.phone||'';
+}
+
+const STEPS = ['pending','confirmed','preparing','ready','out_for_delivery','delivered'];
+const LABELS = {pending:'Pending',confirmed:'Confirmed',preparing:'Preparing',ready:'Ready',out_for_delivery:'On the way',delivered:'Delivered',cancelled:'Cancelled'};
+const SCLS = {pending:'status-pending',confirmed:'status-confirmed',preparing:'status-preparing',delivered:'status-delivered',cancelled:'status-cancelled',ready:'status-confirmed',out_for_delivery:'status-preparing'};
+
+function show(name) {
+  ['orders','saved','profile','notifications'].forEach(s => {
+    document.getElementById('sec-'+s).style.display = s===name?'block':'none';
+    document.getElementById('nav-'+s)?.classList.toggle('active', s===name);
+  });
+  if (name==='orders') loadOrders();
+  if (name==='saved') loadSaved();
+  if (name==='notifications') loadNotifs();
+}
+
+const hash = window.location.hash.replace('#','');
+if (hash) show(hash); else loadOrders();
+
+async function loadOrders() {
+  const resp = await API.getOrders();
+  const list = document.getElementById('orders-list');
+  const orders = resp.data?.results||resp.data||[];
+  if (!orders.length) { list.innerHTML = '<div class="empty-state"><div class="empty-icon">📦</div><h3>No orders yet</h3><p>When you place orders, they\'ll appear here.</p><a href="/" class="btn btn-primary" style="margin-top:1rem;">Start Shopping</a></div>'; return; }
+  list.innerHTML = orders.map(o => {
+    const si = STEPS.indexOf(o.status);
+    const isCan = o.status==='cancelled';
+    const timeline = isCan ? '' : `<div class="timeline">${STEPS.map((s,i)=>`${i>0?`<div class="t-line ${i<=si?'done':''}"></div>`:''}<div class="t-step"><div class="t-dot ${i<si?'done':i===si?'cur':''}">${i<si?'✓':i+1}</div><div class="t-label">${LABELS[s]}</div></div>`).join('')}</div>`;
+    return `<div class="order-card"><div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:0.75rem;flex-wrap:wrap;gap:0.5rem;"><div><div style="font-weight:700;font-size:0.95rem;">Order #${o.id} — ${o.business_name||''}</div><div style="font-size:0.78rem;color:var(--slate-light);">${UI.formatDate(o.created_at)} · ${o.item_count} item${o.item_count!==1?'s':''}</div></div><div style="display:flex;align-items:center;gap:0.75rem;"><span class="status-pill ${SCLS[o.status]||'status-pending'}">${LABELS[o.status]||o.status}</span><span style="font-weight:700;color:var(--saffron);">${UI.formatPrice(o.total)}</span></div></div>${timeline}<div style="font-size:0.8rem;color:var(--slate-light);margin-top:0.5rem;">${o.is_paid?'✅ Paid':'⏳ '+(o.payment_method==='cash'?'Pay on delivery':'Payment pending')}</div></div>`;
+  }).join('');
+}
+
+async function loadSaved() {
+  const resp = await API.getSavedBusinesses();
+  const grid = document.getElementById('saved-grid');
+  const bizs = resp.data?.results||resp.data||[];
+  if (!bizs.length) { grid.innerHTML = '<div class="empty-state"><div class="empty-icon">❤️</div><h3>No saved businesses</h3><p>Tap the heart on any business to save it.</p></div>'; return; }
+  grid.innerHTML = bizs.map(b => renderBusinessCard(b)).join('');
+}
+
+async function saveProfile() {
+  const resp = await API.updateProfile({ first_name:document.getElementById('p-fn').value, last_name:document.getElementById('p-ln').value, phone:document.getElementById('p-phone').value });
+  if (resp.ok) { Auth.setUser(resp.data); UI.toast('Profile updated!','success'); } else UI.toast('Update failed.','error');
+}
+
+async function changePwd() {
+  const old = document.getElementById('p-old').value, nw = document.getElementById('p-new').value;
+  if (!old||!nw) { UI.toast('Fill both fields','error'); return; }
+  const resp = await API.changePassword({ old_password:old, new_password:nw });
+  if (resp.ok) { UI.toast('Password updated!','success'); document.getElementById('p-old').value=''; document.getElementById('p-new').value=''; } else UI.toast(resp.data?.old_password?.[0]||'Failed.','error');
+}
+
+async function loadNotifs() {
+  const resp = await API.getNotifications();
+  const list = document.getElementById('notif-list');
+  const notifs = resp.data?.results||resp.data||[];
+  if (!notifs.length) { list.innerHTML = '<div class="empty-state"><div class="empty-icon">🔔</div><h3>No notifications</h3></div>'; return; }
+  list.innerHTML = notifs.map(n => `<div style="background:${n.is_read?'white':'var(--saffron-light)'};border-radius:var(--radius-md);border:1px solid ${n.is_read?'var(--border)':'rgba(232,99,10,0.2)'};padding:1rem 1.25rem;margin-bottom:0.75rem;cursor:pointer;" onclick="markOne(${n.id},this)"><div style="display:flex;justify-content:space-between;gap:0.5rem;"><div style="font-weight:${n.is_read?'400':'700'};font-size:0.875rem;">${n.title}</div><div style="font-size:0.75rem;color:var(--slate-light);flex-shrink:0;">${UI.timeAgo(n.created_at)}</div></div><div style="font-size:0.82rem;color:var(--slate-mid);margin-top:0.25rem;">${n.message}</div></div>`).join('');
+}
+
+async function markOne(id, el) { await API.markRead(id); el.style.background='white'; el.style.borderColor='var(--border)'; el.querySelector('div div').style.fontWeight='400'; }
+async function markAllRead() { await API.markAllRead(); loadNotifs(); UI.toast('All marked as read'); }
+</script>
+</body>
+</html>

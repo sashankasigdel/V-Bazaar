@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Login — Bazaar</title>
+<link rel="stylesheet" href="/css/main.css">
+</head>
+<body>
+<div class="auth-page">
+  <div class="auth-visual">
+    <div class="auth-visual-content">
+      <div style="font-family:var(--font-display);font-size:2.5rem;color:var(--saffron);margin-bottom:2rem;">Bazaar.</div>
+      <h2 style="color:white;font-size:2rem;margin-bottom:1rem;">Your neighbourhood,<br>online.</h2>
+      <p style="color:rgba(255,255,255,0.6);font-size:0.95rem;line-height:1.7;max-width:320px;">Discover restaurants, shops, salons and services near you. Support local, order with ease.</p>
+      <div style="margin-top:3rem;display:flex;flex-direction:column;gap:1rem;">
+        <div style="display:flex;align-items:center;gap:0.75rem;color:rgba(255,255,255,0.7);font-size:0.9rem;"><span style="font-size:1.2rem;">📍</span> Find businesses near you</div>
+        <div style="display:flex;align-items:center;gap:0.75rem;color:rgba(255,255,255,0.7);font-size:0.9rem;"><span style="font-size:1.2rem;">🛒</span> Order from local shops</div>
+        <div style="display:flex;align-items:center;gap:0.75rem;color:rgba(255,255,255,0.7);font-size:0.9rem;"><span style="font-size:1.2rem;">⭐</span> Rate & review businesses</div>
+      </div>
+    </div>
+  </div>
+  <div class="auth-form-side">
+    <div class="auth-form-wrapper">
+      <a href="/" class="auth-logo">Bazaar.</a>
+      <h1 class="auth-title">Welcome back</h1>
+      <p class="auth-subtitle">Sign in to your account to continue</p>
+      <div id="err" style="display:none;background:#FFEBEE;color:#C62828;border-radius:var(--radius-sm);padding:0.875rem 1rem;margin-bottom:1.25rem;font-size:0.875rem;border:1px solid #FFCDD2;"></div>
+      <form onsubmit="handleLogin(event)">
+        <div class="form-group">
+          <label class="form-label">Email Address</label>
+          <input type="email" id="email" class="form-input" placeholder="you@example.com" required autocomplete="email">
+        </div>
+        <div class="form-group">
+          <label class="form-label" style="display:flex;justify-content:space-between;">Password <a href="#" style="font-weight:400;color:var(--saffron);font-size:0.8rem;">Forgot password?</a></label>
+          <div style="position:relative;">
+            <input type="password" id="password" class="form-input" placeholder="Enter your password" required style="padding-right:2.5rem;">
+            <button type="button" onclick="togglePwd('password')" style="position:absolute;right:0.75rem;top:50%;transform:translateY(-50%);color:var(--slate-light);">👁</button>
+          </div>
+        </div>
+        <button type="submit" id="submit-btn" class="btn btn-primary btn-lg" style="width:100%;justify-content:center;">Sign In</button>
+      </form>
+      <div class="auth-divider">or try demo accounts</div>
+      <button onclick="demoLogin('customer')" class="btn btn-secondary" style="width:100%;justify-content:center;margin-bottom:0.75rem;">🧑 Customer Demo</button>
+      <button onclick="demoLogin('owner')" class="btn btn-secondary" style="width:100%;justify-content:center;">🏪 Business Owner Demo</button>
+      <div class="auth-switch">Don't have an account? <a href="/register/">Create one free →</a></div>
+      <div class="auth-switch" style="margin-top:0.5rem;">Want to list your business? <a href="/register/">Register as Business →</a></div>
+    </div>
+  </div>
+</div>
+<div class="toast-container"></div>
+<script src="/js/app.js"></script>
+<script>
+if (Auth.isLoggedIn()) {
+  const u = Auth.getUser();
+  window.location.href = u?.role === 'business_owner' ? '/business-dashboard/' : '/';
+}
+
+function togglePwd(id) { const i = document.getElementById(id); i.type = i.type === 'password' ? 'text' : 'password'; }
+
+async function handleLogin(e) {
+  e.preventDefault();
+  const btn = document.getElementById('submit-btn');
+  const err = document.getElementById('err');
+  btn.textContent = 'Signing in...'; btn.disabled = true;
+  err.style.display = 'none';
+  const resp = await API.login(document.getElementById('email').value, document.getElementById('password').value);
+  if (resp.ok) {
+    Auth.setTokens(resp.data.access, resp.data.refresh);
+    const p = await API.getProfile();
+    if (p.ok) {
+      Auth.setUser(p.data);
+      UI.toast('Welcome back!', 'success');
+      setTimeout(() => { window.location.href = p.data.role === 'business_owner' ? '/business-dashboard/' : '/'; }, 600);
+    }
+  } else {
+    err.textContent = resp.data?.detail || resp.data?.non_field_errors?.[0] || 'Invalid email or password.';
+    err.style.display = 'block';
+    btn.textContent = 'Sign In'; btn.disabled = false;
+  }
+}
+
+async function demoLogin(type) {
+  const creds = type === 'customer' ? { email: 'customer1@bazaar.com', password: 'password123' } : { email: 'owner1@bazaar.com', password: 'password123' };
+  document.getElementById('email').value = creds.email;
+  document.getElementById('password').value = creds.password;
+  UI.toast('Demo credentials filled — signing in...', 'default');
+  const resp = await API.login(creds.email, creds.password);
+  if (resp.ok) {
+    Auth.setTokens(resp.data.access, resp.data.refresh);
+    const p = await API.getProfile();
+    if (p.ok) {
+      Auth.setUser(p.data);
+      setTimeout(() => { window.location.href = p.data.role === 'business_owner' ? '/business-dashboard/' : '/'; }, 600);
+    }
+  } else {
+    document.getElementById('err').textContent = 'Demo login failed. Please run seed_data first.';
+    document.getElementById('err').style.display = 'block';
+  }
+}
+</script>
+</body>
+</html>

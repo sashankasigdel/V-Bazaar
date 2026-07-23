@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Checkout — Bazaar</title>
+<link rel="stylesheet" href="/css/main.css">
+<style>
+.pay-opt{display:flex;align-items:center;gap:1rem;padding:1rem;border:2px solid var(--border);border-radius:var(--radius-md);cursor:pointer;transition:all 0.2s;margin-bottom:0.75rem;}
+.pay-opt:hover,.pay-opt.sel{border-color:var(--saffron);background:var(--saffron-light);}
+.pay-opt input{accent-color:var(--saffron);width:18px;height:18px;}
+.pay-logo{width:48px;height:32px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:0.7rem;font-weight:800;}
+.order-row{display:flex;justify-content:space-between;padding:0.6rem 0;border-bottom:1px solid var(--border-light);font-size:0.875rem;}
+.order-row:last-child{border:none;}
+</style>
+</head>
+<body>
+<nav class="navbar">
+  <a href="/" class="navbar-brand">Bazaar<span class="brand-dot">.</span></a>
+  <div class="navbar-actions">
+    <a href="javascript:history.back()" class="nav-link">← Back</a>
+    <span style="font-size:0.875rem;color:var(--slate-mid);">Secure Checkout 🔒</span>
+  </div>
+</nav>
+
+<div class="container" style="padding-top:2rem;padding-bottom:4rem;">
+  <h1 style="font-family:var(--font-body);font-weight:700;font-size:1.75rem;margin-bottom:0.5rem;">Checkout</h1>
+  <p style="color:var(--slate-light);margin-bottom:2rem;">Complete your order below</p>
+
+  <div id="empty-msg" style="display:none;" class="empty-state">
+    <div class="empty-icon">🛒</div><h3>Your cart is empty</h3><p>Add items first.</p>
+    <a href="/" class="btn btn-primary" style="margin-top:1rem;">Browse Businesses</a>
+  </div>
+
+  <div id="checkout-content" style="display:grid;grid-template-columns:1fr 380px;gap:2rem;align-items:start;">
+    <div>
+      <div class="dash-card">
+        <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:1.5rem;">
+          <div style="width:28px;height:28px;border-radius:50%;background:var(--saffron);color:white;display:flex;align-items:center;justify-content:center;font-size:0.8rem;font-weight:700;">1</div>
+          <h3 style="font-family:var(--font-body);font-size:1rem;font-weight:700;">Delivery Details</h3>
+        </div>
+        <div class="form-group"><label class="form-label">Full Name</label><input type="text" id="d-name" class="form-input" required></div>
+        <div class="form-group"><label class="form-label">Phone</label><input type="tel" id="d-phone" class="form-input" placeholder="98XXXXXXXX" required></div>
+        <div class="form-group"><label class="form-label">Delivery Address</label><textarea id="d-addr" class="form-input" rows="3" placeholder="Street, Ward, Landmark..." required style="resize:vertical;"></textarea></div>
+        <div class="form-group" style="margin-bottom:0;"><label class="form-label">Special Notes</label><input type="text" id="d-notes" class="form-input" placeholder="Any special requests?"></div>
+      </div>
+      <div class="dash-card">
+        <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:1.5rem;">
+          <div style="width:28px;height:28px;border-radius:50%;background:var(--saffron);color:white;display:flex;align-items:center;justify-content:center;font-size:0.8rem;font-weight:700;">2</div>
+          <h3 style="font-family:var(--font-body);font-size:1rem;font-weight:700;">Payment Method</h3>
+        </div>
+        <div class="pay-opt sel" onclick="selPay('cash',this)"><input type="radio" name="pay" value="cash" checked><div class="pay-logo" style="background:#E8F5E9;color:#2E7D32;font-size:1.5rem;">💵</div><div><div style="font-weight:600;font-size:0.9rem;">Cash on Delivery</div><div style="font-size:0.8rem;color:var(--slate-light);">Pay when your order arrives</div></div></div>
+        <div class="pay-opt" onclick="selPay('khalti',this)"><input type="radio" name="pay" value="khalti"><div class="pay-logo" style="background:#5C2D91;color:white;font-weight:900;">K</div><div><div style="font-weight:600;font-size:0.9rem;">Khalti</div><div style="font-size:0.8rem;color:var(--slate-light);">Pay with Khalti wallet</div></div></div>
+        <div class="pay-opt" onclick="selPay('esewa',this)"><input type="radio" name="pay" value="esewa"><div class="pay-logo" style="background:#60BB46;color:white;font-size:0.65rem;font-weight:900;">eSewa</div><div><div style="font-weight:600;font-size:0.9rem;">eSewa</div><div style="font-size:0.8rem;color:var(--slate-light);">Pay with eSewa wallet</div></div></div>
+      </div>
+    </div>
+
+    <div style="position:sticky;top:80px;">
+      <div class="dash-card">
+        <h3 style="font-family:var(--font-body);font-size:1rem;font-weight:700;margin-bottom:1rem;">Order Summary</h3>
+        <div style="font-size:0.8rem;color:var(--slate-light);margin-bottom:0.75rem;" id="from-biz"></div>
+        <div id="order-items"></div>
+        <div style="border-top:1px solid var(--border);margin-top:0.75rem;padding-top:0.75rem;">
+          <div class="order-row" style="border:none;padding:0.3rem 0;"><span style="color:var(--slate-mid);">Subtotal</span><span id="o-sub" style="font-weight:600;"></span></div>
+          <div class="order-row" style="border:none;padding:0.3rem 0;"><span style="color:var(--slate-mid);">Delivery Fee</span><span style="font-weight:600;">Rs. 50</span></div>
+          <div class="order-row" style="border:none;padding:0.5rem 0;font-size:1rem;"><span style="font-weight:700;">Total</span><span id="o-total" style="font-weight:700;color:var(--saffron);font-size:1.1rem;"></span></div>
+        </div>
+        <button id="place-btn" onclick="placeOrder()" class="btn btn-primary btn-lg" style="width:100%;justify-content:center;margin-top:1rem;">Place Order →</button>
+        <p style="font-size:0.75rem;color:var(--slate-light);text-align:center;margin-top:0.75rem;">🔒 Your information is secure</p>
+      </div>
+      <div style="background:var(--emerald-light);border-radius:var(--radius-md);padding:1rem;border:1px solid rgba(11,110,79,0.2);">
+        <div style="font-size:0.875rem;color:var(--emerald);font-weight:600;margin-bottom:0.25rem;">✅ Order Protection</div>
+        <div style="font-size:0.8rem;color:var(--emerald);">Contact support within 24 hours for issues.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="success-overlay" style="display:none;position:fixed;inset:0;background:rgba(26,35,50,0.6);z-index:200;align-items:center;justify-content:center;">
+  <div style="background:white;border-radius:var(--radius-xl);padding:3rem;max-width:440px;width:90%;text-align:center;">
+    <div style="font-size:4rem;margin-bottom:1rem;">🎉</div>
+    <h2 style="margin-bottom:0.5rem;">Order Placed!</h2>
+    <p style="color:var(--slate-mid);margin-bottom:0.5rem;">Your order has been sent to the business.</p>
+    <p id="order-msg" style="font-size:0.875rem;color:var(--slate-light);margin-bottom:2rem;"></p>
+    <a href="/dashboard/" class="btn btn-primary btn-lg" style="justify-content:center;width:100%;margin-bottom:0.75rem;">Track My Orders →</a>
+    <a href="/" class="btn btn-secondary" style="justify-content:center;width:100%;">Continue Shopping</a>
+  </div>
+</div>
+
+<div class="toast-container"></div>
+<script src="/js/app.js"></script>
+<script>
+if (!Auth.isLoggedIn()) window.location.href = '/login/';
+
+const cart = Cart.get();
+if (!cart.items.length) { document.getElementById('checkout-content').style.display = 'none'; document.getElementById('empty-msg').style.display = 'block'; }
+
+const user = Auth.getUser();
+if (user) { document.getElementById('d-name').value = `${user.first_name} ${user.last_name}`.trim(); document.getElementById('d-phone').value = user.phone || ''; }
+
+document.getElementById('from-biz').textContent = 'From: ' + (cart.businessName || '');
+document.getElementById('order-items').innerHTML = cart.items.map(i => `<div class="order-row"><span>${i.qty}× ${i.name}</span><span style="font-weight:600;">${UI.formatPrice(i.price*i.qty)}</span></div>`).join('');
+const sub = cart.items.reduce((s,i) => s+i.price*i.qty, 0);
+document.getElementById('o-sub').textContent = UI.formatPrice(sub);
+document.getElementById('o-total').textContent = UI.formatPrice(sub+50);
+
+let selPayment = 'cash';
+function selPay(method, el) {
+  selPayment = method;
+  document.querySelectorAll('.pay-opt').forEach(o => { o.classList.remove('sel'); o.querySelector('input').checked = false; });
+  el.classList.add('sel'); el.querySelector('input').checked = true;
+}
+
+async function placeOrder() {
+  const btn = document.getElementById('place-btn');
+  const addr = document.getElementById('d-addr').value.trim();
+  const name = document.getElementById('d-name').value.trim();
+  const phone = document.getElementById('d-phone').value.trim();
+  if (!addr || !name) { UI.toast('Please fill in delivery details', 'error'); return; }
+  btn.textContent = 'Placing order...'; btn.disabled = true;
+  const cart = Cart.get();
+  const resp = await API.createOrder({
+    business: cart.businessId,
+    items: cart.items.map(i => ({ product: i.id, quantity: i.qty })),
+    delivery_address: `${name} | ${phone} | ${addr}`,
+    payment_method: selPayment,
+    notes: document.getElementById('d-notes').value,
+  });
+  if (resp.ok) {
+    Cart.clear();
+    document.getElementById('order-msg').textContent = `Order #${resp.data.id} — ${selPayment === 'cash' ? 'Pay on delivery' : 'Awaiting payment'}`;
+    const overlay = document.getElementById('success-overlay');
+    overlay.style.display = 'flex';
+  } else {
+    UI.toast(resp.data?.detail || 'Could not place order. Try again.', 'error');
+    btn.textContent = 'Place Order →'; btn.disabled = false;
+  }
+}
+</script>
+</body>
+</html>
