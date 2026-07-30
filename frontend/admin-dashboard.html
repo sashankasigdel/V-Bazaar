@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Panel — V-Bazaar</title>
+<link rel="stylesheet" href="/css/main.css">
+<style>
+* { box-sizing: border-box; }
+body { font-family: var(--font-body); background: #0F1623; color: white; margin: 0; }
+
+/* ADMIN LAYOUT */
+.admin-layout { display: grid; grid-template-columns: 260px 1fr; min-height: 100vh; }
+
+/* SIDEBAR */
+.admin-sidebar {
+  background: #1A2332;
+  border-right: 1px solid rgba(255,255,255,0.08);
+  display: flex; flex-direction: column;
+  position: sticky; top: 0; height: 100vh; overflow-y: auto;
+}
+.admin-logo {
+  padding: 1.5rem;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+  color: var(--saffron);
+}
+.admin-logo span { color: rgba(255,255,255,0.4); font-size: 0.75rem; display: block; font-family: var(--font-body); margin-top: 0.25rem; }
+.admin-nav { padding: 1rem 0; flex: 1; }
+.admin-nav-item {
+  display: flex; align-items: center; gap: 0.75rem;
+  padding: 0.75rem 1.5rem;
+  font-size: 0.875rem; font-weight: 500;
+  color: rgba(255,255,255,0.5);
+  cursor: pointer;
+  border-left: 3px solid transparent;
+  transition: all 0.2s;
+}
+.admin-nav-item:hover { color: white; background: rgba(255,255,255,0.05); }
+.admin-nav-item.active { color: var(--saffron); background: rgba(232,99,10,0.1); border-left-color: var(--saffron); }
+.admin-nav-item .nav-icon { font-size: 1.1rem; width: 20px; text-align: center; }
+.admin-nav-section { padding: 0.75rem 1.5rem 0.25rem; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.1em; color: rgba(255,255,255,0.25); }
+.admin-user-info {
+  padding: 1rem 1.5rem;
+  border-top: 1px solid rgba(255,255,255,0.08);
+  display: flex; align-items: center; gap: 0.75rem;
+}
+.admin-avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--saffron); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.875rem; flex-shrink: 0; }
+
+/* MAIN CONTENT */
+.admin-main { background: #0F1623; overflow-y: auto; }
+.admin-header {
+  background: #1A2332;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  padding: 1rem 2rem;
+  display: flex; align-items: center; justify-content: space-between;
+  position: sticky; top: 0; z-index: 10;
+}
+.admin-header h1 { font-size: 1.1rem; font-weight: 600; font-family: var(--font-body); }
+.admin-content { padding: 2rem; }
+
+/* STAT CARDS */
+.stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+.admin-stat-card {
+  background: #1A2332;
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 12px;
+  padding: 1.25rem;
+  transition: transform 0.2s;
+}
+.admin-stat-card:hover { transform: translateY(-2px); }
+.stat-icon-wrap { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; margin-bottom: 1rem; }
+.stat-num { font-size: 2rem; font-weight: 700; font-family: var(--font-display); }
+.stat-label { font-size: 0.78rem; color: rgba(255,255,255,0.4); margin-top: 0.25rem; }
+.stat-change { font-size: 0.78rem; margin-top: 0.5rem; }
+.up { color: #4ADE80; } .down { color: #F87171; }
+
+/* TABLES */
+.admin-card { background: #1A2332; border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; overflow: hidden; margin-bottom: 1.5rem; }
+.admin-card-header { padding: 1.25rem 1.5rem; border-bottom: 1px solid rgba(255,255,255,0.08); display: flex; align-items: center; justify-content: space-between; }
+.admin-card-header h3 { font-size: 0.95rem; font-weight: 600; font-family: var(--font-body); }
+.admin-table { width: 100%; border-collapse: collapse; }
+.admin-table th { text-align: left; padding: 0.75rem 1.25rem; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; color: rgba(255,255,255,0.3); border-bottom: 1px solid rgba(255,255,255,0.06); }
+.admin-table td { padding: 1rem 1.25rem; font-size: 0.875rem; border-bottom: 1px solid rgba(255,255,255,0.04); vertical-align: middle; color: rgba(255,255,255,0.8); }
+.admin-table tr:last-child td { border-bottom: none; }
+.admin-table tr:hover td { background: rgba(255,255,255,0.02); }
+
+/* BADGES */
+.badge { display: inline-flex; align-items: center; padding: 0.2rem 0.6rem; border-radius: 999px; font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }
+.badge-active { background: rgba(74,222,128,0.15); color: #4ADE80; }
+.badge-pending { background: rgba(251,191,36,0.15); color: #FBBF24; }
+.badge-suspended { background: rgba(248,113,113,0.15); color: #F87171; }
+.badge-customer { background: rgba(96,165,250,0.15); color: #60A5FA; }
+.badge-owner { background: rgba(167,139,250,0.15); color: #A78BFA; }
+.badge-admin { background: rgba(232,99,10,0.15); color: var(--saffron); }
+.badge-delivered { background: rgba(74,222,128,0.15); color: #4ADE80; }
+.badge-pending-order { background: rgba(251,191,36,0.15); color: #FBBF24; }
+.badge-cancelled { background: rgba(248,113,113,0.15); color: #F87171; }
+
+/* ACTION BUTTONS */
+.act-btn { padding: 0.3rem 0.75rem; border-radius: 6px; font-size: 0.78rem; font-weight: 600; cursor: pointer; border: none; transition: all 0.2s; }
+.act-approve { background: rgba(74,222,128,0.15); color: #4ADE80; }
+.act-approve:hover { background: rgba(74,222,128,0.25); }
+.act-reject { background: rgba(248,113,113,0.15); color: #F87171; }
+.act-reject:hover { background: rgba(248,113,113,0.25); }
+.act-feature { background: rgba(251,191,36,0.15); color: #FBBF24; }
+.act-feature:hover { background: rgba(251,191,36,0.25); }
+.act-delete { background: rgba(248,113,113,0.15); color: #F87171; }
+.act-delete:hover { background: rgba(248,113,113,0.3); }
+.act-ban { background: rgba(248,113,113,0.15); color: #F87171; }
+.act-unban { background: rgba(74,222,128,0.15); color: #4ADE80; }
+
+/* SEARCH BAR */
+.admin-search { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 0.5rem 1rem; color: white; font-size: 0.875rem; font-family: var(--font-body); width: 280px; }
+.admin-search::placeholder { color: rgba(255,255,255,0.3); }
+.admin-search:focus { outline: none; border-color: var(--saffron); }
+
+/* FILTER TABS */
+.filter-tabs { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; }
+.filter-tab { padding: 0.4rem 1rem; border-radius: 999px; font-size: 0.82rem; font-weight: 600; cursor: pointer; border: 1px solid rgba(255,255,255,0.1); color: rgba(255,255,255,0.5); transition: all 0.2s; background: transparent; }
+.filter-tab:hover { color: white; border-color: rgba(255,255,255,0.3); }
+.filter-tab.active { background: var(--saffron); color: white; border-color: var(--saffron); }
+
+/* MODAL */
+.admin-modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 200; align-items: center; justify-content: center; }
+.admin-modal { background: #1A2332; border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 2rem; max-width: 480px; width: 90%; }
+.admin-modal h3 { font-family: var(--font-body); font-weight: 700; margin-bottom: 1.5rem; }
+.admin-input { width: 100%; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 0.7rem 1rem; color: white; font-size: 0.9rem; font-family: var(--font-body); margin-bottom: 1rem; }
+.admin-input:focus { outline: none; border-color: var(--saffron); }
+
+/* TOAST */
+.toast-container { position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 9999; display: flex; flex-direction: column; gap: 0.5rem; }
+.toast { padding: 0.875rem 1.25rem; border-radius: 10px; font-size: 0.875rem; animation: slideIn 0.3s ease; color: white; }
+.toast-success { background: #166534; border: 1px solid #4ADE80; }
+.toast-error { background: #7F1D1D; border: 1px solid #F87171; }
+.toast-default { background: #1E3A5F; border: 1px solid #60A5FA; }
+@keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+/* EMPTY */
+.admin-empty { text-align: center; padding: 3rem; color: rgba(255,255,255,0.3); }
+.admin-empty .empty-icon { font-size: 3rem; margin-bottom: 1rem; }
+
+/* PENDING HIGHLIGHT */
+.pending-row td { background: rgba(251,191,36,0.03); }
+
+/* CHART BARS */
+.mini-bar { height: 6px; border-radius: 999px; background: var(--saffron); }
+
+@media (max-width: 768px) {
+  .admin-layout { grid-template-columns: 1fr; }
+  .admin-sidebar { display: none; }
+}
+</style>
+</head>
+<body>
+
+<div class="admin-layout">
+  <!-- SIDEBAR -->
+  <aside class="admin-sidebar">
+    <div class="admin-logo">
+      V-Bazaar<span>Admin Panel</span>
+    </div>
+    <nav class="admin-nav">
+      <div class="admin-nav-section">Overview</div>
+      <div class="admin-nav-item active" onclick="showSection('dashboard', this)"><span class="nav-icon">📊</span> Dashboard</div>
+
+      <div class="admin-nav-section">Manage</div>
+      <div class="admin-nav-item" onclick="showSection('businesses', this)"><span class="nav-icon">🏪</span> Businesses <span id="pending-badge" style="margin-left:auto;background:var(--saffron);color:white;border-radius:999px;padding:0.1rem 0.5rem;font-size:0.7rem;font-weight:700;display:none;">0</span></div>
+      <div class="admin-nav-item" onclick="showSection('users', this)"><span class="nav-icon">👥</span> Users</div>
+      <div class="admin-nav-item" onclick="showSection('orders', this)"><span class="nav-icon">📦</span> Orders</div>
+      <div class="admin-nav-item" onclick="showSection('reviews', this)"><span class="nav-icon">⭐</span> Reviews</div>
+      <div class="admin-nav-item" onclick="showSection('categories', this)"><span class="nav-icon">🏷️</span> Categories</div>
+    </nav>
+    <div class="admin-user-info">
+      <div class="admin-avatar" id="admin-avatar">A</div>
+      <div>
+        <div id="admin-name" style="font-size:0.875rem;font-weight:600;">Admin</div>
+        <div id="admin-email" style="font-size:0.75rem;color:rgba(255,255,255,0.4);">Loading...</div>
+      </div>
+      <button onclick="doLogout()" style="margin-left:auto;color:rgba(255,255,255,0.3);font-size:0.8rem;background:none;border:none;cursor:pointer;">Logout</button>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="admin-main">
+    <div class="admin-header">
+      <h1 id="page-title">Dashboard</h1>
+      <div style="display:flex;align-items:center;gap:1rem;">
+        <span style="font-size:0.8rem;color:rgba(255,255,255,0.4);" id="last-updated"></span>
+        <button onclick="refreshCurrentSection()" style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);color:white;padding:0.4rem 1rem;border-radius:8px;font-size:0.82rem;cursor:pointer;">⟳ Refresh</button>
+        <a href="/" style="background:var(--saffron);color:white;padding:0.4rem 1rem;border-radius:8px;font-size:0.82rem;text-decoration:none;">← View Site</a>
+      </div>
+    </div>
+
+    <div class="admin-content">
+
+      <!-- DASHBOARD -->
+      <div id="sec-dashboard">
+        <div class="stats-row" id="stats-row">
+          <div style="text-align:center;padding:3rem;color:rgba(255,255,255,0.3);grid-column:1/-1;"><div style="font-size:2rem;margin-bottom:0.5rem;">⏳</div>Loading stats...</div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;">
+          <!-- Recent Businesses -->
+          <div class="admin-card">
+            <div class="admin-card-header">
+              <h3>Pending Approvals</h3>
+              <button onclick="showSection('businesses', document.querySelector('[onclick*=businesses]'))" style="background:rgba(232,99,10,0.15);color:var(--saffron);border:none;padding:0.3rem 0.75rem;border-radius:6px;font-size:0.78rem;font-weight:600;cursor:pointer;">View All</button>
+            </div>
+            <div id="pending-list" style="padding:0.5rem 0;"></div>
+          </div>
+
+          <!-- Recent Orders -->
+          <div class="admin-card">
+            <div class="admin-card-header">
+              <h3>Recent Orders</h3>
+              <button onclick="showSection('orders', document.querySelector('[onclick*=orders]'))" style="background:rgba(232,99,10,0.15);color:var(--saffron);border:none;padding:0.3rem 0.75rem;border-radius:6px;font-size:0.78rem;font-weight:600;cursor:pointer;">View All</button>
+            </div>
+            <div id="recent-orders-list" style="padding:0.5rem 0;"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- BUSINESSES -->
+      <div id="sec-businesses" style="display:none;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;flex-wrap:wrap;gap:1rem;">
+          <div class="filter-tabs">
+            <button class="filter-tab active" onclick="filterBiz('', this)">All</button>
+            <button class="filter-tab" onclick="filterBiz('pending', this)">⏳ Pending</button>
+            <button class="filter-tab" onclick="filterBiz('active', this)">✅ Active</button>
+            <button class="filter-tab" onclick="filterBiz('suspended', this)">🚫 Suspended</button>
+          </div>
+          <input class="admin-search" type="text" placeholder="Search businesses..." oninput="searchBiz(this.value)">
+        </div>
+        <div class="admin-card">
+          <div class="admin-card-header"><h3 id="biz-table-title">All Businesses</h3><span id="biz-count" style="font-size:0.82rem;color:rgba(255,255,255,0.4);"></span></div>
+          <div style="overflow-x:auto;">
+            <table class="admin-table">
+              <thead><tr><th>Business</th><th>Owner</th><th>Category</th><th>Status</th><th>Orders</th><th>Rating</th><th>Actions</th></tr></thead>
+              <tbody id="biz-table-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- USERS -->
+      <div id="sec-users" style="display:none;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;flex-wrap:wrap;gap:1rem;">
+          <div class="filter-tabs">
+            <button class="filter-tab active" onclick="filterUsers('', this)">All</button>
+            <button class="filter-tab" onclick="filterUsers('customer', this)">🧑 Customers</button>
+            <button class="filter-tab" onclick="filterUsers('business_owner', this)">🏪 Owners</button>
+          </div>
+          <input class="admin-search" type="text" placeholder="Search users..." oninput="searchUsers(this.value)">
+        </div>
+        <div class="admin-card">
+          <div class="admin-card-header"><h3>Users</h3><span id="users-count" style="font-size:0.82rem;color:rgba(255,255,255,0.4);"></span></div>
+          <div style="overflow-x:auto;">
+            <table class="admin-table">
+              <thead><tr><th>User</th><th>Role</th><th>Phone</th><th>Status</th><th>Joined</th><th>Actions</th></tr></thead>
+              <tbody id="users-table-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ORDERS -->
+      <div id="sec-orders" style="display:none;">
+        <div style="margin-bottom:1.5rem;">
+          <div class="filter-tabs">
+            <button class="filter-tab active" onclick="filterOrders('', this)">All</button>
+            <button class="filter-tab" onclick="filterOrders('pending', this)">Pending</button>
+            <button class="filter-tab" onclick="filterOrders('confirmed', this)">Confirmed</button>
+            <button class="filter-tab" onclick="filterOrders('delivered', this)">Delivered</button>
+            <button class="filter-tab" onclick="filterOrders('cancelled', this)">Cancelled</button>
+          </div>
+        </div>
+        <div class="admin-card">
+          <div class="admin-card-header"><h3>All Orders</h3><span id="orders-count" style="font-size:0.82rem;color:rgba(255,255,255,0.4);"></span></div>
+          <div style="overflow-x:auto;">
+            <table class="admin-table">
+              <thead><tr><th>Order</th><th>Customer</th><th>Business</th><th>Status</th><th>Total</th><th>Payment</th><th>Date</th></tr></thead>
+              <tbody id="orders-table-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- REVIEWS -->
+      <div id="sec-reviews" style="display:none;">
+        <div class="admin-card">
+          <div class="admin-card-header"><h3>Customer Reviews</h3><span id="reviews-count" style="font-size:0.82rem;color:rgba(255,255,255,0.4);"></span></div>
+          <div style="overflow-x:auto;">
+            <table class="admin-table">
+              <thead><tr><th>Customer</th><th>Business</th><th>Rating</th><th>Review</th><th>Status</th><th>Actions</th></tr></thead>
+              <tbody id="reviews-table-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- CATEGORIES -->
+      <div id="sec-categories" style="display:none;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;">
+          <h2 style="font-family:var(--font-body);font-weight:700;font-size:1.1rem;">Business Categories</h2>
+          <button onclick="openCatModal()" style="background:var(--saffron);color:white;border:none;padding:0.5rem 1.25rem;border-radius:8px;font-size:0.875rem;font-weight:600;cursor:pointer;">+ Add Category</button>
+        </div>
+        <div class="admin-card">
+          <div style="overflow-x:auto;">
+            <table class="admin-table">
+              <thead><tr><th>Icon</th><th>Name</th><th>Slug</th><th>Businesses</th><th>Actions</th></tr></thead>
+              <tbody id="cats-table-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<!-- CATEGORY MODAL -->
+<div class="admin-modal-overlay" id="cat-modal">
+  <div class="admin-modal">
+    <h3>Add New Category</h3>
+    <label style="font-size:0.82rem;color:rgba(255,255,255,0.5);display:block;margin-bottom:0.4rem;">Category Name</label>
+    <input class="admin-input" type="text" id="cat-name" placeholder="e.g. Restaurants">
+    <label style="font-size:0.82rem;color:rgba(255,255,255,0.5);display:block;margin-bottom:0.4rem;">Icon (emoji)</label>
+    <input class="admin-input" type="text" id="cat-icon" placeholder="e.g. 🍽️">
+    <label style="font-size:0.82rem;color:rgba(255,255,255,0.5);display:block;margin-bottom:0.4rem;">Order (display position)</label>
+    <input class="admin-input" type="number" id="cat-order" placeholder="0" value="0">
+    <div style="display:flex;gap:0.75rem;justify-content:flex-end;margin-top:1rem;">
+      <button onclick="closeCatModal()" style="background:rgba(255,255,255,0.06);color:white;border:1px solid rgba(255,255,255,0.1);padding:0.5rem 1.25rem;border-radius:8px;font-size:0.875rem;cursor:pointer;">Cancel</button>
+      <button onclick="createCategory()" style="background:var(--saffron);color:white;border:none;padding:0.5rem 1.25rem;border-radius:8px;font-size:0.875rem;font-weight:600;cursor:pointer;">Create Category</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast-container" id="toast-container"></div>
+
+<script src="/js/app.js"></script>
+<script>
+// ===== SEPARATE ADMIN AUTH SYSTEM =====
+// Admin uses its own tokens, completely independent from customer site login
+const AdminAuth = {
+  getToken: () => localStorage.getItem('admin_access_token'),
+  getRefresh: () => localStorage.getItem('admin_refresh_token'),
+  getUser: () => { try { return JSON.parse(localStorage.getItem('admin_user') || 'null'); } catch { return null; } },
+  clear: () => {
+    localStorage.removeItem('admin_access_token');
+    localStorage.removeItem('admin_refresh_token');
+    localStorage.removeItem('admin_user');
+  },
+};
+
+// Check admin access — redirect to admin login if not authenticated
+const adminUser = AdminAuth.getUser();
+if (!AdminAuth.getToken() || !adminUser || (adminUser.role !== 'admin' && !adminUser.is_staff)) {
+  window.location.href = '/admin-login/';
+}
+
+if (adminUser) {
+  const ini = ((adminUser.first_name?.[0]||'')+(adminUser.last_name?.[0]||'')).toUpperCase() || 'A';
+  document.getElementById('admin-avatar').textContent = ini;
+  document.getElementById('admin-name').textContent = (adminUser.first_name + ' ' + adminUser.last_name).trim() || 'Admin';
+  document.getElementById('admin-email').textContent = adminUser.email;
+}
+
+// Admin-specific HTTP client with its own token and auto-refresh
+async function adminRequest(method, endpoint, data = null) {
+  const headers = { 'Authorization': `Bearer ${AdminAuth.getToken()}` };
+  if (data) headers['Content-Type'] = 'application/json';
+  const config = { method, headers };
+  if (data) config.body = JSON.stringify(data);
+
+  let resp = await fetch(`/api/admin-panel${endpoint}`, config);
+
+  if (resp.status === 401 && AdminAuth.getRefresh()) {
+    const r = await fetch('/api/auth/token/refresh/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ refresh: AdminAuth.getRefresh() }),
+    });
+    if (r.ok) {
+      const { access } = await r.json();
+      localStorage.setItem('admin_access_token', access);
+      headers['Authorization'] = `Bearer ${access}`;
+      config.headers = headers;
+      resp = await fetch(`/api/admin-panel${endpoint}`, config);
+    } else {
+      AdminAuth.clear();
+      window.location.href = '/admin-login/';
+      return { ok: false, data: null };
+    }
+  }
+
+  const result = { status: resp.status, ok: resp.ok };
+  try { result.data = await resp.json(); } catch { result.data = null; }
+  return result;
+}
+
+const AdminAPI = {
+  get: (ep) => adminRequest('GET', ep),
+  patch: (ep, d) => adminRequest('PATCH', ep, d),
+  post: (ep, d) => adminRequest('POST', ep, d),
+  delete: (ep) => adminRequest('DELETE', ep),
+};
+
+function doLogout() {
+  AdminAuth.clear();
+  window.location.href = '/admin-login/';
+}
+
+function toast(msg, type = 'default') {
+  const c = document.getElementById('toast-container');
+  const t = document.createElement('div');
+  t.className = `toast toast-${type}`;
+  t.textContent = msg;
+  c.appendChild(t);
+  setTimeout(() => { t.style.opacity = '0'; t.style.transition = '0.3s'; setTimeout(() => t.remove(), 300); }, 3000);
+}
+
+function formatPrice(p) { return 'Rs. ' + parseFloat(p).toLocaleString(); }
+function formatDate(d) { return new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }); }
+
+let currentSection = 'dashboard';
+let bizData = [], userData = [], orderData = [], reviewData = [];
+let bizFilter = '', userFilter = '', orderFilter = '';
+
+function showSection(name, btn) {
+  ['dashboard','businesses','users','orders','reviews','categories'].forEach(s => {
+    document.getElementById('sec-'+s).style.display = s===name?'block':'none';
+  });
+  document.querySelectorAll('.admin-nav-item').forEach(i => i.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  const titles = { dashboard:'Dashboard', businesses:'Businesses', users:'Users', orders:'Orders', reviews:'Reviews', categories:'Categories' };
+  document.getElementById('page-title').textContent = titles[name] || name;
+  currentSection = name;
+  document.getElementById('last-updated').textContent = 'Updated ' + new Date().toLocaleTimeString();
+  if (name==='dashboard') loadDashboard();
+  if (name==='businesses') loadBusinesses();
+  if (name==='users') loadUsers();
+  if (name==='orders') loadOrders();
+  if (name==='reviews') loadReviews();
+  if (name==='categories') loadCategories();
+}
+
+function refreshCurrentSection() { showSection(currentSection, document.querySelector('.admin-nav-item.active')); }
+
+// DASHBOARD
+async function loadDashboard() {
+  const resp = await AdminAPI.get('/stats/');
+  if (!resp.ok) { toast('Failed to load stats', 'error'); return; }
+  const s = resp.data;
+  document.getElementById('stats-row').innerHTML = `
+    <div class="admin-stat-card">
+      <div class="stat-icon-wrap" style="background:rgba(232,99,10,0.15);">🏪</div>
+      <div class="stat-num">${s.total_businesses}</div>
+      <div class="stat-label">Total Businesses</div>
+      <div class="stat-change up">+${s.new_businesses_this_month} this month</div>
+    </div>
+    <div class="admin-stat-card">
+      <div class="stat-icon-wrap" style="background:rgba(96,165,250,0.15);">👥</div>
+      <div class="stat-num">${s.total_users}</div>
+      <div class="stat-label">Total Users</div>
+      <div class="stat-change up">+${s.new_users_this_month} this month</div>
+    </div>
+    <div class="admin-stat-card">
+      <div class="stat-icon-wrap" style="background:rgba(74,222,128,0.15);">📦</div>
+      <div class="stat-num">${s.total_orders}</div>
+      <div class="stat-label">Total Orders</div>
+      <div class="stat-change up">+${s.orders_this_week} this week</div>
+    </div>
+    <div class="admin-stat-card">
+      <div class="stat-icon-wrap" style="background:rgba(167,139,250,0.15);">💰</div>
+      <div class="stat-num">${formatPrice(s.total_revenue)}</div>
+      <div class="stat-label">Total Revenue</div>
+      <div class="stat-change up">${formatPrice(s.revenue_this_month)} this month</div>
+    </div>
+    <div class="admin-stat-card">
+      <div class="stat-icon-wrap" style="background:rgba(251,191,36,0.15);">⏳</div>
+      <div class="stat-num" style="color:#FBBF24;">${s.pending_businesses}</div>
+      <div class="stat-label">Pending Approvals</div>
+      <div class="stat-change" style="color:rgba(255,255,255,0.4);">Needs review</div>
+    </div>
+    <div class="admin-stat-card">
+      <div class="stat-icon-wrap" style="background:rgba(74,222,128,0.15);">✅</div>
+      <div class="stat-num" style="color:#4ADE80;">${s.active_businesses}</div>
+      <div class="stat-label">Active Businesses</div>
+      <div class="stat-change" style="color:rgba(255,255,255,0.4);">Live on platform</div>
+    </div>`;
+
+  // Update pending badge
+  if (s.pending_businesses > 0) {
+    const badge = document.getElementById('pending-badge');
+    badge.textContent = s.pending_businesses;
+    badge.style.display = 'inline-block';
+  }
+
+  // Load pending businesses
+  const bizResp = await AdminAPI.get('/businesses/?status=pending');
+  const pending = document.getElementById('pending-list');
+  if (bizResp.ok && bizResp.data.length) {
+    pending.innerHTML = bizResp.data.slice(0, 5).map(b => `
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:0.875rem 1.25rem;border-bottom:1px solid rgba(255,255,255,0.04);">
+        <div>
+          <div style="font-size:0.875rem;font-weight:600;">${b.name}</div>
+          <div style="font-size:0.75rem;color:rgba(255,255,255,0.4);">${b.owner_email} · ${b.city}</div>
+        </div>
+        <div style="display:flex;gap:0.5rem;">
+          <button class="act-btn act-approve" onclick="approveBiz(${b.id})">Approve</button>
+          <button class="act-btn act-reject" onclick="suspendBiz(${b.id})">Reject</button>
+        </div>
+      </div>`).join('');
+  } else {
+    pending.innerHTML = '<div class="admin-empty"><div class="empty-icon">✅</div><p>No pending approvals</p></div>';
+  }
+
+  // Recent orders
+  const ordResp = await AdminAPI.get('/orders/');
+  const recentOrders = document.getElementById('recent-orders-list');
+  if (ordResp.ok && ordResp.data.length) {
+    recentOrders.innerHTML = ordResp.data.slice(0, 5).map(o => `
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:0.875rem 1.25rem;border-bottom:1px solid rgba(255,255,255,0.04);">
+        <div>
+          <div style="font-size:0.875rem;font-weight:600;">Order #${o.id} — ${o.business_name}</div>
+          <div style="font-size:0.75rem;color:rgba(255,255,255,0.4);">${o.customer_name} · ${formatDate(o.created_at)}</div>
+        </div>
+        <div style="text-align:right;">
+          <div style="font-size:0.875rem;font-weight:700;color:var(--saffron);">${formatPrice(o.total)}</div>
+          <span class="badge badge-${(o.status === 'delivered' ? 'delivered' : (o.status === 'cancelled' ? 'cancelled' : 'pending-order'))}">${o.status}</span>
+        </div>
+      </div>`).join('');
+  } else {
+    recentOrders.innerHTML = '<div class="admin-empty"><div class="empty-icon">📦</div><p>No orders yet</p></div>';
+  }
+}
+
+// BUSINESSES
+async function loadBusinesses() {
+  const resp = await AdminAPI.get('/businesses/');
+  if (!resp.ok) return;
+  bizData = resp.data;
+  renderBizTable(bizData);
+}
+
+function renderBizTable(data) {
+  const filtered = bizFilter ? data.filter(b => b.status === bizFilter) : data;
+  document.getElementById('biz-count').textContent = `${filtered.length} businesses`;
+  const tbody = document.getElementById('biz-table-body');
+  if (!filtered.length) { tbody.innerHTML = '<tr><td colspan="7"><div class="admin-empty"><div class="empty-icon">🏪</div><p>No businesses found</p></div></td></tr>'; return; }
+  tbody.innerHTML = filtered.map(b => `
+    <tr class="${b.status==='pending'?'pending-row':''}">
+      <td>
+        <div style="font-weight:600;">${b.name}</div>
+        <div style="font-size:0.75rem;color:rgba(255,255,255,0.4);">${b.city}</div>
+      </td>
+      <td>
+        <div style="font-size:0.82rem;">${b.owner_name}</div>
+        <div style="font-size:0.72rem;color:rgba(255,255,255,0.4);">${b.owner_email}</div>
+      </td>
+      <td><span style="font-size:0.82rem;">${b.category}</span></td>
+      <td><span class="badge badge-${b.status}">${b.status}</span></td>
+      <td><span style="font-size:0.875rem;">${b.total_orders}</span></td>
+      <td><span style="color:#FBBF24;">★ ${parseFloat(b.average_rating).toFixed(1)}</span></td>
+      <td>
+        <div style="display:flex;gap:0.4rem;flex-wrap:wrap;">
+          ${b.status==='pending'?`<button class="act-btn act-approve" onclick="approveBiz(${b.id})">Approve</button>`:'' }
+          ${b.status==='active'?`<button class="act-btn act-reject" onclick="suspendBiz(${b.id})">Suspend</button>`:''}
+          ${b.status==='suspended'?`<button class="act-btn act-approve" onclick="approveBiz(${b.id})">Reactivate</button>`:''}
+          <button class="act-btn act-feature" onclick="toggleFeature(${b.id}, ${!b.is_featured})">${b.is_featured?'Unfeature':'Feature'}</button>
+          <button class="act-btn act-delete" onclick="deleteBiz(${b.id}, '${b.name}')">Delete</button>
+        </div>
+      </td>
+    </tr>`).join('');
+}
+
+function filterBiz(status, btn) {
+  bizFilter = status;
+  document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  renderBizTable(bizData);
+}
+
+function searchBiz(q) {
+  const filtered = bizData.filter(b => b.name.toLowerCase().includes(q.toLowerCase()) || b.owner_email.toLowerCase().includes(q.toLowerCase()));
+  renderBizTable(filtered);
+}
+
+async function approveBiz(id) {
+  const resp = await AdminAPI.patch(`/businesses/${id}/`, { status: 'active' });
+  if (resp.ok) { toast('Business approved!', 'success'); loadBusinesses(); loadDashboard(); }
+  else toast('Failed', 'error');
+}
+
+async function suspendBiz(id) {
+  const resp = await AdminAPI.patch(`/businesses/${id}/`, { status: 'suspended' });
+  if (resp.ok) { toast('Business suspended', 'success'); loadBusinesses(); }
+  else toast('Failed', 'error');
+}
+
+async function toggleFeature(id, featured) {
+  const resp = await AdminAPI.patch(`/businesses/${id}/`, { is_featured: featured });
+  if (resp.ok) { toast(featured ? 'Business featured!' : 'Business unfeatured', 'success'); loadBusinesses(); }
+  else toast('Failed', 'error');
+}
+
+async function deleteBiz(id, name) {
+  if (!confirm(`Delete "${name}"? This cannot be undone.`)) return;
+  const resp = await AdminAPI.delete(`/businesses/${id}/delete/`);
+  if (resp.ok) { toast('Business deleted', 'success'); loadBusinesses(); }
+  else toast('Failed to delete', 'error');
+}
+
+// USERS
+async function loadUsers() {
+  const resp = await AdminAPI.get('/users/');
+  if (!resp.ok) return;
+  userData = resp.data;
+  renderUsersTable(userData);
+}
+
+function renderUsersTable(data) {
+  const filtered = userFilter ? data.filter(u => u.role === userFilter) : data;
+  document.getElementById('users-count').textContent = `${filtered.length} users`;
+  const tbody = document.getElementById('users-table-body');
+  if (!filtered.length) { tbody.innerHTML = '<tr><td colspan="6"><div class="admin-empty"><div class="empty-icon">👥</div><p>No users found</p></div></td></tr>'; return; }
+  tbody.innerHTML = filtered.map(u => `
+    <tr>
+      <td>
+        <div style="font-weight:600;">${u.full_name || u.username}</div>
+        <div style="font-size:0.75rem;color:rgba(255,255,255,0.4);">${u.email}</div>
+      </td>
+      <td><span class="badge badge-${u.role}">${u.role.replace('_', ' ')}</span></td>
+      <td><span style="font-size:0.82rem;">${u.phone || '—'}</span></td>
+      <td>
+        ${u.is_active
+          ? '<span style="color:#4ADE80;font-size:0.82rem;">● Active</span>'
+          : '<span style="color:#F87171;font-size:0.82rem;">● Banned</span>'}
+      </td>
+      <td><span style="font-size:0.82rem;">${formatDate(u.date_joined)}</span></td>
+      <td>
+        ${u.is_active
+          ? `<button class="act-btn act-ban" onclick="banUser(${u.id})">Ban</button>`
+          : `<button class="act-btn act-unban" onclick="unbanUser(${u.id})">Unban</button>`}
+      </td>
+    </tr>`).join('');
+}
+
+function filterUsers(role, btn) {
+  userFilter = role;
+  document.querySelectorAll('#sec-users .filter-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  renderUsersTable(userData);
+}
+
+function searchUsers(q) {
+  const filtered = userData.filter(u => u.email.toLowerCase().includes(q.toLowerCase()) || (u.full_name||'').toLowerCase().includes(q.toLowerCase()));
+  renderUsersTable(filtered);
+}
+
+async function banUser(id) {
+  if (!confirm('Ban this user?')) return;
+  const resp = await AdminAPI.patch(`/users/${id}/`, { is_active: false });
+  if (resp.ok) { toast('User banned', 'success'); loadUsers(); }
+  else toast('Failed', 'error');
+}
+
+async function unbanUser(id) {
+  const resp = await AdminAPI.patch(`/users/${id}/`, { is_active: true });
+  if (resp.ok) { toast('User unbanned', 'success'); loadUsers(); }
+  else toast('Failed', 'error');
+}
+
+// ORDERS
+async function loadOrders() {
+  const ep = orderFilter ? `/orders/?status=${orderFilter}` : '/orders/';
+  const resp = await AdminAPI.get(ep);
+  if (!resp.ok) return;
+  orderData = resp.data;
+  renderOrdersTable(orderData);
+}
+
+function renderOrdersTable(data) {
+  document.getElementById('orders-count').textContent = `${data.length} orders`;
+  const tbody = document.getElementById('orders-table-body');
+  if (!data.length) { tbody.innerHTML = '<tr><td colspan="7"><div class="admin-empty"><div class="empty-icon">📦</div><p>No orders</p></div></td></tr>'; return; }
+  tbody.innerHTML = data.map(o => `
+    <tr>
+      <td><span style="font-weight:600;">#${o.id}</span></td>
+      <td>
+        <div style="font-size:0.82rem;">${o.customer_name}</div>
+        <div style="font-size:0.72rem;color:rgba(255,255,255,0.4);">${o.customer_email}</div>
+      </td>
+      <td><span style="font-size:0.82rem;">${o.business_name}</span></td>
+      <td><span class="badge badge-${(o.status === 'delivered' ? 'delivered' : (o.status === 'cancelled' ? 'cancelled' : 'pending-order'))}">${o.status}</span></td>
+      <td><span style="color:var(--saffron);font-weight:700;">${formatPrice(o.total)}</span></td>
+      <td>
+        <span style="font-size:0.78rem;">${o.payment_method}</span>
+        ${o.is_paid ? '<span style="color:#4ADE80;font-size:0.72rem;display:block;">✅ Paid</span>' : '<span style="color:#FBBF24;font-size:0.72rem;display:block;">⏳ Unpaid</span>'}
+      </td>
+      <td><span style="font-size:0.78rem;color:rgba(255,255,255,0.4);">${formatDate(o.created_at)}</span></td>
+    </tr>`).join('');
+}
+
+function filterOrders(status, btn) {
+  orderFilter = status;
+  document.querySelectorAll('#sec-orders .filter-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  loadOrders();
+}
+
+// REVIEWS
+async function loadReviews() {
+  const resp = await AdminAPI.get('/reviews/');
+  if (!resp.ok) return;
+  document.getElementById('reviews-count').textContent = `${resp.data.length} reviews`;
+  const tbody = document.getElementById('reviews-table-body');
+  if (!resp.data.length) { tbody.innerHTML = '<tr><td colspan="6"><div class="admin-empty"><div class="empty-icon">⭐</div><p>No reviews</p></div></td></tr>'; return; }
+  tbody.innerHTML = resp.data.map(r => `
+    <tr>
+      <td>
+        <div style="font-size:0.82rem;font-weight:600;">${r.customer_name}</div>
+        <div style="font-size:0.72rem;color:rgba(255,255,255,0.4);">${r.customer_email}</div>
+      </td>
+      <td><span style="font-size:0.82rem;">${r.business_name}</span></td>
+      <td><span style="color:#FBBF24;">${'★'.repeat(r.rating)}${'☆'.repeat(5-r.rating)}</span></td>
+      <td>
+        <div style="font-size:0.82rem;font-weight:600;">${r.title||''}</div>
+        <div style="font-size:0.75rem;color:rgba(255,255,255,0.5);max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${r.content}</div>
+      </td>
+      <td>${r.is_approved ? '<span style="color:#4ADE80;font-size:0.82rem;">✅ Approved</span>' : '<span style="color:#FBBF24;font-size:0.82rem;">⏳ Hidden</span>'}</td>
+      <td>
+        <div style="display:flex;gap:0.4rem;">
+          ${r.is_approved
+            ? `<button class="act-btn act-reject" onclick="hideReview(${r.id})">Hide</button>`
+            : `<button class="act-btn act-approve" onclick="approveReview(${r.id})">Approve</button>`}
+          <button class="act-btn act-delete" onclick="deleteReview(${r.id})">Delete</button>
+        </div>
+      </td>
+    </tr>`).join('');
+}
+
+async function approveReview(id) {
+  const resp = await AdminAPI.patch(`/reviews/${id}/`, { is_approved: true });
+  if (resp.ok) { toast('Review approved', 'success'); loadReviews(); }
+}
+
+async function hideReview(id) {
+  const resp = await AdminAPI.patch(`/reviews/${id}/`, { is_approved: false });
+  if (resp.ok) { toast('Review hidden', 'success'); loadReviews(); }
+}
+
+async function deleteReview(id) {
+  if (!confirm('Delete this review permanently?')) return;
+  const resp = await AdminAPI.delete(`/reviews/${id}/delete/`);
+  if (resp.ok) { toast('Review deleted', 'success'); loadReviews(); }
+}
+
+// CATEGORIES
+async function loadCategories() {
+  const resp = await AdminAPI.get('/categories/');
+  if (!resp.ok) return;
+  const tbody = document.getElementById('cats-table-body');
+  if (!resp.data.length) { tbody.innerHTML = '<tr><td colspan="5"><div class="admin-empty"><p>No categories</p></div></td></tr>'; return; }
+  tbody.innerHTML = resp.data.map(c => `
+    <tr>
+      <td><span style="font-size:1.5rem;">${c.icon}</span></td>
+      <td><span style="font-weight:600;">${c.name}</span></td>
+      <td><span style="font-size:0.78rem;color:rgba(255,255,255,0.4);">${c.slug}</span></td>
+      <td><span style="font-size:0.875rem;">${c.business_count} businesses</span></td>
+      <td><button class="act-btn act-delete" onclick="deleteCategory(${c.id}, '${c.name}')">Delete</button></td>
+    </tr>`).join('');
+}
+
+function openCatModal() { document.getElementById('cat-modal').style.display = 'flex'; }
+function closeCatModal() { document.getElementById('cat-modal').style.display = 'none'; }
+
+async function createCategory() {
+  const name = document.getElementById('cat-name').value;
+  const icon = document.getElementById('cat-icon').value;
+  const order = document.getElementById('cat-order').value;
+  if (!name || !icon) { toast('Name and icon are required', 'error'); return; }
+  const resp = await AdminAPI.post('/categories/create/', { name, icon, order });
+  if (resp.ok) { toast('Category created!', 'success'); closeCatModal(); loadCategories(); document.getElementById('cat-name').value=''; document.getElementById('cat-icon').value=''; }
+  else toast('Failed to create', 'error');
+}
+
+async function deleteCategory(id, name) {
+  if (!confirm(`Delete category "${name}"?`)) return;
+  const resp = await AdminAPI.delete(`/categories/${id}/delete/`);
+  if (resp.ok) { toast('Category deleted', 'success'); loadCategories(); }
+  else toast('Cannot delete — businesses may be using it', 'error');
+}
+
+// Close modal on outside click
+document.getElementById('cat-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeCatModal();
+});
+
+// Init
+loadDashboard();
+</script>
+</body>
+</html>

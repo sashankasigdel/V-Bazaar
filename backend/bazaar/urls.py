@@ -16,6 +16,7 @@ urlpatterns = [
     path('api/payments/', include('apps.payments.urls')),
     path('api/reviews/', include('apps.reviews.urls')),
     path('api/notifications/', include('apps.notifications.urls')),
+    path('api/admin-panel/', include('apps.accounts.admin_urls')),
 
     # Serve frontend CSS, JS, images with correct MIME types
     re_path(r'^css/(?P<path>.*)$', serve, {'document_root': os.path.join(FRONTEND_DIR, 'css')}),
@@ -32,4 +33,6 @@ urlpatterns = [
     path('dashboard/', serve, {'path': 'dashboard.html', 'document_root': FRONTEND_DIR}),
     path('business-dashboard/', serve, {'path': 'business-dashboard.html', 'document_root': FRONTEND_DIR}),
     path('payment-success/', serve, {'path': 'payment-success.html', 'document_root': FRONTEND_DIR}),
+    path('admin-dashboard/', serve, {'path': 'admin-dashboard.html', 'document_root': FRONTEND_DIR}),
+    path('admin-login/', serve, {'path': 'admin-login.html', 'document_root': FRONTEND_DIR}),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
