@@ -37,6 +37,7 @@
     <div onclick="show('saved')" class="sidebar-nav-item" id="nav-saved">❤️ Saved Businesses</div>
     <div onclick="show('profile')" class="sidebar-nav-item" id="nav-profile">👤 Profile</div>
     <div onclick="show('notifications')" class="sidebar-nav-item" id="nav-notifications">🔔 Notifications</div>
+    <a href="/business-dashboard/" id="owner-link" style="display:none;text-decoration:none;" class="sidebar-nav-item">🏪 My Business Dashboard</a>
     <div onclick="doLogout()" class="sidebar-nav-item" style="color:var(--danger);margin-top:2rem;">🚪 Log Out</div>
   </div>
 
@@ -98,6 +99,7 @@ if (user) {
   document.getElementById('p-ln').value = user.last_name||'';
   document.getElementById('p-email').value = user.email||'';
   document.getElementById('p-phone').value = user.phone||'';
+  if (user.role === 'business_owner') document.getElementById('owner-link').style.display = 'block';
 }
 
 const STEPS = ['pending','confirmed','preparing','ready','out_for_delivery','delivered'];

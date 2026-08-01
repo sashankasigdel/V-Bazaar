@@ -46,9 +46,19 @@ const http = {
   get: (ep) => http.request('GET', ep),
   post: (ep, d, f) => http.request('POST', ep, d, f),
   put: (ep, d, f) => http.request('PUT', ep, d, f),
-  patch: (ep, d) => http.request('PATCH', ep, d),
+  patch: (ep, d, f) => http.request('PATCH', ep, d, f),
   delete: (ep) => http.request('DELETE', ep),
 };
+
+// Helper to build FormData from an object (needed for file uploads)
+function toFormData(obj) {
+  const fd = new FormData();
+  Object.entries(obj).forEach(([key, val]) => {
+    if (val === null || val === undefined || val === '') return;
+    fd.append(key, val);
+  });
+  return fd;
+}
 
 const API = {
   login: (email, password) => http.post('/auth/login/', { email, password }),
@@ -67,13 +77,17 @@ const API = {
   getMyBusinesses: () => http.get('/businesses/my/'),
   createBusiness: (data) => http.post('/businesses/my/', data),
   updateBusiness: (slug, data) => http.put(`/businesses/my/${slug}/`, data),
+  uploadBusinessImages: (slug, formData) => http.patch(`/businesses/my/${slug}/`, formData, true),
+  getGallery: (slug) => http.get(`/businesses/my/${slug}/gallery/`),
+  addGalleryPhoto: (slug, formData) => http.post(`/businesses/my/${slug}/gallery/`, formData, true),
+  deleteGalleryPhoto: (id) => http.delete(`/businesses/gallery/${id}/`),
   getBusinessHours: (slug) => http.get(`/businesses/my/${slug}/hours/`),
   saveBusinessHours: (slug, data) => http.post(`/businesses/my/${slug}/hours/`, data),
   getAnalytics: (slug) => http.get(`/businesses/my/${slug}/analytics/`),
   getProducts: (slug) => http.get(`/products/${slug}/products/`),
   getMyProducts: (slug) => http.get(`/products/${slug}/products/manage/`),
-  createProduct: (slug, data) => http.post(`/products/${slug}/products/manage/`, data),
-  updateProduct: (id, data) => http.patch(`/products/products/${id}/`, data),
+  createProduct: (slug, formData) => http.post(`/products/${slug}/products/manage/`, formData, true),
+  updateProduct: (id, data) => http.patch(`/products/products/${id}/`, data, typeof FormData !== 'undefined' && data instanceof FormData),
   deleteProduct: (id) => http.delete(`/products/products/${id}/`),
   getOrders: () => http.get('/orders/'),
   getOrder: (id) => http.get(`/orders/${id}/`),
@@ -212,4 +226,10 @@ document.addEventListener('DOMContentLoaded', () => {
   document.querySelectorAll('[data-auth-required]').forEach(el => el.style.display = user ? '' : 'none');
   document.querySelectorAll('[data-guest-only]').forEach(el => el.style.display = user ? 'none' : '');
   if (user) document.querySelectorAll('[data-user-name]').forEach(el => el.textContent = user.first_name || user.email);
+
+  // Business owners can shop as customers too — show "My Business" link
+  // in addition to the regular "Dashboard" (order history) link.
+  if (user && user.role === 'business_owner') {
+    document.querySelectorAll('[data-owner-only]').forEach(el => el.style.display = '');
+  }
 });

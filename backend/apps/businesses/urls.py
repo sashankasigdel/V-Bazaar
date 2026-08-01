@@ -10,5 +10,7 @@ urlpatterns = [
     path('my/<slug:slug>/', views.MyBusinessDetailView.as_view(), name='my_business_detail'),
     path('my/<slug:slug>/hours/', views.BusinessHoursView.as_view(), name='business_hours'),
     path('my/<slug:slug>/analytics/', views.business_analytics, name='analytics'),
+    path('my/<slug:slug>/gallery/', views.BusinessGalleryListView.as_view(), name='business_gallery'),
+    path('gallery/<int:pk>/', views.BusinessGalleryDeleteView.as_view(), name='delete_gallery_photo'),
     path('<slug:slug>/', views.BusinessDetailView.as_view(), name='business_detail'),
 ]

@@ -37,7 +37,7 @@ class BusinessListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Business
-        fields = ['id', 'name', 'slug', 'category_name', 'category_icon', 'logo',
+        fields = ['id', 'name', 'slug', 'category_name', 'category_icon', 'logo', 'banner',
                   'short_description', 'address', 'city', 'latitude', 'longitude',
                   'average_rating', 'total_reviews', 'is_featured',
                   'distance', 'is_open', 'is_saved', 'status', 'phone']

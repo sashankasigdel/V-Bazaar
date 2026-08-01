@@ -21,6 +21,8 @@
   </div>
   <div class="navbar-actions">
     <a id="view-btn" href="#" target="_blank" class="nav-link">👁 View Public Page</a>
+    <a href="/dashboard/" class="nav-link">📦 My Orders</a>
+    <a href="/" class="nav-link">🛍️ Shop as Customer</a>
     <button onclick="doLogout()" class="nav-link" style="color:var(--danger);">Log Out</button>
   </div>
 </nav>
@@ -73,7 +75,39 @@
 
     <div id="sec-profile" style="display:none;">
       <h2 style="font-family:var(--font-body);font-weight:700;font-size:1.25rem;margin-bottom:1.5rem;">Business Profile</h2>
+
       <div class="dash-card" style="max-width:640px;">
+        <h3 style="font-family:var(--font-body);font-size:1rem;font-weight:700;margin-bottom:1.25rem;">Logo & Banner</h3>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:1rem;">
+          <div>
+            <label class="form-label">Business Logo</label>
+            <div id="logo-preview" style="width:100px;height:100px;border-radius:var(--radius-md);background:var(--cream);border:1.5px dashed var(--border);display:flex;align-items:center;justify-content:center;overflow:hidden;margin-bottom:0.5rem;font-size:1.5rem;">🏪</div>
+            <input type="file" id="logo-input" accept="image/*" onchange="previewImage('logo-input','logo-preview')" style="font-size:0.8rem;">
+          </div>
+          <div>
+            <label class="form-label">Business Banner</label>
+            <div id="banner-preview" style="width:100%;height:100px;border-radius:var(--radius-md);background:var(--cream);border:1.5px dashed var(--border);display:flex;align-items:center;justify-content:center;overflow:hidden;margin-bottom:0.5rem;font-size:1.5rem;">🖼️</div>
+            <input type="file" id="banner-input" accept="image/*" onchange="previewImage('banner-input','banner-preview')" style="font-size:0.8rem;">
+          </div>
+        </div>
+        <button onclick="uploadLogoBanner()" class="btn btn-primary btn-sm">Upload Photos</button>
+      </div>
+
+      <div class="dash-card" style="max-width:640px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem;">
+          <h3 style="font-family:var(--font-body);font-size:1rem;font-weight:700;">Gallery Photos</h3>
+          <label class="btn btn-secondary btn-sm" style="cursor:pointer;margin-bottom:0;">
+            + Add Photo
+            <input type="file" id="gallery-input" accept="image/*" onchange="uploadGalleryPhoto()" style="display:none;">
+          </label>
+        </div>
+        <div id="gallery-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:0.75rem;">
+          <p style="color:var(--slate-light);font-size:0.85rem;">No photos yet — click "Add Photo" to upload.</p>
+        </div>
+      </div>
+
+      <div class="dash-card" style="max-width:640px;">
+        <h3 style="font-family:var(--font-body);font-size:1rem;font-weight:700;margin-bottom:1.25rem;">Business Details</h3>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
           <div class="form-group"><label class="form-label">Business Name</label><input type="text" id="bp-name" class="form-input"></div>
           <div class="form-group"><label class="form-label">Category</label><select id="bp-cat" class="form-input"></select></div>
@@ -140,6 +174,11 @@
       <button onclick="closeProdModal()" style="font-size:1.3rem;color:var(--slate-light);">✕</button>
     </div>
     <input type="hidden" id="edit-id">
+    <div class="form-group">
+      <label class="form-label">Product Photo</label>
+      <div id="prod-img-preview" style="width:80px;height:80px;border-radius:var(--radius-sm);background:var(--cream);border:1.5px dashed var(--border);display:flex;align-items:center;justify-content:center;overflow:hidden;margin-bottom:0.5rem;font-size:1.5rem;">🍽️</div>
+      <input type="file" id="p-image" accept="image/*" onchange="previewImage('p-image','prod-img-preview')" style="font-size:0.8rem;">
+    </div>
     <div class="form-group"><label class="form-label">Name *</label><input type="text" id="p-name" class="form-input"></div>
     <div class="form-group"><label class="form-label">Description</label><textarea id="p-desc" class="form-input" rows="2" style="resize:vertical;"></textarea></div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
@@ -262,14 +301,32 @@ function openProdModal(p=null) {
   document.getElementById('p-stock').value=p?.stock_quantity||'';
   document.getElementById('p-avail').checked=p?p.is_available:true;
   document.getElementById('p-feat').checked=p?.is_featured||false;
+  document.getElementById('p-image').value='';
+  const preview = document.getElementById('prod-img-preview');
+  preview.innerHTML = p?.image ? `<img src="${p.image}" style="width:100%;height:100%;object-fit:cover;">` : '🍽️';
 }
 function closeProdModal() { document.getElementById('prod-modal').style.display='none'; }
 
 async function saveProd() {
   const id = document.getElementById('edit-id').value;
-  const data = { name:document.getElementById('p-name').value, description:document.getElementById('p-desc').value, type:document.getElementById('p-type').value, price:document.getElementById('p-price').value, discount_price:document.getElementById('p-disc').value||null, stock_quantity:document.getElementById('p-stock').value||null, is_available:document.getElementById('p-avail').checked, is_featured:document.getElementById('p-feat').checked, in_stock:true };
-  if (!data.name||!data.price) { UI.toast('Name and price are required','error'); return; }
-  const resp = id ? await API.updateProduct(id,data) : await API.createProduct(curBiz.slug,data);
+  const imageFile = document.getElementById('p-image').files[0];
+
+  const fd = new FormData();
+  fd.append('name', document.getElementById('p-name').value);
+  fd.append('description', document.getElementById('p-desc').value);
+  fd.append('type', document.getElementById('p-type').value);
+  fd.append('price', document.getElementById('p-price').value);
+  const disc = document.getElementById('p-disc').value;
+  if (disc) fd.append('discount_price', disc);
+  const stock = document.getElementById('p-stock').value;
+  if (stock) fd.append('stock_quantity', stock);
+  fd.append('is_available', document.getElementById('p-avail').checked);
+  fd.append('is_featured', document.getElementById('p-feat').checked);
+  fd.append('in_stock', 'true');
+  if (imageFile) fd.append('image', imageFile);
+
+  if (!document.getElementById('p-name').value || !document.getElementById('p-price').value) { UI.toast('Name and price are required','error'); return; }
+  const resp = id ? await API.updateProduct(id,fd) : await API.createProduct(curBiz.slug,fd);
   if (resp.ok) { UI.toast(id?'Product updated!':'Product added!','success'); closeProdModal(); loadProds(); }
   else UI.toast('Failed to save','error');
 }
@@ -297,6 +354,68 @@ async function loadProfile() {
   document.getElementById('bp-lat').value=b.latitude||'';
   document.getElementById('bp-lon').value=b.longitude||'';
   if (b.category) Array.from(document.getElementById('bp-cat').options).forEach(o=>{if(o.value==b.category.id)o.selected=true;});
+
+  // Show existing logo/banner if present
+  const logoPrev = document.getElementById('logo-preview');
+  if (b.logo) logoPrev.innerHTML = `<img src="${b.logo}" style="width:100%;height:100%;object-fit:cover;">`;
+  else logoPrev.innerHTML = '🏪';
+  const bannerPrev = document.getElementById('banner-preview');
+  if (b.banner) bannerPrev.innerHTML = `<img src="${b.banner}" style="width:100%;height:100%;object-fit:cover;">`;
+  else bannerPrev.innerHTML = '🖼️';
+
+  loadGallery();
+}
+
+function previewImage(inputId, previewId) {
+  const input = document.getElementById(inputId);
+  const preview = document.getElementById(previewId);
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => { preview.innerHTML = `<img src="${e.target.result}" style="width:100%;height:100%;object-fit:cover;">`; };
+  reader.readAsDataURL(file);
+}
+
+async function uploadLogoBanner() {
+  const logoFile = document.getElementById('logo-input').files[0];
+  const bannerFile = document.getElementById('banner-input').files[0];
+  if (!logoFile && !bannerFile) { UI.toast('Choose a photo first', 'error'); return; }
+  const fd = new FormData();
+  if (logoFile) fd.append('logo', logoFile);
+  if (bannerFile) fd.append('banner', bannerFile);
+  const resp = await API.uploadBusinessImages(curBiz.slug, fd);
+  if (resp.ok) { UI.toast('Photos uploaded!', 'success'); document.getElementById('logo-input').value=''; document.getElementById('banner-input').value=''; loadProfile(); }
+  else UI.toast('Upload failed', 'error');
+}
+
+async function loadGallery() {
+  if (!curBiz) return;
+  const resp = await API.getGallery(curBiz.slug);
+  const grid = document.getElementById('gallery-grid');
+  const photos = resp.data?.results || resp.data || [];
+  if (!photos.length) { grid.innerHTML = '<p style="color:var(--slate-light);font-size:0.85rem;">No photos yet — click "Add Photo" to upload.</p>'; return; }
+  grid.innerHTML = photos.map(p => `
+    <div style="position:relative;aspect-ratio:1;border-radius:var(--radius-sm);overflow:hidden;">
+      <img src="${p.image}" style="width:100%;height:100%;object-fit:cover;">
+      <button onclick="deleteGalleryPhoto(${p.id})" style="position:absolute;top:4px;right:4px;width:22px;height:22px;border-radius:50%;background:rgba(0,0,0,0.6);color:white;font-size:0.75rem;border:none;cursor:pointer;">✕</button>
+    </div>`).join('');
+}
+
+async function uploadGalleryPhoto() {
+  const file = document.getElementById('gallery-input').files[0];
+  if (!file) return;
+  const fd = new FormData();
+  fd.append('image', file);
+  const resp = await API.addGalleryPhoto(curBiz.slug, fd);
+  if (resp.ok) { UI.toast('Photo added!', 'success'); document.getElementById('gallery-input').value=''; loadGallery(); }
+  else UI.toast('Upload failed', 'error');
+}
+
+async function deleteGalleryPhoto(id) {
+  if (!confirm('Delete this photo?')) return;
+  const resp = await API.deleteGalleryPhoto(id);
+  if (resp.ok || resp.status === 204) { UI.toast('Photo deleted', 'success'); loadGallery(); }
+  else UI.toast('Delete failed', 'error');
 }
 
 async function saveProfile() {

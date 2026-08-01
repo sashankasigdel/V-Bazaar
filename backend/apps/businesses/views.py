@@ -124,6 +124,25 @@ class BusinessHoursView(generics.ListCreateAPIView):
         )
 
 
+class BusinessGalleryListView(generics.ListCreateAPIView):
+    serializer_class = BusinessGallerySerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        return BusinessGallery.objects.filter(business__owner=self.request.user, business__slug=self.kwargs['slug'])
+
+    def perform_create(self, serializer):
+        business = Business.objects.get(slug=self.kwargs['slug'], owner=self.request.user)
+        serializer.save(business=business)
+
+
+class BusinessGalleryDeleteView(generics.DestroyAPIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        return BusinessGallery.objects.filter(business__owner=self.request.user)
+
+
 @api_view(['GET'])
 @permission_classes([permissions.AllowAny])
 def featured_businesses(request):
