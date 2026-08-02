@@ -1,5 +1,5 @@
 /* ===== BAZAAR — API Client ===== */
-const API_BASE = '/api';
+const API_BASE = 'https://v-bazaar.onrender.com/api';
 
 const Auth = {
   getToken: () => localStorage.getItem('access_token'),
