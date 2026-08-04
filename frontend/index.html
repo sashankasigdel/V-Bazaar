@@ -136,26 +136,48 @@ async function init() {
   if (saved) { userLoc = saved; document.getElementById('location-prompt').style.display = 'none'; await loadBusinesses(); }
 }
 
+const CATS_VISIBLE = 6;
+
 async function loadCategories() {
   const resp = await API.getCategories();
   if (!resp.ok) return;
   const cats = resp.data.results || resp.data;
   const list = document.getElementById('categories-list');
   const grid = document.getElementById('cat-grid');
+
   cats.forEach(c => {
     const pill = document.createElement('button');
     pill.className = 'category-pill';
     pill.innerHTML = `${c.icon} ${c.name}`;
     pill.onclick = () => filterCategory(c.slug, pill);
     list.appendChild(pill);
+  });
+
+  function makeCard(c) {
     const card = document.createElement('div');
     card.style.cssText = 'background:white;border-radius:var(--radius-md);padding:1.5rem 1rem;text-align:center;border:1px solid var(--border);cursor:pointer;transition:all 0.2s;';
     card.innerHTML = `<div style="font-size:2rem;margin-bottom:0.5rem;">${c.icon}</div><div style="font-weight:600;font-size:0.875rem;">${c.name}</div><div style="font-size:0.75rem;color:var(--slate-light);margin-top:0.2rem;">${c.business_count} shops</div>`;
     card.onmouseover = () => { card.style.transform = 'translateY(-2px)'; card.style.boxShadow = 'var(--shadow-md)'; card.style.borderColor = 'var(--saffron)'; };
     card.onmouseout = () => { card.style.transform = ''; card.style.boxShadow = ''; card.style.borderColor = 'var(--border)'; };
-    card.onclick = () => filterCategory(c.slug, null);
-    grid.appendChild(card);
-  });
+    card.onclick = () => { window.location.href = `/search/?category=${encodeURIComponent(c.slug)}`; };
+    return card;
+  }
+
+  cats.slice(0, CATS_VISIBLE).forEach(c => grid.appendChild(makeCard(c)));
+
+  if (cats.length > CATS_VISIBLE) {
+    const wrap = document.createElement('div');
+    wrap.style.cssText = 'grid-column:1/-1;text-align:center;margin-top:0.5rem;';
+    const btn = document.createElement('button');
+    btn.className = 'btn btn-secondary';
+    btn.textContent = `Show ${cats.length - CATS_VISIBLE} More`;
+    btn.onclick = () => {
+      cats.slice(CATS_VISIBLE).forEach(c => grid.insertBefore(makeCard(c), wrap));
+      wrap.remove();
+    };
+    wrap.appendChild(btn);
+    grid.appendChild(wrap);
+  }
 }
 
 async function loadFeatured() {
