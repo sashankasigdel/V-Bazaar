@@ -33,17 +33,15 @@
   <div class="hero-content">
     <h1>Discover <em>Local Businesses</em> Near You</h1>
     <p>Your neighbourhood marketplace — find restaurants, shops, services and more.</p>
-    <div class="hero-search">
-      <input type="text" id="hero-search" placeholder="Search for biryani, salons, pharmacies...">
-      <button onclick="doSearch()">Search</button>
-    </div>
-    <div class="hero-stats">
-      <div class="hero-stat"><div class="stat-num">500+</div><div class="stat-label">Local Businesses</div></div>
-      <div class="hero-stat"><div class="stat-num">30+</div><div class="stat-label">Categories</div></div>
-      <div class="hero-stat"><div class="stat-num">10K+</div><div class="stat-label">Happy Customers</div></div>
-    </div>
   </div>
 </section>
+
+<div class="container">
+  <section class="section">
+    <div class="section-header"><h2>Browse Categories</h2><a href="/search/" style="font-size:0.875rem;font-weight:600;color:var(--saffron);">View All</a></div>
+    <div id="cat-grid" style="display:flex;flex-wrap:wrap;gap:1.75rem;"></div>
+  </section>
+</div>
 
 <div class="categories-bar">
   <div class="categories-list" id="categories-list">
@@ -89,11 +87,6 @@
       <div class="skeleton" style="height:260px;border-radius:18px;"></div>
     </div>
     <div style="text-align:center;margin-top:2rem;" id="load-more-wrap"></div>
-  </section>
-
-  <section class="section">
-    <div class="section-header"><h2>Browse by Category</h2></div>
-    <div class="grid-4" id="cat-grid"></div>
   </section>
 </main>
 
@@ -153,30 +146,43 @@ async function loadCategories() {
     list.appendChild(pill);
   });
 
-  function makeCard(c) {
-    const card = document.createElement('div');
-    card.style.cssText = 'background:white;border-radius:var(--radius-md);padding:1.5rem 1rem;text-align:center;border:1px solid var(--border);cursor:pointer;transition:all 0.2s;';
-    card.innerHTML = `<div style="font-size:2rem;margin-bottom:0.5rem;">${c.icon}</div><div style="font-weight:600;font-size:0.875rem;">${c.name}</div><div style="font-size:0.75rem;color:var(--slate-light);margin-top:0.2rem;">${c.business_count} shops</div>`;
-    card.onmouseover = () => { card.style.transform = 'translateY(-2px)'; card.style.boxShadow = 'var(--shadow-md)'; card.style.borderColor = 'var(--saffron)'; };
-    card.onmouseout = () => { card.style.transform = ''; card.style.boxShadow = ''; card.style.borderColor = 'var(--border)'; };
-    card.onclick = () => { window.location.href = `/search/?category=${encodeURIComponent(c.slug)}`; };
-    return card;
+  function makeIcon(c) {
+    const item = document.createElement('div');
+    item.style.cssText = 'display:flex;flex-direction:column;align-items:center;gap:0.6rem;cursor:pointer;width:84px;';
+    const circle = document.createElement('div');
+    circle.style.cssText = 'width:60px;height:60px;border-radius:50%;background:var(--cream-dark);display:flex;align-items:center;justify-content:center;font-size:1.5rem;transition:background 0.2s;';
+    circle.textContent = c.icon;
+    const label = document.createElement('div');
+    label.style.cssText = 'font-size:0.8rem;font-weight:600;text-align:center;';
+    label.textContent = c.name;
+    item.appendChild(circle);
+    item.appendChild(label);
+    item.onmouseover = () => { circle.style.background = 'var(--saffron-light)'; };
+    item.onmouseout = () => { circle.style.background = 'var(--cream-dark)'; };
+    item.onclick = () => { window.location.href = `/search/?category=${encodeURIComponent(c.slug)}`; };
+    return item;
   }
 
-  cats.slice(0, CATS_VISIBLE).forEach(c => grid.appendChild(makeCard(c)));
+  cats.slice(0, CATS_VISIBLE).forEach(c => grid.appendChild(makeIcon(c)));
 
   if (cats.length > CATS_VISIBLE) {
-    const wrap = document.createElement('div');
-    wrap.style.cssText = 'grid-column:1/-1;text-align:center;margin-top:0.5rem;';
-    const btn = document.createElement('button');
-    btn.className = 'btn btn-secondary';
-    btn.textContent = `Show ${cats.length - CATS_VISIBLE} More`;
-    btn.onclick = () => {
-      cats.slice(CATS_VISIBLE).forEach(c => grid.insertBefore(makeCard(c), wrap));
-      wrap.remove();
+    const moreItem = document.createElement('div');
+    moreItem.style.cssText = 'display:flex;flex-direction:column;align-items:center;gap:0.6rem;cursor:pointer;width:84px;';
+    const circle = document.createElement('div');
+    circle.style.cssText = 'width:60px;height:60px;border-radius:50%;background:var(--cream-dark);display:flex;align-items:center;justify-content:center;font-size:1rem;font-weight:700;color:var(--saffron);transition:background 0.2s;';
+    circle.textContent = `+${cats.length - CATS_VISIBLE}`;
+    const label = document.createElement('div');
+    label.style.cssText = 'font-size:0.8rem;font-weight:600;text-align:center;color:var(--saffron);';
+    label.textContent = 'Show More';
+    moreItem.appendChild(circle);
+    moreItem.appendChild(label);
+    moreItem.onmouseover = () => { circle.style.background = 'var(--saffron-light)'; };
+    moreItem.onmouseout = () => { circle.style.background = 'var(--cream-dark)'; };
+    moreItem.onclick = () => {
+      cats.slice(CATS_VISIBLE).forEach(c => grid.insertBefore(makeIcon(c), moreItem));
+      moreItem.remove();
     };
-    wrap.appendChild(btn);
-    grid.appendChild(wrap);
+    grid.appendChild(moreItem);
   }
 }
 
@@ -212,9 +218,6 @@ function filterCategory(slug, btn) {
 }
 function sortBiz(v) { params.ordering = v; page = 1; loadBusinesses(); }
 function filterOpenNow(v) { if (v) params.open_now = 'true'; else delete params.open_now; loadBusinesses(); }
-function doSearch() { const q = document.getElementById('hero-search').value.trim(); if (q) window.location.href = `/search/?q=${encodeURIComponent(q)}`; }
-document.getElementById('hero-search').addEventListener('keydown', e => { if (e.key === 'Enter') doSearch(); });
-
 async function detectLocation() {
   try {
     userLoc = await Location.detect();
