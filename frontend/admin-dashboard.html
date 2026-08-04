@@ -374,10 +374,10 @@ async function adminRequest(method, endpoint, data = null) {
   const config = { method, headers };
   if (data) config.body = JSON.stringify(data);
 
-  let resp = await fetch(`/api/admin-panel${endpoint}`, config);
+  let resp = await fetch(`${API_BASE}/admin-panel${endpoint}`, config);
 
   if (resp.status === 401 && AdminAuth.getRefresh()) {
-    const r = await fetch('/api/auth/token/refresh/', {
+    const r = await fetch(`${API_BASE}/auth/token/refresh/`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ refresh: AdminAuth.getRefresh() }),
@@ -387,7 +387,7 @@ async function adminRequest(method, endpoint, data = null) {
       localStorage.setItem('admin_access_token', access);
       headers['Authorization'] = `Bearer ${access}`;
       config.headers = headers;
-      resp = await fetch(`/api/admin-panel${endpoint}`, config);
+      resp = await fetch(`${API_BASE}/admin-panel${endpoint}`, config);
     } else {
       AdminAuth.clear();
       window.location.href = '/admin-login/';

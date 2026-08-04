@@ -70,35 +70,42 @@ async function handleAdminLogin(e) {
   const email = document.getElementById('email').value;
   const password = document.getElementById('password').value;
 
-  const resp = await fetch('/api/auth/login/', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email, password }),
-  });
-  const data = await resp.json();
-
-  if (resp.ok) {
-    // Verify user profile to check admin role
-    const profResp = await fetch('/api/auth/profile/', {
-      headers: { 'Authorization': `Bearer ${data.access}` },
+  try {
+    const resp = await fetch(`${API_BASE}/auth/login/`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password }),
     });
-    const profile = await profResp.json();
+    const data = await resp.json();
 
-    if (profile.role !== 'admin' && !profile.is_staff) {
-      err.textContent = 'This account does not have admin access.';
-      err.style.display = 'block';
-      btn.textContent = 'Access Admin Panel'; btn.disabled = false;
+    if (resp.ok) {
+      // Verify user profile to check admin role
+      const profResp = await fetch(`${API_BASE}/auth/profile/`, {
+        headers: { 'Authorization': `Bearer ${data.access}` },
+      });
+      const profile = await profResp.json();
+
+      if (profile.role !== 'admin' && !profile.is_staff) {
+        err.textContent = 'This account does not have admin access.';
+        err.style.display = 'block';
+        btn.textContent = 'Access Admin Panel'; btn.disabled = false;
+        return;
+      }
+
+      // Store admin-specific tokens (separate from customer tokens)
+      localStorage.setItem('admin_access_token', data.access);
+      localStorage.setItem('admin_refresh_token', data.refresh);
+      localStorage.setItem('admin_user', JSON.stringify(profile));
+
+      window.location.href = '/admin-dashboard/';
       return;
     }
 
-    // Store admin-specific tokens (separate from customer tokens)
-    localStorage.setItem('admin_access_token', data.access);
-    localStorage.setItem('admin_refresh_token', data.refresh);
-    localStorage.setItem('admin_user', JSON.stringify(profile));
-
-    window.location.href = '/admin-dashboard/';
-  } else {
-    err.textContent = data.detail || 'Invalid email or password.';
+    err.textContent = data?.detail || 'Invalid email or password.';
+    err.style.display = 'block';
+    btn.textContent = 'Access Admin Panel'; btn.disabled = false;
+  } catch (e) {
+    err.textContent = 'Could not reach the server. Please try again.';
     err.style.display = 'block';
     btn.textContent = 'Access Admin Panel'; btn.disabled = false;
   }
