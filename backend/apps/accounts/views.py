@@ -4,6 +4,9 @@ from rest_framework.response import Response
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import get_user_model
+from django.conf import settings
+from google.oauth2 import id_token as google_id_token
+from google.auth.transport import requests as google_requests
 from .serializers import (
     CustomTokenObtainPairSerializer, RegisterSerializer,
     UserSerializer, CustomerProfileSerializer, ChangePasswordSerializer
@@ -32,6 +35,59 @@ class RegisterView(generics.CreateAPIView):
             'access': str(refresh.access_token),
             'refresh': str(refresh),
         }, status=status.HTTP_201_CREATED)
+
+
+@api_view(['POST'])
+@permission_classes([permissions.AllowAny])
+def google_auth(request):
+    credential = request.data.get('credential')
+    if not credential:
+        return Response({'error': 'Missing credential.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    try:
+        payload = google_id_token.verify_oauth2_token(
+            credential, google_requests.Request(), settings.GOOGLE_CLIENT_ID
+        )
+    except ValueError:
+        return Response({'error': 'Invalid Google token.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    if not payload.get('email_verified'):
+        return Response({'error': 'Google email is not verified.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    email = payload['email']
+    user = User.objects.filter(email=email).first()
+
+    if not user:
+        role = request.data.get('role')
+        if role not in (User.Role.CUSTOMER, User.Role.BUSINESS_OWNER):
+            role = User.Role.CUSTOMER
+
+        base_username = email.split('@')[0]
+        username = base_username
+        suffix = 1
+        while User.objects.filter(username=username).exists():
+            suffix += 1
+            username = f'{base_username}{suffix}'
+
+        user = User(
+            email=email,
+            username=username,
+            first_name=payload.get('given_name', ''),
+            last_name=payload.get('family_name', ''),
+            role=role,
+            is_verified=True,
+        )
+        user.set_unusable_password()
+        user.save()
+        if user.is_customer:
+            CustomerProfile.objects.create(user=user)
+
+    refresh = RefreshToken.for_user(user)
+    return Response({
+        'user': UserSerializer(user).data,
+        'access': str(refresh.access_token),
+        'refresh': str(refresh),
+    })
 
 
 class ProfileView(generics.RetrieveUpdateAPIView):

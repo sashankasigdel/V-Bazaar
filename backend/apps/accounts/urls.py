@@ -6,6 +6,7 @@ urlpatterns = [
     path('login/', views.CustomTokenObtainPairView.as_view(), name='login'),
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('register/', views.RegisterView.as_view(), name='register'),
+    path('google/', views.google_auth, name='google_auth'),
     path('logout/', views.logout, name='logout'),
     path('profile/', views.ProfileView.as_view(), name='profile'),
     path('profile/customer/', views.CustomerProfileView.as_view(), name='customer_profile'),

@@ -1,5 +1,8 @@
 /* ===== BAZAAR — API Client ===== */
-const API_BASE = 'https://v-bazaar.onrender.com/api';
+const API_BASE = ['localhost', '127.0.0.1'].includes(location.hostname)
+  ? `${location.protocol}//${location.hostname}:8000/api`
+  : 'https://v-bazaar.onrender.com/api';
+const GOOGLE_CLIENT_ID = '866560142277-0htji2mqlg4r18395oqga97pln33420a.apps.googleusercontent.com';
 
 const Auth = {
   getToken: () => localStorage.getItem('access_token'),
@@ -50,6 +53,31 @@ const http = {
   delete: (ep) => http.request('DELETE', ep),
 };
 
+// Renders a "Sign in with Google" button into `buttonId` and routes successful
+// sign-ins through the same token/redirect flow as normal login/register.
+// `getRole` (optional) is called at click time to pick the role for new accounts.
+function initGoogleSignIn(buttonId, getRole) {
+  if (!window.google?.accounts?.id) return;
+  google.accounts.id.initialize({
+    client_id: GOOGLE_CLIENT_ID,
+    callback: async (resp) => {
+      const role = getRole ? getRole() : undefined;
+      const apiResp = await API.googleAuth(resp.credential, role);
+      if (apiResp.ok) {
+        Auth.setTokens(apiResp.data.access, apiResp.data.refresh);
+        Auth.setUser(apiResp.data.user);
+        UI.toast('Welcome to Bazaar! 🎉', 'success');
+        setTimeout(() => {
+          window.location.href = apiResp.data.user.role === 'business_owner' ? '/business-dashboard/' : '/';
+        }, 600);
+      } else {
+        UI.toast(apiResp.data?.error || 'Google sign-in failed', 'error');
+      }
+    },
+  });
+  google.accounts.id.renderButton(document.getElementById(buttonId), { theme: 'outline', size: 'large', width: 320 });
+}
+
 // Helper to build FormData from an object (needed for file uploads)
 function toFormData(obj) {
   const fd = new FormData();
@@ -63,6 +91,7 @@ function toFormData(obj) {
 const API = {
   login: (email, password) => http.post('/auth/login/', { email, password }),
   register: (data) => http.post('/auth/register/', data),
+  googleAuth: (credential, role) => http.post('/auth/google/', { credential, role }),
   logout: () => http.post('/auth/logout/', { refresh: Auth.getRefresh() }),
   getProfile: () => http.get('/auth/profile/'),
   updateProfile: (data) => http.put('/auth/profile/', data),

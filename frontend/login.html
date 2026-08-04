@@ -40,9 +40,8 @@
         </div>
         <button type="submit" id="submit-btn" class="btn btn-primary btn-lg" style="width:100%;justify-content:center;">Sign In</button>
       </form>
-      <div class="auth-divider">or try demo accounts</div>
-      <button onclick="demoLogin('customer')" class="btn btn-secondary" style="width:100%;justify-content:center;margin-bottom:0.75rem;">🧑 Customer Demo</button>
-      <button onclick="demoLogin('owner')" class="btn btn-secondary" style="width:100%;justify-content:center;">🏪 Business Owner Demo</button>
+      <div class="auth-divider">or continue with</div>
+      <div id="google-btn" style="display:flex;justify-content:center;"></div>
       <div class="auth-switch">Don't have an account? <a href="/register/">Create one free →</a></div>
       <div class="auth-switch" style="margin-top:0.5rem;">Want to list your business? <a href="/register/">Register as Business →</a></div>
     </div>
@@ -50,6 +49,7 @@
 </div>
 <div class="toast-container"></div>
 <script src="/js/app.js"></script>
+<script src="https://accounts.google.com/gsi/client" async defer onload="initGoogleSignIn('google-btn')"></script>
 <script>
 if (Auth.isLoggedIn()) {
   const u = Auth.getUser();
@@ -80,24 +80,6 @@ async function handleLogin(e) {
   }
 }
 
-async function demoLogin(type) {
-  const creds = type === 'customer' ? { email: 'customer1@bazaar.com', password: 'password123' } : { email: 'owner1@bazaar.com', password: 'password123' };
-  document.getElementById('email').value = creds.email;
-  document.getElementById('password').value = creds.password;
-  UI.toast('Demo credentials filled — signing in...', 'default');
-  const resp = await API.login(creds.email, creds.password);
-  if (resp.ok) {
-    Auth.setTokens(resp.data.access, resp.data.refresh);
-    const p = await API.getProfile();
-    if (p.ok) {
-      Auth.setUser(p.data);
-      setTimeout(() => { window.location.href = p.data.role === 'business_owner' ? '/business-dashboard/' : '/'; }, 600);
-    }
-  } else {
-    document.getElementById('err').textContent = 'Demo login failed. Please run seed_data first.';
-    document.getElementById('err').style.display = 'block';
-  }
-}
 </script>
 </body>
 </html>
