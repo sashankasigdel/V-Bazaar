@@ -171,6 +171,7 @@ body { font-family: var(--font-body); background: #0F1623; color: white; margin:
       <div class="admin-nav-item" onclick="showSection('orders', this)"><span class="nav-icon">📦</span> Orders</div>
       <div class="admin-nav-item" onclick="showSection('reviews', this)"><span class="nav-icon">⭐</span> Reviews</div>
       <div class="admin-nav-item" onclick="showSection('categories', this)"><span class="nav-icon">🏷️</span> Categories</div>
+      <div class="admin-nav-item" onclick="showSection('advertisements', this)"><span class="nav-icon">📢</span> Advertisements</div>
     </nav>
     <div class="admin-user-info">
       <div class="admin-avatar" id="admin-avatar">A</div>
@@ -316,6 +317,23 @@ body { font-family: var(--font-body); background: #0F1623; color: white; margin:
         </div>
       </div>
 
+      <!-- ADVERTISEMENTS -->
+      <div id="sec-advertisements" style="display:none;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;">
+          <h2 style="font-family:var(--font-body);font-weight:700;font-size:1.1rem;">Advertisements</h2>
+          <button onclick="openAdModal()" style="background:var(--saffron);color:white;border:none;padding:0.5rem 1.25rem;border-radius:8px;font-size:0.875rem;font-weight:600;cursor:pointer;">+ Add Advertisement</button>
+        </div>
+        <p style="font-size:0.82rem;color:rgba(255,255,255,0.4);margin-bottom:1rem;">Up to 5 active ads show as a scrollable banner on the homepage. Toggle any off to swap it out.</p>
+        <div class="admin-card">
+          <div style="overflow-x:auto;">
+            <table class="admin-table">
+              <thead><tr><th>Image</th><th>Business</th><th>Active</th><th>Actions</th></tr></thead>
+              <tbody id="ads-table-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
     </div>
   </main>
 </div>
@@ -333,6 +351,23 @@ body { font-family: var(--font-body); background: #0F1623; color: white; margin:
     <div style="display:flex;gap:0.75rem;justify-content:flex-end;margin-top:1rem;">
       <button onclick="closeCatModal()" style="background:rgba(255,255,255,0.06);color:white;border:1px solid rgba(255,255,255,0.1);padding:0.5rem 1.25rem;border-radius:8px;font-size:0.875rem;cursor:pointer;">Cancel</button>
       <button onclick="createCategory()" style="background:var(--saffron);color:white;border:none;padding:0.5rem 1.25rem;border-radius:8px;font-size:0.875rem;font-weight:600;cursor:pointer;">Create Category</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADVERTISEMENT MODAL -->
+<div class="admin-modal-overlay" id="ad-modal">
+  <div class="admin-modal">
+    <h3>Add New Advertisement</h3>
+    <label style="font-size:0.82rem;color:rgba(255,255,255,0.5);display:block;margin-bottom:0.4rem;">Business (must already be registered)</label>
+    <input class="admin-input" type="text" id="ad-biz-search" placeholder="Search by business name or ID..." oninput="filterAdBizOptions(this.value)">
+    <div id="ad-biz-options" style="max-height:160px;overflow-y:auto;margin-bottom:0.75rem;"></div>
+    <div id="ad-biz-selected" style="display:none;background:rgba(232,99,10,0.12);color:var(--saffron);border-radius:8px;padding:0.5rem 0.75rem;font-size:0.85rem;font-weight:600;margin-bottom:1rem;"></div>
+    <label style="font-size:0.82rem;color:rgba(255,255,255,0.5);display:block;margin-bottom:0.4rem;">Graphic (image file)</label>
+    <input class="admin-input" type="file" id="ad-image" accept="image/*">
+    <div style="display:flex;gap:0.75rem;justify-content:flex-end;margin-top:1rem;">
+      <button onclick="closeAdModal()" style="background:rgba(255,255,255,0.06);color:white;border:1px solid rgba(255,255,255,0.1);padding:0.5rem 1.25rem;border-radius:8px;font-size:0.875rem;cursor:pointer;">Cancel</button>
+      <button onclick="createAdvertisement()" style="background:var(--saffron);color:white;border:none;padding:0.5rem 1.25rem;border-radius:8px;font-size:0.875rem;font-weight:600;cursor:pointer;">Create Advertisement</button>
     </div>
   </div>
 </div>
@@ -368,11 +403,11 @@ if (adminUser) {
 }
 
 // Admin-specific HTTP client with its own token and auto-refresh
-async function adminRequest(method, endpoint, data = null) {
+async function adminRequest(method, endpoint, data = null, isForm = false) {
   const headers = { 'Authorization': `Bearer ${AdminAuth.getToken()}` };
-  if (data) headers['Content-Type'] = 'application/json';
+  if (data && !isForm) headers['Content-Type'] = 'application/json';
   const config = { method, headers };
-  if (data) config.body = JSON.stringify(data);
+  if (data) config.body = isForm ? data : JSON.stringify(data);
 
   let resp = await fetch(`${API_BASE}/admin-panel${endpoint}`, config);
 
@@ -403,7 +438,7 @@ async function adminRequest(method, endpoint, data = null) {
 const AdminAPI = {
   get: (ep) => adminRequest('GET', ep),
   patch: (ep, d) => adminRequest('PATCH', ep, d),
-  post: (ep, d) => adminRequest('POST', ep, d),
+  post: (ep, d, f) => adminRequest('POST', ep, d, f),
   delete: (ep) => adminRequest('DELETE', ep),
 };
 
@@ -429,12 +464,12 @@ let bizData = [], userData = [], orderData = [], reviewData = [];
 let bizFilter = '', userFilter = '', orderFilter = '';
 
 function showSection(name, btn) {
-  ['dashboard','businesses','users','orders','reviews','categories'].forEach(s => {
+  ['dashboard','businesses','users','orders','reviews','categories','advertisements'].forEach(s => {
     document.getElementById('sec-'+s).style.display = s===name?'block':'none';
   });
   document.querySelectorAll('.admin-nav-item').forEach(i => i.classList.remove('active'));
   if (btn) btn.classList.add('active');
-  const titles = { dashboard:'Dashboard', businesses:'Businesses', users:'Users', orders:'Orders', reviews:'Reviews', categories:'Categories' };
+  const titles = { dashboard:'Dashboard', businesses:'Businesses', users:'Users', orders:'Orders', reviews:'Reviews', categories:'Categories', advertisements:'Advertisements' };
   document.getElementById('page-title').textContent = titles[name] || name;
   currentSection = name;
   document.getElementById('last-updated').textContent = 'Updated ' + new Date().toLocaleTimeString();
@@ -444,6 +479,7 @@ function showSection(name, btn) {
   if (name==='orders') loadOrders();
   if (name==='reviews') loadReviews();
   if (name==='categories') loadCategories();
+  if (name==='advertisements') loadAdvertisements();
 }
 
 function refreshCurrentSection() { showSection(currentSection, document.querySelector('.admin-nav-item.active')); }
@@ -584,7 +620,8 @@ function filterBiz(status, btn) {
 }
 
 function searchBiz(q) {
-  const filtered = bizData.filter(b => b.name.toLowerCase().includes(q.toLowerCase()) || b.owner_email.toLowerCase().includes(q.toLowerCase()));
+  const query = q.toLowerCase().trim();
+  const filtered = bizData.filter(b => b.name.toLowerCase().includes(query) || b.owner_email.toLowerCase().includes(query) || String(b.id) === query);
   renderBizTable(filtered);
 }
 
@@ -766,7 +803,7 @@ async function loadCategories() {
   if (!resp.data.length) { tbody.innerHTML = '<tr><td colspan="5"><div class="admin-empty"><p>No categories</p></div></td></tr>'; return; }
   tbody.innerHTML = resp.data.map(c => `
     <tr>
-      <td><span style="font-size:1.5rem;">${c.icon}</span></td>
+      <td>${categoryIcon(c.slug, 24)}</td>
       <td><span style="font-weight:600;">${c.name}</span></td>
       <td><span style="font-size:0.78rem;color:rgba(255,255,255,0.4);">${c.slug}</span></td>
       <td><span style="font-size:0.875rem;">${c.business_count} businesses</span></td>
@@ -797,6 +834,79 @@ async function deleteCategory(id, name) {
 // Close modal on outside click
 document.getElementById('cat-modal').addEventListener('click', function(e) {
   if (e.target === this) closeCatModal();
+});
+
+// ===== ADVERTISEMENTS =====
+let adSelectedBizId = null;
+
+async function loadAdvertisements() {
+  const resp = await AdminAPI.get('/advertisements/');
+  if (!resp.ok) return;
+  const tbody = document.getElementById('ads-table-body');
+  if (!resp.data.length) { tbody.innerHTML = '<tr><td colspan="4"><div class="admin-empty"><p>No advertisements yet</p></div></td></tr>'; return; }
+  tbody.innerHTML = resp.data.map(a => `
+    <tr>
+      <td>${a.image ? `<img src="${a.image}" style="width:70px;height:36px;object-fit:cover;border-radius:6px;">` : '—'}</td>
+      <td><span style="font-weight:600;">${a.business_name}</span></td>
+      <td><label class="toggle-switch"><input type="checkbox" ${a.is_active?'checked':''} onchange="toggleAdActive(${a.id}, this.checked)"><span class="toggle-slider"></span></label></td>
+      <td><button class="act-btn act-delete" onclick="deleteAdvertisement(${a.id}, '${a.business_name}')">Delete</button></td>
+    </tr>`).join('');
+}
+
+function openAdModal() {
+  adSelectedBizId = null;
+  document.getElementById('ad-biz-search').value = '';
+  document.getElementById('ad-biz-options').innerHTML = '';
+  document.getElementById('ad-biz-selected').style.display = 'none';
+  document.getElementById('ad-image').value = '';
+  document.getElementById('ad-modal').style.display = 'flex';
+  if (!bizData.length) loadBusinesses();
+}
+function closeAdModal() { document.getElementById('ad-modal').style.display = 'none'; }
+
+function filterAdBizOptions(q) {
+  const box = document.getElementById('ad-biz-options');
+  const query = q.trim().toLowerCase();
+  if (!query) { box.innerHTML = ''; return; }
+  const matches = bizData.filter(b => b.name.toLowerCase().includes(query) || String(b.id) === query).slice(0, 8);
+  box.innerHTML = matches.map(b => `<div onclick="selectAdBusiness(${b.id}, '${b.name.replace(/'/g,"&#39;")}')" style="padding:0.5rem 0.75rem;border-radius:6px;cursor:pointer;font-size:0.85rem;" onmouseover="this.style.background='rgba(255,255,255,0.06)'" onmouseout="this.style.background='transparent'">#${b.id} — ${b.name}</div>`).join('') || '<div style="padding:0.5rem 0.75rem;font-size:0.82rem;color:rgba(255,255,255,0.4);">No matches</div>';
+}
+
+function selectAdBusiness(id, name) {
+  adSelectedBizId = id;
+  document.getElementById('ad-biz-options').innerHTML = '';
+  document.getElementById('ad-biz-search').value = '';
+  const sel = document.getElementById('ad-biz-selected');
+  sel.textContent = `Selected: #${id} — ${name}`;
+  sel.style.display = 'block';
+}
+
+async function createAdvertisement() {
+  const file = document.getElementById('ad-image').files[0];
+  if (!adSelectedBizId) { toast('Select a business first', 'error'); return; }
+  if (!file) { toast('Choose an image', 'error'); return; }
+  const fd = new FormData();
+  fd.append('business_id', adSelectedBizId);
+  fd.append('image', file);
+  const resp = await AdminAPI.post('/advertisements/create/', fd, true);
+  if (resp.ok) { toast('Advertisement created!', 'success'); closeAdModal(); loadAdvertisements(); }
+  else toast(resp.data?.error || 'Failed to create', 'error');
+}
+
+async function toggleAdActive(id, active) {
+  const resp = await AdminAPI.patch(`/advertisements/${id}/`, { is_active: active });
+  if (!resp.ok) toast('Failed to update', 'error');
+}
+
+async function deleteAdvertisement(id, name) {
+  if (!confirm(`Delete the advertisement for "${name}"?`)) return;
+  const resp = await AdminAPI.delete(`/advertisements/${id}/delete/`);
+  if (resp.ok) { toast('Advertisement deleted', 'success'); loadAdvertisements(); }
+  else toast('Delete failed', 'error');
+}
+
+document.getElementById('ad-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeAdModal();
 });
 
 // Init

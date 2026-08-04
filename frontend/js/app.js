@@ -4,6 +4,28 @@ const API_BASE = ['localhost', '127.0.0.1'].includes(location.hostname)
   : 'https://v-bazaar.onrender.com/api';
 const GOOGLE_CLIENT_ID = '866560142277-0htji2mqlg4r18395oqga97pln33420a.apps.googleusercontent.com';
 
+// ===== Brand-colored category icons (replace multicolor emoji everywhere) =====
+const CATEGORY_ICON_PATHS = {
+  restaurants: '<path d="M6 2v6c0 1.1.9 2 2 2s2-.9 2-2V2"/><path d="M8 10v12"/><path d="M17 2v20"/><path d="M14 2c0 3 1 5 3 5s3-2 3-5"/>',
+  cafes: '<path d="M4 8h13v6a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5V8z"/><path d="M17 9h1.5a2.5 2.5 0 0 1 0 5H17"/><path d="M8 2c0 1-1 1-1 2s1 1 1 2"/><path d="M12 2c0 1-1 1-1 2s1 1 1 2"/>',
+  grocery: '<path d="M3 8h18l-2 11a2 2 0 0 1-2 1.7H7A2 2 0 0 1 5 19L3 8z"/><path d="M8 8 6 3"/><path d="M16 8l2-5"/><path d="M9 12v5"/><path d="M15 12v5"/>',
+  clothing: '<path d="M8 3 4 6l2 3 2-1v11h8V8l2 1 2-3-4-3-2 2h-4L8 3z"/>',
+  electronics: '<rect x="7" y="2" width="10" height="20" rx="2"/><line x1="11" y1="18" x2="13" y2="18"/>',
+  salons: '<circle cx="6" cy="6" r="2.5"/><circle cx="6" cy="18" r="2.5"/><line x1="20" y1="4" x2="8.5" y2="15.5"/><line x1="8.5" y1="8.5" x2="20" y2="20"/>',
+  pharmacies: '<rect x="9" y="3" width="6" height="18" rx="1.5"/><rect x="3" y="9" width="18" height="6" rx="1.5"/>',
+  hotels: '<path d="M3 18v-6a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v6"/><path d="M3 18v2"/><path d="M21 18v2"/><path d="M3 12V8a2 2 0 0 1 2-2h4v4"/><circle cx="7" cy="8" r="1.3"/>',
+  repair: '<path d="M14.7 6.3a4 4 0 1 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.8 2.8-2-2 2.8-2.8z"/>',
+  education: '<path d="M12 3 2 8l10 5 10-5-10-5z"/><path d="M6 10.5V16c0 1.5 3 3 6 3s6-1.5 6-3v-5.5"/>',
+  hospitals: '<circle cx="12" cy="12" r="9"/><path d="M12 8v8"/><path d="M8 12h8"/>',
+  sports: '<path d="M6 7v10"/><path d="M4 9v6"/><path d="M18 7v10"/><path d="M20 9v6"/><path d="M6 12h12"/>',
+  default: '<path d="M3 9l1-5h16l1 5"/><path d="M3 9v10a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1V9"/><path d="M3 9h18"/><path d="M9 20v-6h6v6"/>',
+};
+
+function categoryIcon(slug, sizePx = 24) {
+  const inner = CATEGORY_ICON_PATHS[slug] || CATEGORY_ICON_PATHS.default;
+  return `<svg width="${sizePx}" height="${sizePx}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="color:var(--saffron);vertical-align:middle;">${inner}</svg>`;
+}
+
 const Auth = {
   getToken: () => localStorage.getItem('access_token'),
   getRefresh: () => localStorage.getItem('refresh_token'),
@@ -101,6 +123,7 @@ const API = {
   getBusinesses: (params = {}) => http.get(`/businesses/?${new URLSearchParams(params)}`),
   getBusiness: (slug) => http.get(`/businesses/${slug}/`),
   getFeatured: () => http.get('/businesses/featured/'),
+  getAdvertisements: () => http.get('/businesses/advertisements/'),
   getNearby: (lat, lon, radius = 5) => http.get(`/businesses/nearby/?lat=${lat}&lon=${lon}&radius=${radius}`),
   getCategories: () => http.get('/businesses/categories/'),
   getMyBusinesses: () => http.get('/businesses/my/'),
@@ -197,7 +220,7 @@ function renderBusinessCard(b, lat = null, lon = null) {
       ${b.banner ? `<img src="${b.banner}" alt="${b.name}" loading="lazy">` : `<div style="width:100%;height:100%;background:linear-gradient(135deg,#FFF0E8,#FDE8D0);"></div>`}
       ${b.is_open !== null ? `<div class="card-badge"><span class="${b.is_open ? 'badge-open' : 'badge-closed'}">●</span> ${b.is_open ? 'Open' : 'Closed'}</div>` : ''}
       <button class="card-save-btn ${b.is_saved ? 'saved' : ''}" onclick="event.stopPropagation();handleToggleSave(${b.id},this)">♥</button>
-      <div class="card-logo">${b.logo ? `<img src="${b.logo}" alt="">` : (b.category_icon || '🏪')}</div>
+      <div class="card-logo">${b.logo ? `<img src="${b.logo}" alt="">` : categoryIcon(b.category_slug)}</div>
     </div>
     <div class="card-body">
       <div class="card-category">${b.category_name || 'Business'}</div>
@@ -211,15 +234,17 @@ function renderBusinessCard(b, lat = null, lon = null) {
   </div>`;
 }
 
-function renderProductCard(p, businessId, businessName) {
+function renderProductCard(p, businessId, businessName, categorySlug = null, acceptsOrders = true) {
   return `<div class="product-card">
-    <div class="product-img">${p.image ? `<img src="${p.image}" alt="${p.name}" loading="lazy">` : '🍽️'}</div>
+    <div class="product-img">${p.image ? `<img src="${p.image}" alt="${p.name}" loading="lazy">` : categoryIcon(categorySlug, 32)}</div>
     <div class="product-body">
       <div class="product-name">${p.name}</div>
       ${p.description ? `<div class="product-desc">${p.description.substring(0,80)}...</div>` : ''}
       <div class="product-footer">
         <div class="product-price">${UI.formatPrice(p.effective_price)}</div>
-        ${p.is_available && p.in_stock
+        ${!acceptsOrders
+          ? `<span style="font-size:0.75rem;color:var(--danger);font-weight:600;">Not accepting orders</span>`
+          : p.is_available && p.in_stock
           ? `<button class="add-to-cart-btn" onclick='addToCart(${JSON.stringify(p)},${businessId},"${businessName}")'>+</button>`
           : `<span style="font-size:0.75rem;color:var(--danger);font-weight:600;">Out of Stock</span>`}
       </div>

@@ -24,7 +24,7 @@ input[type=range]{width:100%;accent-color:var(--saffron);}
   </div>
   <div class="navbar-actions">
     <span data-guest-only><a href="/login/" class="btn-nav">Sign in</a></span>
-    <span data-auth-required style="display:none;"><a href="/dashboard/" class="btn-nav">📦 My Orders</a> <a href="/business-dashboard/" class="btn-nav" data-owner-only style="display:none;background:var(--emerald);">🏪 My Business</a></span>
+    <span data-auth-required style="display:none;"><a href="/dashboard/#profile" class="btn-nav">👤 My Profile</a> <a href="/business-dashboard/" class="btn-nav" data-owner-only style="display:none;background:var(--emerald);">🏪 My Business</a></span>
   </div>
 </nav>
 
@@ -97,7 +97,7 @@ async function loadCats() {
   const resp = await API.getCategories();
   if (!resp.ok) return;
   document.getElementById('cat-filters').innerHTML = (resp.data.results || resp.data).map(c =>
-    `<label class="filter-opt"><input type="checkbox" name="cat" value="${c.slug}" onchange="doSearch()"> ${c.icon} ${c.name}</label>`
+    `<label class="filter-opt"><input type="checkbox" name="cat" value="${c.slug}" onchange="doSearch()"> ${categoryIcon(c.slug, 16)} ${c.name}</label>`
   ).join('');
 }
 

@@ -13,9 +13,8 @@
   <div class="navbar-search"><span class="search-icon">🔍</span><input type="text" placeholder="Search..." onkeydown="if(event.key==='Enter')window.location.href='/search/?q='+this.value"></div>
   <div class="navbar-actions">
     <a href="/" class="nav-link">← Back</a>
-    <button class="nav-link" onclick="openCart()" style="position:relative;">🛒 Cart <span class="cart-count" style="position:absolute;top:-4px;right:-4px;background:var(--saffron);color:white;border-radius:50%;width:18px;height:18px;font-size:0.65rem;font-weight:700;display:none;align-items:center;justify-content:center;"></span></button>
     <span data-guest-only><a href="/login/" class="btn-nav">Sign in</a></span>
-    <span data-auth-required style="display:none;"><a href="/dashboard/" class="btn-nav">📦 My Orders</a> <a href="/business-dashboard/" class="btn-nav" data-owner-only style="display:none;background:var(--emerald);">🏪 My Business</a></span>
+    <span data-auth-required style="display:none;"><a href="/dashboard/#profile" class="btn-nav">👤 My Profile</a> <a href="/business-dashboard/" class="btn-nav" data-owner-only style="display:none;background:var(--emerald);">🏪 My Business</a></span>
   </div>
 </nav>
 
@@ -106,7 +105,7 @@
       <div style="position:sticky;top:80px;">
         <div class="dash-card">
           <h4 style="font-family:var(--font-body);margin-bottom:0.25rem;">Order from here</h4>
-          <p style="font-size:0.82rem;color:var(--slate-light);margin-bottom:1rem;">Add items from the menu</p>
+          <p id="order-subtitle" style="font-size:0.82rem;color:var(--slate-light);margin-bottom:1rem;">Add items from the menu</p>
           <div id="mini-cart" style="max-height:220px;overflow-y:auto;margin-bottom:1rem;"></div>
           <div id="mini-total" style="display:none;border-top:1px solid var(--border);padding-top:0.75rem;margin-bottom:0.75rem;">
             <div style="display:flex;justify-content:space-between;font-size:0.875rem;"><span>Subtotal</span><span id="mini-sub" style="font-weight:700;color:var(--saffron);"></span></div>
@@ -123,17 +122,6 @@
   </div>
 </div>
 
-<div class="cart-drawer" id="cart-drawer">
-  <div class="cart-header"><h3 style="font-family:var(--font-body);font-size:1rem;font-weight:700;">Cart</h3><button onclick="closeCart()" style="font-size:1.2rem;color:var(--slate-light);">✕</button></div>
-  <div class="cart-items" id="cart-items"></div>
-  <div class="cart-footer">
-    <div class="cart-total-row"><span>Subtotal</span><span id="cs">Rs. 0</span></div>
-    <div class="cart-total-row"><span>Delivery</span><span>Rs. 50</span></div>
-    <div class="cart-total-row cart-total-main" style="padding-top:0.5rem;border-top:1px solid var(--border);margin-top:0.25rem;"><span>Total</span><span id="ct">Rs. 50</span></div>
-    <button class="btn btn-primary" style="width:100%;margin-top:1rem;justify-content:center;" onclick="goCheckout()">Checkout →</button>
-  </div>
-</div>
-<div id="cart-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.3);z-index:199;" onclick="closeCart()"></div>
 <div class="toast-container"></div>
 
 <script src="/js/app.js"></script>
@@ -162,13 +150,14 @@ function render() {
   if (b.banner) { const img = document.getElementById('banner'); img.src = b.banner; img.style.display = 'block'; document.getElementById('banner-placeholder').style.display = 'none'; }
   const logoEl = document.getElementById('logo');
   if (b.logo) logoEl.innerHTML = `<img src="${b.logo}" style="width:100%;height:100%;object-fit:cover;">`;
-  else logoEl.textContent = b.category?.icon || '🏪';
+  else logoEl.innerHTML = categoryIcon(b.category?.slug, 40);
   document.getElementById('biz-name').textContent = b.name;
   document.getElementById('biz-short').textContent = b.short_description || '';
   document.getElementById('biz-desc').textContent = b.description || '';
   document.getElementById('biz-addr').textContent = `${b.address}, ${b.city}`;
-  document.getElementById('biz-cat').textContent = `${b.category?.icon || ''} ${b.category?.name || 'Business'}`;
+  document.getElementById('biz-cat').innerHTML = `${categoryIcon(b.category?.slug, 16)} ${b.category?.name || 'Business'}`;
   if (b.is_open !== null) document.getElementById('biz-status').innerHTML = b.is_open ? '<span style="color:var(--success);">● Open Now</span>' : '<span style="color:var(--danger);">● Closed</span>';
+  if (b.accepts_orders === false) document.getElementById('order-subtitle').innerHTML = '<span style="color:var(--danger);font-weight:600;">Not accepting orders right now</span>';
   document.getElementById('biz-rating').textContent = b.average_rating > 0 ? `⭐ ${parseFloat(b.average_rating).toFixed(1)} (${b.total_reviews})` : '☆ No reviews';
   document.getElementById('avg-big').textContent = b.average_rating > 0 ? parseFloat(b.average_rating).toFixed(1) : '—';
   document.getElementById('avg-stars').textContent = b.average_rating > 0 ? UI.stars(b.average_rating) : '☆☆☆☆☆';
@@ -218,8 +207,8 @@ async function loadProducts() {
   const resp = await API.getProducts(slug);
   const grid = document.getElementById('products-grid');
   const prods = resp.data?.results || resp.data || [];
-  if (!prods.length) { grid.innerHTML = '<div class="empty-state" style="padding:2rem;"><div class="empty-icon">🍽️</div><h3>No products listed</h3></div>'; return; }
-  grid.innerHTML = prods.map(p => renderProductCard(p, biz.id, biz.name)).join('');
+  if (!prods.length) { grid.innerHTML = `<div class="empty-state" style="padding:2rem;"><div class="empty-icon">${categoryIcon(biz.category?.slug, 40)}</div><h3>No products listed</h3></div>`; return; }
+  grid.innerHTML = prods.map(p => renderProductCard(p, biz.id, biz.name, biz.category?.slug, biz.accepts_orders)).join('');
 }
 
 async function loadReviews() {
@@ -284,17 +273,6 @@ window.addToCart = function(p, bizId, bizName) {
   const ok = Cart.add(p, bizId, bizName);
   if (ok) { UI.toast(`${p.name} added!`, 'success'); updateCartBadge(); renderMiniCart(); }
 };
-
-function openCart() { renderCartDrawer(); document.getElementById('cart-drawer').classList.add('open'); document.getElementById('cart-overlay').style.display = 'block'; }
-function closeCart() { document.getElementById('cart-drawer').classList.remove('open'); document.getElementById('cart-overlay').style.display = 'none'; }
-function renderCartDrawer() {
-  const cart = Cart.get(); const c = document.getElementById('cart-items');
-  if (!cart.items.length) { c.innerHTML = '<div class="empty-state" style="padding:2rem;"><div class="empty-icon">🛒</div><h3 style="font-size:1rem;">Cart is empty</h3></div>'; return; }
-  c.innerHTML = cart.items.map(i=>`<div class="cart-item"><div style="flex:1;"><div class="cart-item-name">${i.name}</div><div class="cart-item-price">${UI.formatPrice(i.price)}</div><div class="qty-control"><button class="qty-btn" onclick="Cart.updateQty(${i.id},${i.qty-1});renderCartDrawer();updateCartBadge();renderMiniCart();">−</button><span class="qty-num">${i.qty}</span><button class="qty-btn" onclick="Cart.updateQty(${i.id},${i.qty+1});renderCartDrawer();updateCartBadge();renderMiniCart();">+</button></div></div></div>`).join('');
-  const sub=cart.items.reduce((s,i)=>s+i.price*i.qty,0);
-  document.getElementById('cs').textContent=UI.formatPrice(sub);
-  document.getElementById('ct').textContent=UI.formatPrice(sub+50);
-}
 
 init();
 </script>
