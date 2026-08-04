@@ -2,10 +2,10 @@ from rest_framework import generics, permissions, status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from django.contrib.auth import get_user_model
-from django.db.models import Count, Sum
+from django.db.models import Count, Sum, Q
 from django.utils import timezone
 from datetime import timedelta
-from apps.businesses.models import Business, BusinessCategory
+from apps.businesses.models import Business, BusinessCategory, Advertisement
 from apps.orders.models import Order
 from apps.reviews.models import Review
 from apps.products.models import Product
@@ -69,7 +69,10 @@ def admin_businesses(request):
     if status_filter:
         qs = qs.filter(status=status_filter)
     if search:
-        qs = qs.filter(name__icontains=search)
+        q = Q(name__icontains=search)
+        if search.isdigit():
+            q |= Q(id=int(search))
+        qs = qs.filter(q)
     qs = qs.order_by('-created_at')
 
     data = []
@@ -262,4 +265,59 @@ def admin_delete_category(request, pk):
         BusinessCategory.objects.get(pk=pk).delete()
         return Response({'message': 'Category deleted.'})
     except BusinessCategory.DoesNotExist:
+        return Response({'error': 'Not found.'}, status=404)
+
+
+@api_view(['GET'])
+@permission_classes([IsAdminUser])
+def admin_advertisements(request):
+    ads = Advertisement.objects.select_related('business').all()
+    data = [{
+        'id': a.id,
+        'image': a.image.url if a.image else None,
+        'business_id': a.business_id,
+        'business_name': a.business.name,
+        'is_active': a.is_active,
+        'order': a.order,
+    } for a in ads]
+    return Response(data)
+
+
+@api_view(['POST'])
+@permission_classes([IsAdminUser])
+def admin_create_advertisement(request):
+    business_id = request.data.get('business_id')
+    image = request.data.get('image')
+    if not business_id or not image:
+        return Response({'error': 'business_id and image are required.'}, status=400)
+    try:
+        business = Business.objects.get(pk=business_id)
+    except Business.DoesNotExist:
+        return Response({'error': 'Business not found.'}, status=404)
+    ad = Advertisement.objects.create(business=business, image=image)
+    return Response({'id': ad.id, 'business_name': business.name}, status=201)
+
+
+@api_view(['PATCH'])
+@permission_classes([IsAdminUser])
+def admin_update_advertisement(request, pk):
+    try:
+        ad = Advertisement.objects.get(pk=pk)
+        if 'is_active' in request.data:
+            ad.is_active = request.data['is_active']
+        if 'order' in request.data:
+            ad.order = request.data['order']
+        ad.save()
+        return Response({'id': ad.id, 'is_active': ad.is_active, 'order': ad.order})
+    except Advertisement.DoesNotExist:
+        return Response({'error': 'Not found.'}, status=404)
+
+
+@api_view(['DELETE'])
+@permission_classes([IsAdminUser])
+def admin_delete_advertisement(request, pk):
+    try:
+        Advertisement.objects.get(pk=pk).delete()
+        return Response({'message': 'Advertisement deleted.'})
+    except Advertisement.DoesNotExist:
         return Response({'error': 'Not found.'}, status=404)

@@ -15,4 +15,8 @@ urlpatterns = [
     path('categories/', admin_views.admin_categories, name='admin_categories'),
     path('categories/create/', admin_views.admin_create_category, name='admin_create_category'),
     path('categories/<int:pk>/delete/', admin_views.admin_delete_category, name='admin_delete_category'),
+    path('advertisements/', admin_views.admin_advertisements, name='admin_advertisements'),
+    path('advertisements/create/', admin_views.admin_create_advertisement, name='admin_create_advertisement'),
+    path('advertisements/<int:pk>/', admin_views.admin_update_advertisement, name='admin_update_advertisement'),
+    path('advertisements/<int:pk>/delete/', admin_views.admin_delete_advertisement, name='admin_delete_advertisement'),
 ]

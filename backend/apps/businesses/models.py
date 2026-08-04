@@ -48,6 +48,7 @@ class Business(models.Model):
     instagram = models.URLField(blank=True)
     status = models.CharField(max_length=20, choices=Status.choices, default=Status.ACTIVE)
     is_featured = models.BooleanField(default=False)
+    accepts_orders = models.BooleanField(default=True)
     average_rating = models.DecimalField(max_digits=3, decimal_places=2, default=0)
     total_reviews = models.IntegerField(default=0)
     total_orders = models.IntegerField(default=0)
@@ -111,3 +112,18 @@ class BusinessGallery(models.Model):
     class Meta:
         db_table = 'business_gallery'
         ordering = ['order']
+
+
+class Advertisement(models.Model):
+    business = models.ForeignKey(Business, on_delete=models.CASCADE, related_name='advertisements')
+    image = models.ImageField(upload_to='advertisements/')
+    is_active = models.BooleanField(default=True)
+    order = models.PositiveIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'advertisements'
+        ordering = ['order', '-created_at']
+
+    def __str__(self):
+        return f"Ad for {self.business.name}"

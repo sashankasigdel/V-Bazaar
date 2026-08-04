@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Business, BusinessCategory, BusinessHours, BusinessGallery
+from .models import Business, BusinessCategory, BusinessHours, BusinessGallery, Advertisement
 from datetime import datetime
 
 
@@ -31,13 +31,14 @@ class BusinessGallerySerializer(serializers.ModelSerializer):
 class BusinessListSerializer(serializers.ModelSerializer):
     category_name = serializers.CharField(source='category.name', read_only=True)
     category_icon = serializers.CharField(source='category.icon', read_only=True)
+    category_slug = serializers.CharField(source='category.slug', read_only=True)
     distance = serializers.SerializerMethodField()
     is_open = serializers.SerializerMethodField()
     is_saved = serializers.SerializerMethodField()
 
     class Meta:
         model = Business
-        fields = ['id', 'name', 'slug', 'category_name', 'category_icon', 'logo', 'banner',
+        fields = ['id', 'name', 'slug', 'category_name', 'category_icon', 'category_slug', 'logo', 'banner',
                   'short_description', 'address', 'city', 'latitude', 'longitude',
                   'average_rating', 'total_reviews', 'is_featured',
                   'distance', 'is_open', 'is_saved', 'status', 'phone']
@@ -90,7 +91,7 @@ class BusinessDetailSerializer(serializers.ModelSerializer):
         fields = ['id', 'name', 'slug', 'category', 'description', 'short_description',
                   'logo', 'banner', 'address', 'city', 'state', 'latitude', 'longitude',
                   'phone', 'whatsapp', 'email', 'website', 'facebook', 'instagram',
-                  'status', 'is_featured', 'average_rating', 'total_reviews', 'total_orders',
+                  'status', 'is_featured', 'accepts_orders', 'average_rating', 'total_reviews', 'total_orders',
                   'hours', 'gallery', 'is_open', 'is_saved', 'distance', 'created_at']
 
     def get_is_open(self, obj):
@@ -132,7 +133,7 @@ class BusinessCreateUpdateSerializer(serializers.ModelSerializer):
         model = Business
         fields = ['name', 'category', 'description', 'short_description', 'logo', 'banner',
                   'address', 'city', 'state', 'latitude', 'longitude',
-                  'phone', 'whatsapp', 'email', 'website', 'facebook', 'instagram']
+                  'phone', 'whatsapp', 'email', 'website', 'facebook', 'instagram', 'accepts_orders']
 
     def create(self, validated_data):
         from django.utils.text import slugify
@@ -145,3 +146,12 @@ class BusinessCreateUpdateSerializer(serializers.ModelSerializer):
         validated_data['slug'] = slug
         validated_data['owner'] = self.context['request'].user
         return super().create(validated_data)
+
+
+class AdvertisementSerializer(serializers.ModelSerializer):
+    business_name = serializers.CharField(source='business.name', read_only=True)
+    business_slug = serializers.CharField(source='business.slug', read_only=True)
+
+    class Meta:
+        model = Advertisement
+        fields = ['id', 'image', 'business_name', 'business_slug', 'is_active', 'order']

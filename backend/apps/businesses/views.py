@@ -2,11 +2,11 @@ from rest_framework import generics, permissions, status, filters
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
-from .models import Business, BusinessCategory, BusinessHours, BusinessGallery
+from .models import Business, BusinessCategory, BusinessHours, BusinessGallery, Advertisement
 from .serializers import (
     BusinessListSerializer, BusinessDetailSerializer,
     BusinessCreateUpdateSerializer, BusinessCategorySerializer,
-    BusinessHoursSerializer, BusinessGallerySerializer
+    BusinessHoursSerializer, BusinessGallerySerializer, AdvertisementSerializer
 )
 import math
 
@@ -148,6 +148,14 @@ class BusinessGalleryDeleteView(generics.DestroyAPIView):
 def featured_businesses(request):
     businesses = Business.objects.filter(status='active', is_featured=True)[:8]
     serializer = BusinessListSerializer(businesses, many=True, context={'request': request})
+    return Response(serializer.data)
+
+
+@api_view(['GET'])
+@permission_classes([permissions.AllowAny])
+def active_advertisements(request):
+    ads = Advertisement.objects.filter(is_active=True, business__status='active').select_related('business')[:5]
+    serializer = AdvertisementSerializer(ads, many=True, context={'request': request})
     return Response(serializer.data)
 
 
