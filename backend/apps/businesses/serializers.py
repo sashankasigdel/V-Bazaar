@@ -41,7 +41,8 @@ class BusinessListSerializer(serializers.ModelSerializer):
         fields = ['id', 'name', 'slug', 'category_name', 'category_icon', 'category_slug', 'logo', 'banner',
                   'short_description', 'address', 'city', 'latitude', 'longitude',
                   'average_rating', 'total_reviews', 'is_featured',
-                  'distance', 'is_open', 'is_saved', 'status', 'phone']
+                  'distance', 'is_open', 'is_saved', 'status', 'phone',
+                  'accepts_orders', 'is_verified']
 
     def get_distance(self, obj):
         request = self.context.get('request')
@@ -91,7 +92,10 @@ class BusinessDetailSerializer(serializers.ModelSerializer):
         fields = ['id', 'name', 'slug', 'category', 'description', 'short_description',
                   'logo', 'banner', 'address', 'city', 'state', 'latitude', 'longitude',
                   'phone', 'whatsapp', 'email', 'website', 'facebook', 'instagram',
-                  'status', 'is_featured', 'accepts_orders', 'average_rating', 'total_reviews', 'total_orders',
+                  'status', 'is_featured', 'accepts_orders', 'is_verified',
+                  'payment_mode', 'card_payment', 'free_wifi', 'smoking', 'offer_package',
+                  'is_registered', 'has_parking', 'offer_delivery',
+                  'average_rating', 'total_reviews', 'total_orders',
                   'hours', 'gallery', 'is_open', 'is_saved', 'distance', 'created_at']
 
     def get_is_open(self, obj):
@@ -128,23 +132,53 @@ class BusinessDetailSerializer(serializers.ModelSerializer):
         return None
 
 
+def _unique_slug(name):
+    from django.utils.text import slugify
+    slug = slugify(name)
+    base_slug = slug
+    i = 1
+    while Business.objects.filter(slug=slug).exists():
+        slug = f"{base_slug}-{i}"
+        i += 1
+    return slug
+
+
 class BusinessCreateUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Business
         fields = ['name', 'category', 'description', 'short_description', 'logo', 'banner',
                   'address', 'city', 'state', 'latitude', 'longitude',
-                  'phone', 'whatsapp', 'email', 'website', 'facebook', 'instagram', 'accepts_orders']
+                  'phone', 'whatsapp', 'email', 'website', 'facebook', 'instagram',
+                  'payment_mode', 'card_payment', 'free_wifi', 'smoking', 'offer_package',
+                  'is_registered', 'has_parking', 'offer_delivery']
 
     def create(self, validated_data):
-        from django.utils.text import slugify
-        slug = slugify(validated_data.get('name', ''))
-        base_slug = slug
-        i = 1
-        while Business.objects.filter(slug=slug).exists():
-            slug = f"{base_slug}-{i}"
-            i += 1
-        validated_data['slug'] = slug
+        validated_data['slug'] = _unique_slug(validated_data.get('name', ''))
         validated_data['owner'] = self.context['request'].user
+        return super().create(validated_data)
+
+
+class AdminBusinessCreateSerializer(serializers.ModelSerializer):
+    owner_email = serializers.EmailField(required=False, allow_blank=True, write_only=True)
+
+    class Meta:
+        model = Business
+        fields = ['name', 'category', 'description', 'short_description', 'logo', 'banner',
+                  'address', 'city', 'state', 'latitude', 'longitude',
+                  'phone', 'whatsapp', 'email', 'website', 'facebook', 'instagram',
+                  'status', 'is_featured',
+                  'payment_mode', 'card_payment', 'free_wifi', 'smoking', 'offer_package',
+                  'is_registered', 'has_parking', 'offer_delivery',
+                  'is_verified', 'accepts_orders', 'owner_email']
+
+    def create(self, validated_data):
+        from apps.accounts.services import get_or_create_dummy_business_owner
+        owner_email = validated_data.pop('owner_email', '') or None
+        validated_data['slug'] = _unique_slug(validated_data.get('name', ''))
+        owner, _created = get_or_create_dummy_business_owner(
+            phone=validated_data.get('phone', ''), email=owner_email,
+        )
+        validated_data['owner'] = owner
         return super().create(validated_data)
 
 

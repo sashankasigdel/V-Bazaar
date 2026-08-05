@@ -27,6 +27,15 @@ class Business(models.Model):
         PENDING = 'pending', 'Pending'
         SUSPENDED = 'suspended', 'Suspended'
 
+    class TriState(models.TextChoices):
+        YES = 'yes', 'Yes'
+        NO = 'no', 'No'
+        NA = 'na', 'Not Applicable'
+
+    class PaymentMode(models.TextChoices):
+        CASH_ONLY = 'cash_only', 'Cash Only'
+        ONLINE = 'online', 'Online Payment'
+
     owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name='businesses')
     name = models.CharField(max_length=200)
     slug = models.SlugField(unique=True)
@@ -48,7 +57,16 @@ class Business(models.Model):
     instagram = models.URLField(blank=True)
     status = models.CharField(max_length=20, choices=Status.choices, default=Status.ACTIVE)
     is_featured = models.BooleanField(default=False)
-    accepts_orders = models.BooleanField(default=True)
+    payment_mode = models.CharField(max_length=10, choices=PaymentMode.choices, default=PaymentMode.CASH_ONLY)
+    card_payment = models.CharField(max_length=3, choices=TriState.choices, default=TriState.NA)
+    free_wifi = models.CharField(max_length=3, choices=TriState.choices, default=TriState.NA)
+    smoking = models.CharField(max_length=3, choices=TriState.choices, default=TriState.NA)
+    offer_package = models.CharField(max_length=3, choices=TriState.choices, default=TriState.NA)
+    is_registered = models.BooleanField(null=True, blank=True, default=None)
+    has_parking = models.BooleanField(null=True, blank=True, default=None)
+    offer_delivery = models.BooleanField(default=False)
+    is_verified = models.BooleanField(default=False)  # Premium badge, admin-only
+    accepts_orders = models.BooleanField(default=False)  # Premium: "Accepts Online Orders", admin-only
     average_rating = models.DecimalField(max_digits=3, decimal_places=2, default=0)
     total_reviews = models.IntegerField(default=0)
     total_orders = models.IntegerField(default=0)

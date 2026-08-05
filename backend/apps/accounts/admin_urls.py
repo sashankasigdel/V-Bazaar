@@ -4,6 +4,9 @@ from . import admin_views
 urlpatterns = [
     path('stats/', admin_views.admin_stats, name='admin_stats'),
     path('businesses/', admin_views.admin_businesses, name='admin_businesses'),
+    path('businesses/create/', admin_views.admin_create_business, name='admin_create_business'),
+    path('businesses/bulk-import/', admin_views.admin_bulk_import_businesses, name='admin_bulk_import_businesses'),
+    path('businesses/bulk-import/template/', admin_views.admin_business_import_template, name='admin_business_import_template'),
     path('businesses/<int:pk>/', admin_views.admin_update_business, name='admin_update_business'),
     path('businesses/<int:pk>/delete/', admin_views.admin_delete_business, name='admin_delete_business'),
     path('users/', admin_views.admin_users, name='admin_users'),

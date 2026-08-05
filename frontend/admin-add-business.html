@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Add Business — V-Bazaar</title>
+<link rel="stylesheet" href="/css/main.css">
+<style>
+body{background:var(--cream);}
+.wizard{max-width:480px;margin:0 auto;padding:1.5rem 1rem 3rem;}
+.wizard-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;}
+.wizard-progress{font-size:0.8rem;color:var(--slate-light);}
+.step{display:none;}
+.step.active{display:block;}
+.step h2{font-family:var(--font-body);font-size:1.15rem;font-weight:700;margin-bottom:0.4rem;}
+.step p.hint{font-size:0.85rem;color:var(--slate-light);margin-bottom:1.25rem;}
+.cat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:0.75rem;margin-bottom:1.5rem;}
+.cat-tile{border:1.5px solid var(--border);border-radius:var(--radius-md);padding:1rem 0.5rem;text-align:center;cursor:pointer;background:white;}
+.cat-tile.selected{border-color:var(--saffron);background:var(--saffron-light);}
+.cat-tile .ic{font-size:1.6rem;margin-bottom:0.4rem;}
+.cat-tile .nm{font-size:0.75rem;font-weight:600;}
+.photo-drop{border:1.5px dashed var(--border);border-radius:var(--radius-md);padding:2rem 1rem;text-align:center;cursor:pointer;background:white;margin-bottom:1rem;}
+.photo-drop img{max-width:100%;max-height:180px;border-radius:var(--radius-sm);}
+.wizard-actions{display:flex;gap:0.75rem;margin-top:1.5rem;}
+.wizard-actions .btn{flex:1;}
+.loc-block{background:white;border:1.5px solid var(--border);border-radius:var(--radius-md);padding:1rem;margin-bottom:1rem;}
+</style>
+</head>
+<body>
+
+<div class="wizard">
+  <div class="wizard-header">
+    <a href="/admin-dashboard/" class="nav-link" style="font-size:0.85rem;">← Admin Panel</a>
+    <span class="wizard-progress" id="progress">Step 1 of 7</span>
+  </div>
+
+  <div class="step active" data-step="1">
+    <h2>Business Name</h2>
+    <p class="hint">What's this business called?</p>
+    <input type="text" id="w-name" class="form-input" placeholder="e.g. Himalayan Cafe">
+  </div>
+
+  <div class="step" data-step="2">
+    <h2>Category</h2>
+    <p class="hint">Pick the closest match.</p>
+    <div class="cat-grid" id="w-cat-grid"></div>
+  </div>
+
+  <div class="step" data-step="3">
+    <h2>Profile Photo</h2>
+    <p class="hint">Take a photo or choose one from the gallery. Optional — you can skip this.</p>
+    <label class="photo-drop" id="w-logo-drop">
+      <span id="w-logo-placeholder">📷 Tap to take/choose photo</span>
+      <input type="file" id="w-logo" accept="image/*" capture="environment" style="display:none;" onchange="previewWizardPhoto('w-logo','w-logo-placeholder')">
+    </label>
+  </div>
+
+  <div class="step" data-step="4">
+    <h2>Cover Photo</h2>
+    <p class="hint">A wider shot of the storefront or interior. Optional.</p>
+    <label class="photo-drop" id="w-banner-drop">
+      <span id="w-banner-placeholder">📷 Tap to take/choose photo</span>
+      <input type="file" id="w-banner" accept="image/*" capture="environment" style="display:none;" onchange="previewWizardPhoto('w-banner','w-banner-placeholder')">
+    </label>
+  </div>
+
+  <div class="step" data-step="5">
+    <h2>Contact No.</h2>
+    <p class="hint">A phone number customers can reach the business on.</p>
+    <input type="tel" id="w-phone" class="form-input" placeholder="98XXXXXXXX">
+  </div>
+
+  <div class="step" data-step="6">
+    <h2>Location</h2>
+    <p class="hint">Stand at (or near) the business, then use your location — or paste a Google Maps link.</p>
+    <div class="loc-block">
+      <button type="button" class="btn btn-primary" style="width:100%;margin-bottom:0.75rem;" onclick="useMyLocation()">📍 Use My Location</button>
+      <div id="w-loc-status" style="font-size:0.82rem;color:var(--slate-light);"></div>
+    </div>
+    <div class="loc-block">
+      <label class="form-label" style="font-size:0.82rem;">Or paste a Google Maps link</label>
+      <input type="text" id="w-maps-link" class="form-input" placeholder="https://maps.google.com/...">
+      <button type="button" class="btn btn-secondary btn-sm" style="margin-top:0.5rem;" onclick="parseMapsLink()">Parse Link</button>
+    </div>
+    <div class="form-group"><label class="form-label">City *</label><input type="text" id="w-city" class="form-input" value="Pokhara"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+      <div class="form-group"><label class="form-label">Latitude</label><input type="number" step="0.0000001" id="w-lat" class="form-input"></div>
+      <div class="form-group"><label class="form-label">Longitude</label><input type="number" step="0.0000001" id="w-lon" class="form-input"></div>
+    </div>
+  </div>
+
+  <div class="step" data-step="7">
+    <h2>Review & Submit</h2>
+    <p class="hint">Double-check the basics before creating this business.</p>
+    <div id="w-review" style="background:white;border:1.5px solid var(--border);border-radius:var(--radius-md);padding:1rem;font-size:0.875rem;line-height:1.8;"></div>
+  </div>
+
+  <div class="wizard-actions">
+    <button type="button" class="btn btn-secondary" id="w-back" onclick="wizardBack()">Back</button>
+    <button type="button" class="btn btn-primary" id="w-next" onclick="wizardNext()">Next</button>
+  </div>
+</div>
+
+<div class="toast-container"></div>
+
+<script src="/js/app.js"></script>
+<script>
+const AdminAuth = {
+  getToken: () => localStorage.getItem('admin_access_token'),
+  getRefresh: () => localStorage.getItem('admin_refresh_token'),
+  clear: () => { localStorage.removeItem('admin_access_token'); localStorage.removeItem('admin_refresh_token'); localStorage.removeItem('admin_user'); },
+};
+if (!AdminAuth.getToken()) window.location.href = '/admin-login/';
+
+async function adminRequest(method, endpoint, data = null, isForm = false) {
+  const headers = { 'Authorization': `Bearer ${AdminAuth.getToken()}` };
+  if (data && !isForm) headers['Content-Type'] = 'application/json';
+  const config = { method, headers };
+  if (data) config.body = isForm ? data : JSON.stringify(data);
+  let resp = await fetch(`${API_BASE}/admin-panel${endpoint}`, config);
+  if (resp.status === 401 && AdminAuth.getRefresh()) {
+    const r = await fetch(`${API_BASE}/auth/token/refresh/`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ refresh: AdminAuth.getRefresh() }) });
+    if (r.ok) {
+      const { access } = await r.json();
+      localStorage.setItem('admin_access_token', access);
+      headers['Authorization'] = `Bearer ${access}`;
+      config.headers = headers;
+      resp = await fetch(`${API_BASE}/admin-panel${endpoint}`, config);
+    } else { AdminAuth.clear(); window.location.href = '/admin-login/'; return { ok: false, data: null }; }
+  }
+  const result = { status: resp.status, ok: resp.ok };
+  try { result.data = await resp.json(); } catch { result.data = null; }
+  return result;
+}
+
+let step = 1;
+const TOTAL_STEPS = 7;
+let selectedCatId = null, selectedCatName = '', categories = [];
+
+function showStep(n) {
+  document.querySelectorAll('.step').forEach(s => s.classList.toggle('active', Number(s.dataset.step) === n));
+  document.getElementById('progress').textContent = `Step ${n} of ${TOTAL_STEPS}`;
+  document.getElementById('w-back').style.visibility = n === 1 ? 'hidden' : 'visible';
+  document.getElementById('w-next').textContent = n === TOTAL_STEPS ? 'Create Business' : 'Next';
+  if (n === 7) renderReview();
+}
+
+function wizardBack() { if (step > 1) { step--; showStep(step); } }
+
+function wizardNext() {
+  if (!validateStep(step)) return;
+  if (step === TOTAL_STEPS) { submitBusiness(); return; }
+  step++;
+  showStep(step);
+}
+
+function validateStep(n) {
+  if (n === 1 && !document.getElementById('w-name').value.trim()) { UI.toast('Enter a business name', 'error'); return false; }
+  if (n === 5 && !document.getElementById('w-phone').value.trim()) { UI.toast('Enter a contact number', 'error'); return false; }
+  if (n === 6) {
+    if (!document.getElementById('w-lat').value || !document.getElementById('w-lon').value) { UI.toast('Set a location first', 'error'); return false; }
+    if (!document.getElementById('w-city').value.trim()) { UI.toast('Enter a city', 'error'); return false; }
+  }
+  return true;
+}
+
+async function loadWizardCategories() {
+  const resp = await API.getCategories();
+  categories = resp.data?.results || resp.data || [];
+  document.getElementById('w-cat-grid').innerHTML = categories.map(c => `
+    <div class="cat-tile" id="cat-${c.id}" onclick="selectCategory(${c.id}, '${c.name.replace(/'/g, "&#39;")}')">
+      <div class="ic">${categoryIcon(c.slug, 22)}</div>
+      <div class="nm">${c.name}</div>
+    </div>`).join('');
+}
+
+function selectCategory(id, name) {
+  selectedCatId = id; selectedCatName = name;
+  document.querySelectorAll('.cat-tile').forEach(t => t.classList.remove('selected'));
+  document.getElementById(`cat-${id}`).classList.add('selected');
+}
+
+function previewWizardPhoto(inputId, placeholderId) {
+  const file = document.getElementById(inputId).files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => { document.getElementById(placeholderId).outerHTML = `<img src="${e.target.result}" id="${placeholderId}">`; };
+  reader.readAsDataURL(file);
+}
+
+async function useMyLocation() {
+  const status = document.getElementById('w-loc-status');
+  status.textContent = 'Getting location...';
+  try {
+    const c = await Location.detect();
+    document.getElementById('w-lat').value = c.lat.toFixed(7);
+    document.getElementById('w-lon').value = c.lon.toFixed(7);
+    status.textContent = `✅ Location set (${c.lat.toFixed(5)}, ${c.lon.toFixed(5)})`;
+  } catch {
+    status.textContent = '❌ Could not get location — check permissions, or paste a Maps link below.';
+  }
+}
+
+function parseMapsLink() {
+  const url = document.getElementById('w-maps-link').value.trim();
+  if (!url) return;
+  let m = url.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
+  if (!m) m = url.match(/!3d(-?\d+\.\d+)!4d(-?\d+\.\d+)/);
+  if (!m) m = url.match(/[?&]q=(-?\d+\.\d+),(-?\d+\.\d+)/);
+  if (m) {
+    document.getElementById('w-lat').value = m[1];
+    document.getElementById('w-lon').value = m[2];
+    document.getElementById('w-loc-status').textContent = `✅ Parsed from link (${m[1]}, ${m[2]})`;
+    UI.toast('Location parsed from link', 'success');
+  } else {
+    UI.toast('Could not read coordinates from that link — try "Share → Copy Link" for the full URL, or enter coordinates manually.', 'error');
+  }
+}
+
+function renderReview() {
+  const logoFile = document.getElementById('w-logo').files[0];
+  const bannerFile = document.getElementById('w-banner').files[0];
+  document.getElementById('w-review').innerHTML = `
+    <div><strong>Name:</strong> ${document.getElementById('w-name').value || '—'}</div>
+    <div><strong>Category:</strong> ${selectedCatName || '—'}</div>
+    <div><strong>Profile Photo:</strong> ${logoFile ? logoFile.name : 'Not set'}</div>
+    <div><strong>Cover Photo:</strong> ${bannerFile ? bannerFile.name : 'Not set'}</div>
+    <div><strong>Phone:</strong> ${document.getElementById('w-phone').value || '—'}</div>
+    <div><strong>City:</strong> ${document.getElementById('w-city').value || '—'}</div>
+    <div><strong>Coordinates:</strong> ${document.getElementById('w-lat').value}, ${document.getElementById('w-lon').value}</div>`;
+}
+
+async function submitBusiness() {
+  const btn = document.getElementById('w-next');
+  btn.disabled = true; btn.textContent = 'Creating...';
+  const fd = new FormData();
+  fd.append('name', document.getElementById('w-name').value);
+  fd.append('phone', document.getElementById('w-phone').value);
+  fd.append('city', document.getElementById('w-city').value);
+  fd.append('address', document.getElementById('w-city').value);
+  fd.append('description', 'Added via mobile — pending full profile.');
+  fd.append('latitude', document.getElementById('w-lat').value);
+  fd.append('longitude', document.getElementById('w-lon').value);
+  if (selectedCatId) fd.append('category', selectedCatId);
+  const logoFile = document.getElementById('w-logo').files[0];
+  const bannerFile = document.getElementById('w-banner').files[0];
+  if (logoFile) fd.append('logo', logoFile);
+  if (bannerFile) fd.append('banner', bannerFile);
+
+  const resp = await adminRequest('POST', '/businesses/create/', fd, true);
+  btn.disabled = false; btn.textContent = 'Create Business';
+  if (resp.ok) {
+    UI.toast('Business created!', 'success');
+    document.querySelector('.wizard').innerHTML = `<div style="text-align:center;padding:3rem 1rem;"><div style="font-size:3rem;margin-bottom:1rem;">✅</div><h2>Business Created</h2><p style="color:var(--slate-light);margin:0.75rem 0 1.5rem;">"${resp.data.name}" has been added. Add a full description and confirm the address later via the Admin Panel or the owner dashboard.</p><a href="/admin-add-business/" class="btn btn-primary">Add Another</a> <a href="/admin-dashboard/" class="btn btn-secondary">Back to Admin Panel</a></div>`;
+  } else {
+    UI.toast(resp.data?.error || 'Could not create business', 'error');
+  }
+}
+
+showStep(1);
+loadWizardCategories();
+</script>
+</body>
+</html>

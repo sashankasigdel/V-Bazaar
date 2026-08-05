@@ -105,14 +105,203 @@ def admin_update_business(request, pk):
             business.status = request.data['status']
         if 'is_featured' in request.data:
             business.is_featured = request.data['is_featured']
+        if 'is_verified' in request.data:
+            business.is_verified = request.data['is_verified']
+        if 'accepts_orders' in request.data:
+            business.accepts_orders = request.data['accepts_orders']
+        if request.data.get('owner_email'):
+            from apps.accounts.services import get_or_create_dummy_business_owner
+            owner, _created = get_or_create_dummy_business_owner(email=request.data['owner_email'])
+            business.owner = owner
         business.save()
         return Response({
             'id': business.id,
             'status': business.status,
             'is_featured': business.is_featured,
+            'is_verified': business.is_verified,
+            'accepts_orders': business.accepts_orders,
+            'owner_email': business.owner.email,
         })
     except Business.DoesNotExist:
         return Response({'error': 'Not found.'}, status=404)
+
+
+@api_view(['POST'])
+@permission_classes([IsAdminUser])
+def admin_create_business(request):
+    from apps.businesses.serializers import AdminBusinessCreateSerializer
+    serializer = AdminBusinessCreateSerializer(data=request.data)
+    if not serializer.is_valid():
+        first = next(iter(serializer.errors.values()))
+        message = first[0] if isinstance(first, list) else first
+        return Response({'error': str(message)}, status=400)
+    business = serializer.save()
+    return Response({
+        'id': business.id,
+        'name': business.name,
+        'slug': business.slug,
+        'owner_email': business.owner.email,
+        'status': business.status,
+    }, status=201)
+
+
+@api_view(['GET'])
+@permission_classes([IsAdminUser])
+def admin_business_import_template(request):
+    from openpyxl import Workbook
+    from django.http import HttpResponse
+
+    wb = Workbook()
+    ws = wb.active
+    ws.title = 'Businesses'
+    headers = [
+        'name', 'category_slug', 'phone', 'city', 'address', 'state', 'description',
+        'short_description', 'latitude', 'longitude', 'whatsapp', 'email', 'website',
+        'facebook', 'instagram', 'payment_mode', 'card_payment', 'free_wifi', 'smoking',
+        'offer_package', 'is_registered', 'has_parking', 'offer_delivery', 'owner_email',
+        'logo_filename', 'banner_filename',
+    ]
+    ws.append(headers)
+    response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    response['Content-Disposition'] = 'attachment; filename="vbazaar-bulk-import-template.xlsx"'
+    wb.save(response)
+    return response
+
+
+@api_view(['POST'])
+@permission_classes([IsAdminUser])
+def admin_bulk_import_businesses(request):
+    from openpyxl import load_workbook
+    from django.db import transaction
+    from apps.businesses.models import BusinessCategory
+    from apps.businesses.serializers import _unique_slug
+    from apps.accounts.services import get_or_create_dummy_business_owner
+
+    upload = request.FILES.get('file')
+    if not upload:
+        return Response({'error': 'No .xlsx file uploaded (field name: "file").'}, status=400)
+    try:
+        wb = load_workbook(upload, data_only=True)
+    except Exception:
+        return Response({'error': 'Could not read the uploaded file — is it a valid .xlsx?'}, status=400)
+    ws = wb.active
+
+    images_by_name = {f.name: f for f in request.FILES.getlist('images')}
+    header = [c.value for c in ws[1]]
+    col = {name: idx for idx, name in enumerate(header) if name}
+
+    def cell(row, key, default=''):
+        idx = col.get(key)
+        if idx is None or idx >= len(row):
+            return default
+        val = row[idx].value
+        return val if val is not None else default
+
+    def tri(v):
+        v = str(v).strip().lower() if v not in (None, '') else ''
+        if v in ('yes', 'true', '1'):
+            return Business.TriState.YES
+        if v in ('no', 'false', '0'):
+            return Business.TriState.NO
+        return Business.TriState.NA
+
+    def nullable_bool(v):
+        v = str(v).strip().lower() if v not in (None, '') else ''
+        if v in ('yes', 'true', '1'):
+            return True
+        if v in ('no', 'false', '0'):
+            return False
+        return None
+
+    rows_out = []
+    created_count = 0
+
+    for row_num, row in enumerate(ws.iter_rows(min_row=2), start=2):
+        if all(c.value in (None, '') for c in row):
+            continue
+
+        errors = []
+        name = str(cell(row, 'name', '')).strip()
+        if not name:
+            errors.append('Missing required field: name')
+
+        category_slug = str(cell(row, 'category_slug', '')).strip()
+        category = BusinessCategory.objects.filter(slug=category_slug).first() if category_slug else None
+        if category_slug and not category:
+            errors.append(f'Category slug "{category_slug}" not found.')
+
+        try:
+            lat = float(cell(row, 'latitude'))
+            lon = float(cell(row, 'longitude'))
+        except (TypeError, ValueError):
+            lat = lon = None
+            errors.append('Invalid or missing latitude/longitude.')
+
+        logo_file = banner_file = None
+        logo_fn = str(cell(row, 'logo_filename', '')).strip()
+        if logo_fn:
+            logo_file = images_by_name.get(logo_fn)
+            if not logo_file:
+                errors.append(f'Referenced logo file "{logo_fn}" was not found among uploaded images.')
+        banner_fn = str(cell(row, 'banner_filename', '')).strip()
+        if banner_fn:
+            banner_file = images_by_name.get(banner_fn)
+            if not banner_file:
+                errors.append(f'Referenced banner file "{banner_fn}" was not found among uploaded images.')
+
+        phone = str(cell(row, 'phone', '')).strip()
+        if not phone:
+            errors.append('Missing required field: phone')
+
+        if errors:
+            rows_out.append({'row': row_num, 'name': name, 'status': 'error', 'errors': errors})
+            continue
+
+        try:
+            with transaction.atomic():
+                owner, owner_created = get_or_create_dummy_business_owner(
+                    phone=phone, email=str(cell(row, 'owner_email', '')).strip() or None,
+                )
+                business = Business(
+                    owner=owner, name=name, slug=_unique_slug(name), category=category,
+                    description=str(cell(row, 'description', '')) or 'No description provided.',
+                    short_description=str(cell(row, 'short_description', '')),
+                    address=str(cell(row, 'address', '')) or str(cell(row, 'city', '')) or 'Address pending',
+                    city=str(cell(row, 'city', '')) or 'Pokhara',
+                    state=str(cell(row, 'state', '')),
+                    latitude=lat, longitude=lon, phone=phone,
+                    whatsapp=str(cell(row, 'whatsapp', '')), email=str(cell(row, 'email', '')),
+                    website=str(cell(row, 'website', '')), facebook=str(cell(row, 'facebook', '')),
+                    instagram=str(cell(row, 'instagram', '')),
+                    payment_mode=(str(cell(row, 'payment_mode', '')).strip().lower() or Business.PaymentMode.CASH_ONLY),
+                    card_payment=tri(cell(row, 'card_payment')),
+                    free_wifi=tri(cell(row, 'free_wifi')),
+                    smoking=tri(cell(row, 'smoking')),
+                    offer_package=tri(cell(row, 'offer_package')),
+                    is_registered=nullable_bool(cell(row, 'is_registered')),
+                    has_parking=nullable_bool(cell(row, 'has_parking')),
+                    offer_delivery=nullable_bool(cell(row, 'offer_delivery')) or False,
+                    status='active',
+                )
+                if logo_file:
+                    business.logo = logo_file
+                if banner_file:
+                    business.banner = banner_file
+                business.full_clean(exclude=['slug', 'owner'])
+                business.save()
+            rows_out.append({
+                'row': row_num, 'name': name, 'status': 'success',
+                'business_id': business.id, 'slug': business.slug,
+                'owner_email': owner.email, 'owner_created': owner_created,
+            })
+            created_count += 1
+        except Exception as e:
+            rows_out.append({'row': row_num, 'name': name, 'status': 'error', 'errors': [str(e)]})
+
+    return Response({
+        'summary': {'total': len(rows_out), 'created': created_count, 'failed': len(rows_out) - created_count},
+        'rows': rows_out,
+    })
 
 
 @api_view(['DELETE'])

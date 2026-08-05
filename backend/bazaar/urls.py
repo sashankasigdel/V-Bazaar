@@ -35,4 +35,5 @@ urlpatterns = [
     path('payment-success/', serve, {'path': 'payment-success.html', 'document_root': FRONTEND_DIR}),
     path('admin-dashboard/', serve, {'path': 'admin-dashboard.html', 'document_root': FRONTEND_DIR}),
     path('admin-login/', serve, {'path': 'admin-login.html', 'document_root': FRONTEND_DIR}),
+    path('admin-add-business/', serve, {'path': 'admin-add-business.html', 'document_root': FRONTEND_DIR}),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

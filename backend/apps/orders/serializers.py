@@ -49,6 +49,15 @@ class OrderCreateSerializer(serializers.Serializer):
     payment_method = serializers.ChoiceField(choices=Order.PaymentMethod.choices)
     notes = serializers.CharField(required=False, allow_blank=True)
 
+    def validate(self, data):
+        from apps.businesses.models import Business
+        business = Business.objects.filter(id=data.get('business')).first()
+        if not business:
+            raise serializers.ValidationError({'detail': 'Business not found.'})
+        if not business.accepts_orders:
+            raise serializers.ValidationError({'detail': 'This business is not currently accepting online orders.'})
+        return data
+
     def create(self, validated_data):
         from apps.businesses.models import Business
         from apps.products.models import Product

@@ -55,17 +55,17 @@
     <div style="display:grid;grid-template-columns:1fr 320px;gap:2rem;align-items:start;">
       <div>
         <div class="tab-bar">
-          <button class="tab-btn active" onclick="showTab('products',this)">🛍️ Menu</button>
-          <button class="tab-btn" onclick="showTab('about',this)">ℹ️ About</button>
-          <button class="tab-btn" onclick="showTab('gallery',this)">🖼️ Gallery</button>
-          <button class="tab-btn" onclick="showTab('reviews',this)">⭐ Reviews</button>
-          <button class="tab-btn" onclick="showTab('location',this)">📍 Location</button>
+          <button class="tab-btn active" id="tabbtn-menu" onclick="showTab('products',this)"> Menu</button>
+          <button class="tab-btn" id="tabbtn-about" onclick="showTab('about',this)"> About</button>
+          <button class="tab-btn" id="tabbtn-gallery" onclick="showTab('gallery',this)"> Gallery</button>
+          <button class="tab-btn" id="tabbtn-reviews" onclick="showTab('reviews',this)"> Reviews</button>
+          <button class="tab-btn" id="tabbtn-location" onclick="showTab('location',this)"> Location</button>
         </div>
         <div id="tab-products" class="tab-content active">
           <div id="products-grid" class="grid-3" style="grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:1rem;"></div>
         </div>
         <div id="tab-about" class="tab-content">
-          <div class="dash-card"><h3 style="margin-bottom:1rem;font-family:var(--font-body);">About</h3><p id="biz-desc" style="line-height:1.8;"></p><div id="contacts" style="margin-top:1rem;display:flex;flex-wrap:wrap;gap:0.5rem;"></div></div>
+          <div class="dash-card"><h3 style="margin-bottom:1rem;font-family:var(--font-body);">About</h3><p id="biz-desc" style="line-height:1.8;"></p><div id="contacts" style="margin-top:1rem;display:flex;flex-wrap:wrap;gap:0.5rem;"></div><div id="biz-badges" style="margin-top:0.75rem;display:flex;flex-wrap:wrap;gap:0.5rem;"></div></div>
           <div class="dash-card"><h3 style="margin-bottom:1rem;font-family:var(--font-body);">Opening Hours</h3><div id="hours-list"></div></div>
         </div>
         <div id="tab-gallery" class="tab-content">
@@ -131,6 +131,12 @@ const slug = new URLSearchParams(window.location.search).get('slug');
 if (!slug) window.location.href = '/';
 let biz = null, selRating = 0;
 
+document.getElementById('tabbtn-menu').innerHTML = uiIcon('menu') + ' Menu';
+document.getElementById('tabbtn-about').innerHTML = uiIcon('about') + ' About';
+document.getElementById('tabbtn-gallery').innerHTML = uiIcon('gallery') + ' Gallery';
+document.getElementById('tabbtn-reviews').innerHTML = uiIcon('reviews') + ' Reviews';
+document.getElementById('tabbtn-location').innerHTML = uiIcon('location') + ' Location';
+
 async function init() {
   const resp = await API.getBusiness(slug);
   if (!resp.ok) { document.getElementById('loading').innerHTML = '<div class="empty-state"><div class="empty-icon">😕</div><h3>Not found</h3><a href="/" class="btn btn-primary" style="margin-top:1rem;">Go Home</a></div>'; return; }
@@ -151,7 +157,7 @@ function render() {
   const logoEl = document.getElementById('logo');
   if (b.logo) logoEl.innerHTML = `<img src="${b.logo}" style="width:100%;height:100%;object-fit:cover;">`;
   else logoEl.innerHTML = categoryIcon(b.category?.slug, 40);
-  document.getElementById('biz-name').textContent = b.name;
+  document.getElementById('biz-name').innerHTML = `${b.name}${b.is_verified ? ' <span style="font-size:0.65em;color:var(--success);vertical-align:middle;">✅ Verified</span>' : ''}`;
   document.getElementById('biz-short').textContent = b.short_description || '';
   document.getElementById('biz-desc').textContent = b.description || '';
   document.getElementById('biz-addr').textContent = `${b.address}, ${b.city}`;
@@ -183,6 +189,18 @@ function render() {
   if (b.email) cs.push(`<span style="display:inline-flex;align-items:center;gap:0.4rem;padding:0.4rem 0.875rem;border-radius:999px;background:var(--cream-dark);font-size:0.82rem;">✉️ ${b.email}</span>`);
   if (b.website) cs.push(`<a href="${b.website}" target="_blank" style="display:inline-flex;align-items:center;gap:0.4rem;padding:0.4rem 0.875rem;border-radius:999px;background:var(--cream-dark);font-size:0.82rem;color:inherit;">🌐 Website</a>`);
   document.getElementById('contacts').innerHTML = cs.join('');
+
+  // Feature badges
+  const fb = [];
+  if (b.card_payment === 'yes') fb.push('💳 Accepts Card Payments');
+  if (b.free_wifi === 'yes') fb.push('📶 Free WiFi');
+  if (b.smoking === 'yes') fb.push('🚬 Smoking Allowed');
+  if (b.offer_package === 'yes') fb.push('📦 Takeaway/Parcel Available');
+  if (b.offer_delivery === true) fb.push('🚚 Delivery Available');
+  if (b.has_parking === true) fb.push('🅿️ Parking');
+  if (b.is_registered === true) fb.push('✅ Registered Business');
+  const badgesEl = document.getElementById('biz-badges');
+  if (badgesEl) badgesEl.innerHTML = fb.map(f => `<span style="display:inline-flex;align-items:center;gap:0.4rem;padding:0.35rem 0.8rem;border-radius:999px;background:var(--cream-dark);font-size:0.78rem;">${f}</span>`).join('');
 
   // Sidebar
   document.getElementById('sidebar-info').innerHTML = [

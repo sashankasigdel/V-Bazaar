@@ -127,14 +127,74 @@
           <div class="form-group"><label class="form-label">Longitude</label><input type="number" id="bp-lon" class="form-input" step="0.0000001"></div>
         </div>
         <p style="font-size:0.8rem;color:var(--slate-light);margin-bottom:1rem;">💡 Right-click on Google Maps to get your coordinates.</p>
-        <div class="form-group" style="display:flex;align-items:center;gap:0.75rem;">
-          <label class="toggle-switch"><input type="checkbox" id="bp-accepts-orders" checked><span class="toggle-slider"></span></label>
-          <div>
-            <div style="font-weight:600;font-size:0.9rem;">Accepting Orders</div>
-            <div style="font-size:0.78rem;color:var(--slate-light);">Turn off to hide the order button from customers (e.g. while closed or fully booked).</div>
+        <button onclick="saveProfile()" class="btn btn-primary">Save Profile</button>
+      </div>
+
+      <div class="dash-card" style="max-width:640px;">
+        <h3 style="font-family:var(--font-body);font-size:1rem;font-weight:700;margin-bottom:0.4rem;">Business Features</h3>
+        <p style="font-size:0.8rem;color:var(--slate-light);margin-bottom:1.25rem;">Optional — let customers know what to expect. Leave any as "Not Applicable" if it doesn't fit your business.</p>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+          <div class="form-group"><label class="form-label">Payment Mode</label>
+            <select id="bp-payment-mode" class="form-input">
+              <option value="cash_only">Cash Only</option>
+              <option value="online">Online Payment</option>
+            </select>
+          </div>
+          <div class="form-group"><label class="form-label">Card Payment</label>
+            <select id="bp-card-payment" class="form-input">
+              <option value="na">Not Applicable</option><option value="yes">Yes</option><option value="no">No</option>
+            </select>
+          </div>
+          <div class="form-group"><label class="form-label">Free WiFi</label>
+            <select id="bp-wifi" class="form-input">
+              <option value="na">Not Applicable</option><option value="yes">Yes</option><option value="no">No</option>
+            </select>
+          </div>
+          <div class="form-group"><label class="form-label">Smoking</label>
+            <select id="bp-smoking" class="form-input">
+              <option value="na">Not Applicable</option><option value="yes">Yes</option><option value="no">No</option>
+            </select>
+          </div>
+          <div class="form-group"><label class="form-label">Offer Package (Takeaway)</label>
+            <select id="bp-offer-package" class="form-input">
+              <option value="na">Not Applicable</option><option value="yes">Yes</option><option value="no">No</option>
+            </select>
+          </div>
+          <div class="form-group"><label class="form-label">Registered Business</label>
+            <select id="bp-registered" class="form-input">
+              <option value="unspecified">Unspecified</option><option value="yes">Registered</option><option value="no">Not Registered</option>
+            </select>
+          </div>
+          <div class="form-group"><label class="form-label">Parking</label>
+            <select id="bp-parking" class="form-input">
+              <option value="unspecified">Unspecified</option><option value="yes">Available</option><option value="no">Not Available</option>
+            </select>
           </div>
         </div>
+        <div class="form-group" style="display:flex;align-items:center;gap:0.75rem;">
+          <label class="toggle-switch"><input type="checkbox" id="bp-delivery"><span class="toggle-slider"></span></label>
+          <div><div style="font-weight:600;font-size:0.9rem;">Offer Delivery</div></div>
+        </div>
         <button onclick="saveProfile()" class="btn btn-primary">Save Profile</button>
+      </div>
+
+      <div class="dash-card" style="max-width:640px;border:1px solid rgba(232,184,10,0.4);background:linear-gradient(180deg,rgba(232,184,10,0.06),transparent);">
+        <h3 style="font-family:var(--font-body);font-size:1rem;font-weight:700;margin-bottom:0.4rem;">⭐ Premium Features</h3>
+        <p style="font-size:0.8rem;color:var(--slate-light);margin-bottom:1.25rem;">These are enabled by our team after verification. Contact Sales to unlock them.</p>
+        <div class="form-group" style="display:flex;align-items:center;gap:0.75rem;cursor:pointer;" onclick="alert('Contact Sales to enable this feature.')">
+          <label class="toggle-switch"><input type="checkbox" id="bp-verified" disabled><span class="toggle-slider"></span></label>
+          <div>
+            <div style="font-weight:600;font-size:0.9rem;">Verified Badge</div>
+            <div style="font-size:0.78rem;color:var(--slate-light);">Shows a ✅ Verified badge on your public page.</div>
+          </div>
+        </div>
+        <div class="form-group" style="display:flex;align-items:center;gap:0.75rem;cursor:pointer;" onclick="alert('Contact Sales to enable this feature.')">
+          <label class="toggle-switch"><input type="checkbox" id="bp-accepts-orders" disabled><span class="toggle-slider"></span></label>
+          <div>
+            <div style="font-weight:600;font-size:0.9rem;">Accepts Online Orders</div>
+            <div style="font-size:0.78rem;color:var(--slate-light);">Lets customers add products to cart and checkout; unlocks your Orders panel.</div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -267,6 +327,10 @@ async function loadAnalytics() {
 
 async function loadOrders(sf='') {
   if (!curBiz) return;
+  if (curBiz.accepts_orders === false) {
+    document.getElementById('orders-list').innerHTML = `<div class="empty-state"><div class="empty-icon">🔒</div><h3>Online Orders — Premium Feature</h3><p>Enable "Accepts Online Orders" to let customers place orders directly through your page and manage them here. Contact Sales to unlock this feature.</p></div>`;
+    return;
+  }
   const resp = await API.getBusinessOrders(curBiz.slug);
   allOrders = resp.data?.results||resp.data||[];
   const filtered = sf ? allOrders.filter(o=>o.status===sf) : allOrders;
@@ -361,7 +425,16 @@ async function loadProfile() {
   document.getElementById('bp-lat').value=b.latitude||'';
   document.getElementById('bp-lon').value=b.longitude||'';
   if (b.category) Array.from(document.getElementById('bp-cat').options).forEach(o=>{if(o.value==b.category.id)o.selected=true;});
-  document.getElementById('bp-accepts-orders').checked = b.accepts_orders !== false;
+  document.getElementById('bp-accepts-orders').checked = b.accepts_orders === true;
+  document.getElementById('bp-verified').checked = b.is_verified === true;
+  document.getElementById('bp-payment-mode').value = b.payment_mode || 'cash_only';
+  document.getElementById('bp-card-payment').value = b.card_payment || 'na';
+  document.getElementById('bp-wifi').value = b.free_wifi || 'na';
+  document.getElementById('bp-smoking').value = b.smoking || 'na';
+  document.getElementById('bp-offer-package').value = b.offer_package || 'na';
+  document.getElementById('bp-registered').value = b.is_registered === true ? 'yes' : b.is_registered === false ? 'no' : 'unspecified';
+  document.getElementById('bp-parking').value = b.has_parking === true ? 'yes' : b.has_parking === false ? 'no' : 'unspecified';
+  document.getElementById('bp-delivery').checked = b.offer_delivery === true;
 
   // Show existing logo/banner if present
   const logoPrev = document.getElementById('logo-preview');
@@ -427,7 +500,12 @@ async function deleteGalleryPhoto(id) {
 }
 
 async function saveProfile() {
-  const data = { name:document.getElementById('bp-name').value, category:document.getElementById('bp-cat').value, short_description:document.getElementById('bp-short').value, description:document.getElementById('bp-desc').value, phone:document.getElementById('bp-phone').value, whatsapp:document.getElementById('bp-wa').value, email:document.getElementById('bp-email').value, website:document.getElementById('bp-web').value, address:document.getElementById('bp-addr').value, city:document.getElementById('bp-city').value, state:'Gandaki Pradesh', latitude:document.getElementById('bp-lat').value, longitude:document.getElementById('bp-lon').value, accepts_orders:document.getElementById('bp-accepts-orders').checked };
+  const regSel = document.getElementById('bp-registered').value;
+  const parkSel = document.getElementById('bp-parking').value;
+  const data = { name:document.getElementById('bp-name').value, category:document.getElementById('bp-cat').value, short_description:document.getElementById('bp-short').value, description:document.getElementById('bp-desc').value, phone:document.getElementById('bp-phone').value, whatsapp:document.getElementById('bp-wa').value, email:document.getElementById('bp-email').value, website:document.getElementById('bp-web').value, address:document.getElementById('bp-addr').value, city:document.getElementById('bp-city').value, state:'Gandaki Pradesh', latitude:document.getElementById('bp-lat').value, longitude:document.getElementById('bp-lon').value,
+    payment_mode:document.getElementById('bp-payment-mode').value, card_payment:document.getElementById('bp-card-payment').value, free_wifi:document.getElementById('bp-wifi').value, smoking:document.getElementById('bp-smoking').value, offer_package:document.getElementById('bp-offer-package').value,
+    is_registered: regSel==='unspecified'?null:(regSel==='yes'), has_parking: parkSel==='unspecified'?null:(parkSel==='yes'),
+    offer_delivery:document.getElementById('bp-delivery').checked };
   const resp = await API.updateBusiness(curBiz.slug,data);
   if (resp.ok) { UI.toast('Profile saved!','success'); const i=bizList.findIndex(b=>b.slug===curBiz.slug); if(i>=0){bizList[i]={...bizList[i],...data};curBiz=bizList[i];} }
   else UI.toast('Save failed: '+JSON.stringify(resp.data),'error');

@@ -232,7 +232,11 @@ body { font-family: var(--font-body); background: #0F1623; color: white; margin:
             <button class="filter-tab" onclick="filterBiz('active', this)">✅ Active</button>
             <button class="filter-tab" onclick="filterBiz('suspended', this)">🚫 Suspended</button>
           </div>
-          <input class="admin-search" type="text" placeholder="Search businesses..." oninput="searchBiz(this.value)">
+          <div style="display:flex;gap:0.75rem;align-items:center;flex-wrap:wrap;">
+            <input class="admin-search" type="text" placeholder="Search businesses..." oninput="searchBiz(this.value)">
+            <button onclick="openBulkModal()" style="background:rgba(255,255,255,0.06);color:white;border:1px solid rgba(255,255,255,0.1);padding:0.5rem 1.25rem;border-radius:8px;font-size:0.875rem;font-weight:600;cursor:pointer;">⬆ Bulk Import</button>
+            <button onclick="openBizModal()" style="background:var(--saffron);color:white;border:none;padding:0.5rem 1.25rem;border-radius:8px;font-size:0.875rem;font-weight:600;cursor:pointer;">+ Add Business</button>
+          </div>
         </div>
         <div class="admin-card">
           <div class="admin-card-header"><h3 id="biz-table-title">All Businesses</h3><span id="biz-count" style="font-size:0.82rem;color:rgba(255,255,255,0.4);"></span></div>
@@ -372,6 +376,96 @@ body { font-family: var(--font-body); background: #0F1623; color: white; margin:
   </div>
 </div>
 
+<!-- ADD BUSINESS MODAL -->
+<div class="admin-modal-overlay" id="biz-modal">
+  <div class="admin-modal" style="max-width:720px;max-height:85vh;overflow-y:auto;">
+    <h3>Add New Business</h3>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 1rem;">
+      <div><label style="font-size:0.82rem;color:rgba(255,255,255,0.5);display:block;margin-bottom:0.4rem;">Business Name *</label><input class="admin-input" type="text" id="nb2-name"></div>
+      <div><label style="font-size:0.82rem;color:rgba(255,255,255,0.5);display:block;margin-bottom:0.4rem;">Category</label><select class="admin-input" id="nb2-cat"></select></div>
+    </div>
+    <label style="font-size:0.82rem;color:rgba(255,255,255,0.5);display:block;margin-bottom:0.4rem;">Short Description</label>
+    <input class="admin-input" type="text" id="nb2-short" maxlength="300">
+    <label style="font-size:0.82rem;color:rgba(255,255,255,0.5);display:block;margin-bottom:0.4rem;">Full Description</label>
+    <textarea class="admin-input" id="nb2-desc" rows="3" style="resize:vertical;"></textarea>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 1rem;">
+      <div><label style="font-size:0.82rem;color:rgba(255,255,255,0.5);display:block;margin-bottom:0.4rem;">Phone *</label><input class="admin-input" type="tel" id="nb2-phone"></div>
+      <div><label style="font-size:0.82rem;color:rgba(255,255,255,0.5);display:block;margin-bottom:0.4rem;">WhatsApp</label><input class="admin-input" type="tel" id="nb2-wa"></div>
+      <div><label style="font-size:0.82rem;color:rgba(255,255,255,0.5);display:block;margin-bottom:0.4rem;">Email</label><input class="admin-input" type="email" id="nb2-email"></div>
+      <div><label style="font-size:0.82rem;color:rgba(255,255,255,0.5);display:block;margin-bottom:0.4rem;">Website</label><input class="admin-input" type="url" id="nb2-web"></div>
+      <div><label style="font-size:0.82rem;color:rgba(255,255,255,0.5);display:block;margin-bottom:0.4rem;">Facebook</label><input class="admin-input" type="url" id="nb2-fb"></div>
+      <div><label style="font-size:0.82rem;color:rgba(255,255,255,0.5);display:block;margin-bottom:0.4rem;">Instagram</label><input class="admin-input" type="url" id="nb2-ig"></div>
+    </div>
+
+    <label style="font-size:0.82rem;color:rgba(255,255,255,0.5);display:block;margin-bottom:0.4rem;">Address *</label>
+    <textarea class="admin-input" id="nb2-addr" rows="2" style="resize:vertical;"></textarea>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:0 1rem;">
+      <div><label style="font-size:0.82rem;color:rgba(255,255,255,0.5);display:block;margin-bottom:0.4rem;">City *</label><input class="admin-input" type="text" id="nb2-city" value="Pokhara"></div>
+      <div><label style="font-size:0.82rem;color:rgba(255,255,255,0.5);display:block;margin-bottom:0.4rem;">Latitude *</label><input class="admin-input" type="number" step="0.0000001" id="nb2-lat"></div>
+      <div><label style="font-size:0.82rem;color:rgba(255,255,255,0.5);display:block;margin-bottom:0.4rem;">Longitude *</label><input class="admin-input" type="number" step="0.0000001" id="nb2-lon"></div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 1rem;">
+      <div><label style="font-size:0.82rem;color:rgba(255,255,255,0.5);display:block;margin-bottom:0.4rem;">Logo</label><input class="admin-input" type="file" id="nb2-logo" accept="image/*" capture="environment"></div>
+      <div><label style="font-size:0.82rem;color:rgba(255,255,255,0.5);display:block;margin-bottom:0.4rem;">Banner</label><input class="admin-input" type="file" id="nb2-banner" accept="image/*" capture="environment"></div>
+    </div>
+
+    <label style="font-size:0.82rem;color:rgba(255,255,255,0.5);display:block;margin-bottom:0.4rem;">Owner Email (leave blank to auto-create a placeholder account)</label>
+    <input class="admin-input" type="email" id="nb2-owner-email" placeholder="owner@example.com">
+
+    <h4 style="margin:1rem 0 0.5rem;color:rgba(255,255,255,0.7);font-size:0.9rem;">Business Features</h4>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 1rem;">
+      <div><label style="font-size:0.82rem;color:rgba(255,255,255,0.5);display:block;margin-bottom:0.4rem;">Payment Mode</label>
+        <select class="admin-input" id="nb2-payment-mode"><option value="cash_only">Cash Only</option><option value="online">Online Payment</option></select></div>
+      <div><label style="font-size:0.82rem;color:rgba(255,255,255,0.5);display:block;margin-bottom:0.4rem;">Card Payment</label>
+        <select class="admin-input" id="nb2-card-payment"><option value="na">Not Applicable</option><option value="yes">Yes</option><option value="no">No</option></select></div>
+      <div><label style="font-size:0.82rem;color:rgba(255,255,255,0.5);display:block;margin-bottom:0.4rem;">Free WiFi</label>
+        <select class="admin-input" id="nb2-wifi"><option value="na">Not Applicable</option><option value="yes">Yes</option><option value="no">No</option></select></div>
+      <div><label style="font-size:0.82rem;color:rgba(255,255,255,0.5);display:block;margin-bottom:0.4rem;">Smoking</label>
+        <select class="admin-input" id="nb2-smoking"><option value="na">Not Applicable</option><option value="yes">Yes</option><option value="no">No</option></select></div>
+      <div><label style="font-size:0.82rem;color:rgba(255,255,255,0.5);display:block;margin-bottom:0.4rem;">Offer Package (Takeaway)</label>
+        <select class="admin-input" id="nb2-offer-package"><option value="na">Not Applicable</option><option value="yes">Yes</option><option value="no">No</option></select></div>
+      <div><label style="font-size:0.82rem;color:rgba(255,255,255,0.5);display:block;margin-bottom:0.4rem;">Registered Business</label>
+        <select class="admin-input" id="nb2-registered"><option value="unspecified">Unspecified</option><option value="yes">Registered</option><option value="no">Not Registered</option></select></div>
+      <div><label style="font-size:0.82rem;color:rgba(255,255,255,0.5);display:block;margin-bottom:0.4rem;">Parking</label>
+        <select class="admin-input" id="nb2-parking"><option value="unspecified">Unspecified</option><option value="yes">Available</option><option value="no">Not Available</option></select></div>
+    </div>
+    <label style="display:flex;align-items:center;gap:0.5rem;font-size:0.85rem;margin-bottom:1rem;"><input type="checkbox" id="nb2-delivery"> Offer Delivery</label>
+
+    <h4 style="margin:1rem 0 0.5rem;color:var(--saffron);font-size:0.9rem;">⭐ Premium (admin-controlled)</h4>
+    <label style="display:flex;align-items:center;gap:0.5rem;font-size:0.85rem;margin-bottom:0.5rem;"><input type="checkbox" id="nb2-verified"> Verified Badge</label>
+    <label style="display:flex;align-items:center;gap:0.5rem;font-size:0.85rem;margin-bottom:1rem;"><input type="checkbox" id="nb2-accepts-orders"> Accepts Online Orders</label>
+
+    <div style="display:flex;gap:0.75rem;justify-content:flex-end;margin-top:1rem;">
+      <button onclick="closeBizModal()" style="background:rgba(255,255,255,0.06);color:white;border:1px solid rgba(255,255,255,0.1);padding:0.5rem 1.25rem;border-radius:8px;font-size:0.875rem;cursor:pointer;">Cancel</button>
+      <button onclick="createBusinessAdmin()" style="background:var(--saffron);color:white;border:none;padding:0.5rem 1.25rem;border-radius:8px;font-size:0.875rem;font-weight:600;cursor:pointer;">Create Business</button>
+    </div>
+  </div>
+</div>
+
+<!-- BULK IMPORT MODAL -->
+<div class="admin-modal-overlay" id="bulk-modal">
+  <div class="admin-modal" style="max-width:640px;max-height:85vh;overflow-y:auto;">
+    <h3>Bulk Import Businesses</h3>
+    <p style="font-size:0.82rem;color:rgba(255,255,255,0.5);margin-bottom:1rem;">Download the template, fill one row per business, then upload it here along with any logo/banner photos referenced in the <code>logo_filename</code> / <code>banner_filename</code> columns.</p>
+    <button onclick="downloadImportTemplate()" style="background:rgba(255,255,255,0.06);color:white;border:1px solid rgba(255,255,255,0.1);padding:0.5rem 1.25rem;border-radius:8px;font-size:0.85rem;cursor:pointer;margin-bottom:1.25rem;">⬇ Download Template (.xlsx)</button>
+
+    <label style="font-size:0.82rem;color:rgba(255,255,255,0.5);display:block;margin-bottom:0.4rem;">Spreadsheet (.xlsx)</label>
+    <input class="admin-input" type="file" id="bulk-file" accept=".xlsx">
+    <label style="font-size:0.82rem;color:rgba(255,255,255,0.5);display:block;margin-bottom:0.4rem;">Photos (select all logo/banner images referenced in the spreadsheet)</label>
+    <input class="admin-input" type="file" id="bulk-images" accept="image/*" multiple>
+
+    <div id="bulk-results" style="max-height:280px;overflow-y:auto;margin-top:0.5rem;"></div>
+
+    <div style="display:flex;gap:0.75rem;justify-content:flex-end;margin-top:1rem;">
+      <button onclick="closeBulkModal()" style="background:rgba(255,255,255,0.06);color:white;border:1px solid rgba(255,255,255,0.1);padding:0.5rem 1.25rem;border-radius:8px;font-size:0.875rem;cursor:pointer;">Close</button>
+      <button onclick="runBulkImport()" id="bulk-run-btn" style="background:var(--saffron);color:white;border:none;padding:0.5rem 1.25rem;border-radius:8px;font-size:0.875rem;font-weight:600;cursor:pointer;">Import</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast-container" id="toast-container"></div>
 
 <script src="/js/app.js"></script>
@@ -460,7 +554,7 @@ function formatPrice(p) { return 'Rs. ' + parseFloat(p).toLocaleString(); }
 function formatDate(d) { return new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }); }
 
 let currentSection = 'dashboard';
-let bizData = [], userData = [], orderData = [], reviewData = [];
+let bizData = [], userData = [], orderData = [], reviewData = [], catData = [];
 let bizFilter = '', userFilter = '', orderFilter = '';
 
 function showSection(name, btn) {
@@ -799,6 +893,7 @@ async function deleteReview(id) {
 async function loadCategories() {
   const resp = await AdminAPI.get('/categories/');
   if (!resp.ok) return;
+  catData = resp.data;
   const tbody = document.getElementById('cats-table-body');
   if (!resp.data.length) { tbody.innerHTML = '<tr><td colspan="5"><div class="admin-empty"><p>No categories</p></div></td></tr>'; return; }
   tbody.innerHTML = resp.data.map(c => `
@@ -909,8 +1004,131 @@ document.getElementById('ad-modal').addEventListener('click', function(e) {
   if (e.target === this) closeAdModal();
 });
 
+// ADD BUSINESS
+function openBizModal() {
+  ['nb2-name','nb2-short','nb2-desc','nb2-phone','nb2-wa','nb2-email','nb2-web','nb2-fb','nb2-ig','nb2-addr','nb2-lat','nb2-lon','nb2-owner-email'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('nb2-city').value = 'Pokhara';
+  document.getElementById('nb2-logo').value = '';
+  document.getElementById('nb2-banner').value = '';
+  document.getElementById('nb2-payment-mode').value = 'cash_only';
+  ['nb2-card-payment','nb2-wifi','nb2-smoking','nb2-offer-package'].forEach(id => document.getElementById(id).value = 'na');
+  ['nb2-registered','nb2-parking'].forEach(id => document.getElementById(id).value = 'unspecified');
+  document.getElementById('nb2-delivery').checked = false;
+  document.getElementById('nb2-verified').checked = false;
+  document.getElementById('nb2-accepts-orders').checked = false;
+  document.getElementById('nb2-cat').innerHTML = catData.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+  document.getElementById('biz-modal').style.display = 'flex';
+}
+
+function closeBizModal() { document.getElementById('biz-modal').style.display = 'none'; }
+
+async function createBusinessAdmin() {
+  const name = document.getElementById('nb2-name').value;
+  const phone = document.getElementById('nb2-phone').value;
+  const address = document.getElementById('nb2-addr').value;
+  const lat = document.getElementById('nb2-lat').value;
+  const lon = document.getElementById('nb2-lon').value;
+  if (!name || !phone || !address || !lat || !lon) { toast('Name, phone, address, and coordinates are required', 'error'); return; }
+
+  const regSel = document.getElementById('nb2-registered').value;
+  const parkSel = document.getElementById('nb2-parking').value;
+  const fd = new FormData();
+  const fields = {
+    name, phone, address, latitude: lat, longitude: lon,
+    category: document.getElementById('nb2-cat').value,
+    short_description: document.getElementById('nb2-short').value,
+    description: document.getElementById('nb2-desc').value || 'No description provided.',
+    whatsapp: document.getElementById('nb2-wa').value,
+    email: document.getElementById('nb2-email').value,
+    website: document.getElementById('nb2-web').value,
+    facebook: document.getElementById('nb2-fb').value,
+    instagram: document.getElementById('nb2-ig').value,
+    city: document.getElementById('nb2-city').value,
+    owner_email: document.getElementById('nb2-owner-email').value,
+    payment_mode: document.getElementById('nb2-payment-mode').value,
+    card_payment: document.getElementById('nb2-card-payment').value,
+    free_wifi: document.getElementById('nb2-wifi').value,
+    smoking: document.getElementById('nb2-smoking').value,
+    offer_package: document.getElementById('nb2-offer-package').value,
+    is_registered: regSel === 'unspecified' ? '' : (regSel === 'yes'),
+    has_parking: parkSel === 'unspecified' ? '' : (parkSel === 'yes'),
+    offer_delivery: document.getElementById('nb2-delivery').checked,
+    is_verified: document.getElementById('nb2-verified').checked,
+    accepts_orders: document.getElementById('nb2-accepts-orders').checked,
+  };
+  Object.entries(fields).forEach(([k, v]) => { if (v !== '' && v !== null && v !== undefined) fd.append(k, v); });
+  const logoFile = document.getElementById('nb2-logo').files[0];
+  const bannerFile = document.getElementById('nb2-banner').files[0];
+  if (logoFile) fd.append('logo', logoFile);
+  if (bannerFile) fd.append('banner', bannerFile);
+
+  const resp = await AdminAPI.post('/businesses/create/', fd, true);
+  if (resp.ok) { toast('Business created!', 'success'); closeBizModal(); loadBusinesses(); loadDashboard(); }
+  else toast(resp.data?.error || 'Failed to create business', 'error');
+}
+
+document.getElementById('biz-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeBizModal();
+});
+
+// BULK IMPORT
+function openBulkModal() {
+  document.getElementById('bulk-file').value = '';
+  document.getElementById('bulk-images').value = '';
+  document.getElementById('bulk-results').innerHTML = '';
+  document.getElementById('bulk-modal').style.display = 'flex';
+}
+
+function closeBulkModal() { document.getElementById('bulk-modal').style.display = 'none'; }
+
+async function downloadImportTemplate() {
+  try {
+    const resp = await fetch(`${API_BASE}/admin-panel/businesses/bulk-import/template/`, {
+      headers: { 'Authorization': `Bearer ${AdminAuth.getToken()}` },
+    });
+    if (!resp.ok) { toast('Could not download template', 'error'); return; }
+    const blob = await resp.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'vbazaar-bulk-import-template.xlsx';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  } catch { toast('Could not download template', 'error'); }
+}
+
+async function runBulkImport() {
+  const file = document.getElementById('bulk-file').files[0];
+  if (!file) { toast('Choose a spreadsheet first', 'error'); return; }
+  const fd = new FormData();
+  fd.append('file', file);
+  Array.from(document.getElementById('bulk-images').files).forEach(f => fd.append('images', f));
+
+  const btn = document.getElementById('bulk-run-btn');
+  btn.disabled = true; btn.textContent = 'Importing...';
+  const resp = await AdminAPI.post('/businesses/bulk-import/', fd, true);
+  btn.disabled = false; btn.textContent = 'Import';
+
+  if (!resp.ok) { toast(resp.data?.error || 'Import failed', 'error'); return; }
+  const { summary, rows } = resp.data;
+  toast(`Imported ${summary.created}/${summary.total} — ${summary.failed} failed`, summary.failed ? 'error' : 'success');
+  document.getElementById('bulk-results').innerHTML = rows.map(r => `
+    <div style="padding:0.5rem 0.75rem;border-radius:6px;margin-bottom:0.4rem;font-size:0.82rem;background:${r.status === 'success' ? 'rgba(74,222,128,0.1)' : 'rgba(248,113,113,0.1)'};color:${r.status === 'success' ? '#4ADE80' : '#F87171'};">
+      Row ${r.row} — ${r.name || '(no name)'}: ${r.status === 'success' ? 'Created' : (r.errors || []).join('; ')}
+    </div>`).join('');
+  loadBusinesses();
+  loadDashboard();
+}
+
+document.getElementById('bulk-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeBulkModal();
+});
+
 // Init
 loadDashboard();
+loadCategories();
 </script>
 </body>
 </html>

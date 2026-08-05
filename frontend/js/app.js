@@ -26,6 +26,20 @@ function categoryIcon(slug, sizePx = 24) {
   return `<svg width="${sizePx}" height="${sizePx}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="color:var(--saffron);vertical-align:middle;">${inner}</svg>`;
 }
 
+// ===== Brand-colored UI icons (replace multicolor emoji in nav/tabs) =====
+const UI_ICON_PATHS = {
+  menu: '<path d="M6 7h12l1 13H5L6 7z"/><path d="M9 7a3 3 0 0 1 6 0"/>',
+  about: '<circle cx="12" cy="12" r="9"/><path d="M12 16v-4.5"/><circle cx="12" cy="8" r="0.9" fill="currentColor" stroke="none"/>',
+  gallery: '<rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="8.5" cy="9.5" r="1.5"/><path d="M21 15.5 16 10l-4.5 5-2-2L3 18.5"/>',
+  reviews: '<path d="M12 3 14.5 9.5 21 10 16 14.3 17.5 21 12 17.3 6.5 21 8 14.3 3 10 9.5 9.5 12 3z"/>',
+  location: '<path d="M12 21s7-6.2 7-11.5A7 7 0 0 0 5 9.5C5 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.3"/>',
+};
+
+function uiIcon(name, sizePx = 18) {
+  const inner = UI_ICON_PATHS[name] || '';
+  return `<svg width="${sizePx}" height="${sizePx}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="color:var(--saffron);vertical-align:middle;">${inner}</svg>`;
+}
+
 const Auth = {
   getToken: () => localStorage.getItem('access_token'),
   getRefresh: () => localStorage.getItem('refresh_token'),
