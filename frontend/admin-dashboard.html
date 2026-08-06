@@ -140,6 +140,8 @@ body { font-family: var(--font-body); background: #0F1623; color: white; margin:
 /* EMPTY */
 .admin-empty { text-align: center; padding: 3rem; color: rgba(255,255,255,0.3); }
 .admin-empty .empty-icon { font-size: 3rem; margin-bottom: 1rem; }
+.spinner { width: 28px; height: 28px; border: 3px solid rgba(255,255,255,0.15); border-top-color: var(--saffron); border-radius: 50%; margin: 0 auto 1rem; animation: spin 0.8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
 
 /* PENDING HIGHLIGHT */
 .pending-row td { background: rgba(251,191,36,0.03); }
@@ -354,7 +356,7 @@ body { font-family: var(--font-body); background: #0F1623; color: white; margin:
     <input class="admin-input" type="number" id="cat-order" placeholder="0" value="0">
     <div style="display:flex;gap:0.75rem;justify-content:flex-end;margin-top:1rem;">
       <button onclick="closeCatModal()" style="background:rgba(255,255,255,0.06);color:white;border:1px solid rgba(255,255,255,0.1);padding:0.5rem 1.25rem;border-radius:8px;font-size:0.875rem;cursor:pointer;">Cancel</button>
-      <button onclick="createCategory()" style="background:var(--saffron);color:white;border:none;padding:0.5rem 1.25rem;border-radius:8px;font-size:0.875rem;font-weight:600;cursor:pointer;">Create Category</button>
+      <button onclick="createCategory(this)" style="background:var(--saffron);color:white;border:none;padding:0.5rem 1.25rem;border-radius:8px;font-size:0.875rem;font-weight:600;cursor:pointer;">Create Category</button>
     </div>
   </div>
 </div>
@@ -371,27 +373,31 @@ body { font-family: var(--font-body); background: #0F1623; color: white; margin:
     <input class="admin-input" type="file" id="ad-image" accept="image/*">
     <div style="display:flex;gap:0.75rem;justify-content:flex-end;margin-top:1rem;">
       <button onclick="closeAdModal()" style="background:rgba(255,255,255,0.06);color:white;border:1px solid rgba(255,255,255,0.1);padding:0.5rem 1.25rem;border-radius:8px;font-size:0.875rem;cursor:pointer;">Cancel</button>
-      <button onclick="createAdvertisement()" style="background:var(--saffron);color:white;border:none;padding:0.5rem 1.25rem;border-radius:8px;font-size:0.875rem;font-weight:600;cursor:pointer;">Create Advertisement</button>
+      <button onclick="createAdvertisement(this)" style="background:var(--saffron);color:white;border:none;padding:0.5rem 1.25rem;border-radius:8px;font-size:0.875rem;font-weight:600;cursor:pointer;">Create Advertisement</button>
     </div>
   </div>
 </div>
 
-<!-- ADD BUSINESS MODAL -->
+<!-- ADD / MODIFY BUSINESS MODAL -->
 <div class="admin-modal-overlay" id="biz-modal">
   <div class="admin-modal" style="max-width:720px;max-height:85vh;overflow-y:auto;">
-    <h3>Add New Business</h3>
+    <h3 id="biz-modal-title">Add New Business</h3>
+    <p style="font-size:0.78rem;color:rgba(255,255,255,0.4);margin-bottom:1rem;">Only Business Name, Contact Number, and Category are required. Everything else can be filled in now or added later via Modify or the business's own profile.</p>
 
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 1rem;">
       <div><label style="font-size:0.82rem;color:rgba(255,255,255,0.5);display:block;margin-bottom:0.4rem;">Business Name *</label><input class="admin-input" type="text" id="nb2-name"></div>
-      <div><label style="font-size:0.82rem;color:rgba(255,255,255,0.5);display:block;margin-bottom:0.4rem;">Category</label><select class="admin-input" id="nb2-cat"></select></div>
+      <div><label style="font-size:0.82rem;color:rgba(255,255,255,0.5);display:block;margin-bottom:0.4rem;">Category *</label><select class="admin-input" id="nb2-cat"></select></div>
     </div>
+    <div><label style="font-size:0.82rem;color:rgba(255,255,255,0.5);display:block;margin-bottom:0.4rem;">Contact No. *</label><input class="admin-input" type="tel" id="nb2-phone"></div>
+    <label style="font-size:0.82rem;color:rgba(255,255,255,0.5);display:block;margin-bottom:0.4rem;">Branch of (optional — leave blank if this is a main business)</label>
+    <select class="admin-input" id="nb2-parent"><option value="">Not a branch</option></select>
+
     <label style="font-size:0.82rem;color:rgba(255,255,255,0.5);display:block;margin-bottom:0.4rem;">Short Description</label>
     <input class="admin-input" type="text" id="nb2-short" maxlength="300">
     <label style="font-size:0.82rem;color:rgba(255,255,255,0.5);display:block;margin-bottom:0.4rem;">Full Description</label>
     <textarea class="admin-input" id="nb2-desc" rows="3" style="resize:vertical;"></textarea>
 
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 1rem;">
-      <div><label style="font-size:0.82rem;color:rgba(255,255,255,0.5);display:block;margin-bottom:0.4rem;">Phone *</label><input class="admin-input" type="tel" id="nb2-phone"></div>
       <div><label style="font-size:0.82rem;color:rgba(255,255,255,0.5);display:block;margin-bottom:0.4rem;">WhatsApp</label><input class="admin-input" type="tel" id="nb2-wa"></div>
       <div><label style="font-size:0.82rem;color:rgba(255,255,255,0.5);display:block;margin-bottom:0.4rem;">Email</label><input class="admin-input" type="email" id="nb2-email"></div>
       <div><label style="font-size:0.82rem;color:rgba(255,255,255,0.5);display:block;margin-bottom:0.4rem;">Website</label><input class="admin-input" type="url" id="nb2-web"></div>
@@ -399,17 +405,39 @@ body { font-family: var(--font-body); background: #0F1623; color: white; margin:
       <div><label style="font-size:0.82rem;color:rgba(255,255,255,0.5);display:block;margin-bottom:0.4rem;">Instagram</label><input class="admin-input" type="url" id="nb2-ig"></div>
     </div>
 
-    <label style="font-size:0.82rem;color:rgba(255,255,255,0.5);display:block;margin-bottom:0.4rem;">Address *</label>
+    <label style="font-size:0.82rem;color:rgba(255,255,255,0.5);display:block;margin-bottom:0.4rem;">Address</label>
     <textarea class="admin-input" id="nb2-addr" rows="2" style="resize:vertical;"></textarea>
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:0 1rem;">
-      <div><label style="font-size:0.82rem;color:rgba(255,255,255,0.5);display:block;margin-bottom:0.4rem;">City *</label><input class="admin-input" type="text" id="nb2-city" value="Pokhara"></div>
-      <div><label style="font-size:0.82rem;color:rgba(255,255,255,0.5);display:block;margin-bottom:0.4rem;">Latitude *</label><input class="admin-input" type="number" step="0.0000001" id="nb2-lat"></div>
-      <div><label style="font-size:0.82rem;color:rgba(255,255,255,0.5);display:block;margin-bottom:0.4rem;">Longitude *</label><input class="admin-input" type="number" step="0.0000001" id="nb2-lon"></div>
+    <div><label style="font-size:0.82rem;color:rgba(255,255,255,0.5);display:block;margin-bottom:0.4rem;">City</label><input class="admin-input" type="text" id="nb2-city" value="Pokhara"></div>
+
+    <label style="font-size:0.82rem;color:rgba(255,255,255,0.5);display:block;margin-bottom:0.4rem;">Location</label>
+    <div style="display:flex;gap:0.75rem;margin-bottom:0.75rem;flex-wrap:wrap;">
+      <button type="button" onclick="bizUseMyLocation()" style="background:rgba(232,99,10,0.15);color:var(--saffron);border:1px solid rgba(232,99,10,0.3);padding:0.5rem 1rem;border-radius:8px;font-size:0.82rem;cursor:pointer;">📍 Use Live Location</button>
+      <input class="admin-input" type="text" id="nb2-maps-link" placeholder="Or paste a Google Maps link..." style="flex:1;min-width:200px;margin-bottom:0;">
+      <button type="button" onclick="bizParseMapsLink()" style="background:rgba(255,255,255,0.06);color:white;border:1px solid rgba(255,255,255,0.1);padding:0.5rem 1rem;border-radius:8px;font-size:0.82rem;cursor:pointer;">Parse Link</button>
+    </div>
+    <div id="nb2-loc-status" style="font-size:0.78rem;color:rgba(255,255,255,0.4);margin-bottom:0.75rem;"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 1rem;">
+      <div><label style="font-size:0.82rem;color:rgba(255,255,255,0.5);display:block;margin-bottom:0.4rem;">Latitude</label><input class="admin-input" type="number" step="0.0000001" id="nb2-lat"></div>
+      <div><label style="font-size:0.82rem;color:rgba(255,255,255,0.5);display:block;margin-bottom:0.4rem;">Longitude</label><input class="admin-input" type="number" step="0.0000001" id="nb2-lon"></div>
     </div>
 
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 1rem;">
-      <div><label style="font-size:0.82rem;color:rgba(255,255,255,0.5);display:block;margin-bottom:0.4rem;">Logo</label><input class="admin-input" type="file" id="nb2-logo" accept="image/*" capture="environment"></div>
-      <div><label style="font-size:0.82rem;color:rgba(255,255,255,0.5);display:block;margin-bottom:0.4rem;">Banner</label><input class="admin-input" type="file" id="nb2-banner" accept="image/*" capture="environment"></div>
+      <div>
+        <label style="font-size:0.82rem;color:rgba(255,255,255,0.5);display:block;margin-bottom:0.4rem;">Logo</label>
+        <div style="display:flex;gap:0.5rem;margin-bottom:0.4rem;">
+          <label style="flex:1;text-align:center;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);padding:0.5rem;border-radius:8px;font-size:0.78rem;cursor:pointer;">📷 Camera<input type="file" id="nb2-logo-cam" accept="image/*" capture="environment" style="display:none;" onchange="pickPhoto(this,'nb2-logo-status')"></label>
+          <label style="flex:1;text-align:center;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);padding:0.5rem;border-radius:8px;font-size:0.78rem;cursor:pointer;">🖼️ Gallery<input type="file" id="nb2-logo-gal" accept="image/*" style="display:none;" onchange="pickPhoto(this,'nb2-logo-status')"></label>
+        </div>
+        <div id="nb2-logo-status" style="font-size:0.76rem;color:rgba(255,255,255,0.4);">No photo chosen</div>
+      </div>
+      <div>
+        <label style="font-size:0.82rem;color:rgba(255,255,255,0.5);display:block;margin-bottom:0.4rem;">Banner</label>
+        <div style="display:flex;gap:0.5rem;margin-bottom:0.4rem;">
+          <label style="flex:1;text-align:center;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);padding:0.5rem;border-radius:8px;font-size:0.78rem;cursor:pointer;">📷 Camera<input type="file" id="nb2-banner-cam" accept="image/*" capture="environment" style="display:none;" onchange="pickPhoto(this,'nb2-banner-status')"></label>
+          <label style="flex:1;text-align:center;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);padding:0.5rem;border-radius:8px;font-size:0.78rem;cursor:pointer;">🖼️ Gallery<input type="file" id="nb2-banner-gal" accept="image/*" style="display:none;" onchange="pickPhoto(this,'nb2-banner-status')"></label>
+        </div>
+        <div id="nb2-banner-status" style="font-size:0.76rem;color:rgba(255,255,255,0.4);">No photo chosen</div>
+      </div>
     </div>
 
     <label style="font-size:0.82rem;color:rgba(255,255,255,0.5);display:block;margin-bottom:0.4rem;">Owner Email (leave blank to auto-create a placeholder account)</label>
@@ -438,9 +466,10 @@ body { font-family: var(--font-body); background: #0F1623; color: white; margin:
     <label style="display:flex;align-items:center;gap:0.5rem;font-size:0.85rem;margin-bottom:0.5rem;"><input type="checkbox" id="nb2-verified"> Verified Badge</label>
     <label style="display:flex;align-items:center;gap:0.5rem;font-size:0.85rem;margin-bottom:1rem;"><input type="checkbox" id="nb2-accepts-orders"> Accepts Online Orders</label>
 
+    <div id="biz-modal-error" style="display:none;background:rgba(248,113,113,0.1);border:1px solid rgba(248,113,113,0.3);color:#F87171;padding:0.6rem 0.9rem;border-radius:8px;font-size:0.82rem;margin-bottom:0.75rem;"></div>
     <div style="display:flex;gap:0.75rem;justify-content:flex-end;margin-top:1rem;">
       <button onclick="closeBizModal()" style="background:rgba(255,255,255,0.06);color:white;border:1px solid rgba(255,255,255,0.1);padding:0.5rem 1.25rem;border-radius:8px;font-size:0.875rem;cursor:pointer;">Cancel</button>
-      <button onclick="createBusinessAdmin()" style="background:var(--saffron);color:white;border:none;padding:0.5rem 1.25rem;border-radius:8px;font-size:0.875rem;font-weight:600;cursor:pointer;">Create Business</button>
+      <button onclick="createBusinessAdmin()" id="biz-submit-btn" style="background:var(--saffron);color:white;border:none;padding:0.5rem 1.25rem;border-radius:8px;font-size:0.875rem;font-weight:600;cursor:pointer;">Create Business</button>
     </div>
   </div>
 </div>
@@ -449,7 +478,7 @@ body { font-family: var(--font-body); background: #0F1623; color: white; margin:
 <div class="admin-modal-overlay" id="bulk-modal">
   <div class="admin-modal" style="max-width:640px;max-height:85vh;overflow-y:auto;">
     <h3>Bulk Import Businesses</h3>
-    <p style="font-size:0.82rem;color:rgba(255,255,255,0.5);margin-bottom:1rem;">Download the template, fill one row per business, then upload it here along with any logo/banner photos referenced in the <code>logo_filename</code> / <code>banner_filename</code> columns.</p>
+    <p style="font-size:0.82rem;color:rgba(255,255,255,0.5);margin-bottom:1rem;">Download the template, fill one row per business (<code>name</code>, <code>phone</code>, and <code>category_slug</code> are required — everything else is optional), then upload it here along with any logo/banner photos referenced in the <code>logo_filename</code> / <code>banner_filename</code> columns.</p>
     <button onclick="downloadImportTemplate()" style="background:rgba(255,255,255,0.06);color:white;border:1px solid rgba(255,255,255,0.1);padding:0.5rem 1.25rem;border-radius:8px;font-size:0.85rem;cursor:pointer;margin-bottom:1.25rem;">⬇ Download Template (.xlsx)</button>
 
     <label style="font-size:0.82rem;color:rgba(255,255,255,0.5);display:block;margin-bottom:0.4rem;">Spreadsheet (.xlsx)</label>
@@ -503,35 +532,49 @@ async function adminRequest(method, endpoint, data = null, isForm = false) {
   const config = { method, headers };
   if (data) config.body = isForm ? data : JSON.stringify(data);
 
-  let resp = await fetch(`${API_BASE}/admin-panel${endpoint}`, config);
+  let resp;
+  try {
+    resp = await fetch(`${API_BASE}/admin-panel${endpoint}`, config);
+  } catch (networkErr) {
+    return { ok: false, status: 0, data: { error: 'Could not reach the server. Check your connection and try again.' } };
+  }
 
   if (resp.status === 401 && AdminAuth.getRefresh()) {
-    const r = await fetch(`${API_BASE}/auth/token/refresh/`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ refresh: AdminAuth.getRefresh() }),
-    });
+    let r;
+    try {
+      r = await fetch(`${API_BASE}/auth/token/refresh/`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ refresh: AdminAuth.getRefresh() }),
+      });
+    } catch {
+      return { ok: false, status: 0, data: { error: 'Could not reach the server. Check your connection and try again.' } };
+    }
     if (r.ok) {
       const { access } = await r.json();
       localStorage.setItem('admin_access_token', access);
       headers['Authorization'] = `Bearer ${access}`;
       config.headers = headers;
-      resp = await fetch(`${API_BASE}/admin-panel${endpoint}`, config);
+      try {
+        resp = await fetch(`${API_BASE}/admin-panel${endpoint}`, config);
+      } catch {
+        return { ok: false, status: 0, data: { error: 'Could not reach the server. Check your connection and try again.' } };
+      }
     } else {
       AdminAuth.clear();
       window.location.href = '/admin-login/';
-      return { ok: false, data: null };
+      return { ok: false, status: 401, data: null };
     }
   }
 
   const result = { status: resp.status, ok: resp.ok };
-  try { result.data = await resp.json(); } catch { result.data = null; }
+  try { result.data = await resp.json(); } catch { result.data = resp.ok ? null : { error: `Server error (${resp.status}).` }; }
   return result;
 }
 
 const AdminAPI = {
   get: (ep) => adminRequest('GET', ep),
-  patch: (ep, d) => adminRequest('PATCH', ep, d),
+  patch: (ep, d, f) => adminRequest('PATCH', ep, d, f),
   post: (ep, d, f) => adminRequest('POST', ep, d, f),
   delete: (ep) => adminRequest('DELETE', ep),
 };
@@ -552,6 +595,31 @@ function toast(msg, type = 'default') {
 
 function formatPrice(p) { return 'Rs. ' + parseFloat(p).toLocaleString(); }
 function formatDate(d) { return new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }); }
+
+// Shows a spinner row in a table body while data loads
+function tableLoading(tbodyId, colspan) {
+  const tbody = document.getElementById(tbodyId);
+  if (tbody) tbody.innerHTML = `<tr><td colspan="${colspan}"><div class="admin-empty"><div class="spinner"></div><p>Loading...</p></div></td></tr>`;
+}
+
+function tableError(tbodyId, colspan, msg) {
+  const tbody = document.getElementById(tbodyId);
+  if (tbody) tbody.innerHTML = `<tr><td colspan="${colspan}"><div class="admin-empty"><div class="empty-icon">⚠️</div><p>${msg}</p></div></td></tr>`;
+}
+
+// Runs an async action while disabling/relabeling the triggering button so the user always sees feedback
+async function withButtonLoading(btn, loadingLabel, fn) {
+  if (!btn) return fn();
+  const original = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = loadingLabel;
+  try {
+    return await fn();
+  } finally {
+    btn.disabled = false;
+    btn.textContent = original;
+  }
+}
 
 let currentSection = 'dashboard';
 let bizData = [], userData = [], orderData = [], reviewData = [], catData = [];
@@ -580,8 +648,10 @@ function refreshCurrentSection() { showSection(currentSection, document.querySel
 
 // DASHBOARD
 async function loadDashboard() {
+  const statsRow = document.getElementById('stats-row');
+  if (statsRow && !statsRow.children.length) statsRow.innerHTML = `<div class="admin-empty" style="grid-column:1/-1;"><div class="spinner"></div><p>Loading dashboard...</p></div>`;
   const resp = await AdminAPI.get('/stats/');
-  if (!resp.ok) { toast('Failed to load stats', 'error'); return; }
+  if (!resp.ok) { if (statsRow) statsRow.innerHTML = `<div class="admin-empty" style="grid-column:1/-1;"><div class="empty-icon">⚠️</div><p>${resp.data?.error || 'Failed to load stats.'}</p></div>`; toast(resp.data?.error || 'Failed to load stats', 'error'); return; }
   const s = resp.data;
   document.getElementById('stats-row').innerHTML = `
     <div class="admin-stat-card">
@@ -669,8 +739,9 @@ async function loadDashboard() {
 
 // BUSINESSES
 async function loadBusinesses() {
+  tableLoading('biz-table-body', 7);
   const resp = await AdminAPI.get('/businesses/');
-  if (!resp.ok) return;
+  if (!resp.ok) { tableError('biz-table-body', 7, resp.data?.error || 'Failed to load businesses.'); return; }
   bizData = resp.data;
   renderBizTable(bizData);
 }
@@ -684,7 +755,7 @@ function renderBizTable(data) {
     <tr class="${b.status==='pending'?'pending-row':''}">
       <td>
         <div style="font-weight:600;">${b.name}</div>
-        <div style="font-size:0.75rem;color:rgba(255,255,255,0.4);">${b.city}</div>
+        <div style="font-size:0.75rem;color:rgba(255,255,255,0.4);">${b.city}${b.parent_name?` · Branch of ${b.parent_name}`:''}</div>
       </td>
       <td>
         <div style="font-size:0.82rem;">${b.owner_name}</div>
@@ -696,11 +767,12 @@ function renderBizTable(data) {
       <td><span style="color:#FBBF24;">★ ${parseFloat(b.average_rating).toFixed(1)}</span></td>
       <td>
         <div style="display:flex;gap:0.4rem;flex-wrap:wrap;">
-          ${b.status==='pending'?`<button class="act-btn act-approve" onclick="approveBiz(${b.id})">Approve</button>`:'' }
-          ${b.status==='active'?`<button class="act-btn act-reject" onclick="suspendBiz(${b.id})">Suspend</button>`:''}
-          ${b.status==='suspended'?`<button class="act-btn act-approve" onclick="approveBiz(${b.id})">Reactivate</button>`:''}
-          <button class="act-btn act-feature" onclick="toggleFeature(${b.id}, ${!b.is_featured})">${b.is_featured?'Unfeature':'Feature'}</button>
-          <button class="act-btn act-delete" onclick="deleteBiz(${b.id}, '${b.name}')">Delete</button>
+          <button class="act-btn act-feature" onclick="openBizModalForEdit(${b.id})">Modify</button>
+          ${b.status==='pending'?`<button class="act-btn act-approve" onclick="approveBiz(${b.id}, this)">Approve</button>`:'' }
+          ${b.status==='active'?`<button class="act-btn act-reject" onclick="suspendBiz(${b.id}, this)">Suspend</button>`:''}
+          ${b.status==='suspended'?`<button class="act-btn act-approve" onclick="approveBiz(${b.id}, this)">Reactivate</button>`:''}
+          <button class="act-btn act-feature" onclick="toggleFeature(${b.id}, ${!b.is_featured}, this)">${b.is_featured?'Unfeature':'Feature'}</button>
+          <button class="act-btn act-delete" onclick="deleteBiz(${b.id}, '${b.name}', this)">Delete</button>
         </div>
       </td>
     </tr>`).join('');
@@ -719,35 +791,36 @@ function searchBiz(q) {
   renderBizTable(filtered);
 }
 
-async function approveBiz(id) {
-  const resp = await AdminAPI.patch(`/businesses/${id}/`, { status: 'active' });
+async function approveBiz(id, btn) {
+  const resp = await withButtonLoading(btn, 'Approving...', () => AdminAPI.patch(`/businesses/${id}/`, { status: 'active' }));
   if (resp.ok) { toast('Business approved!', 'success'); loadBusinesses(); loadDashboard(); }
-  else toast('Failed', 'error');
+  else toast(resp.data?.error || 'Failed', 'error');
 }
 
-async function suspendBiz(id) {
-  const resp = await AdminAPI.patch(`/businesses/${id}/`, { status: 'suspended' });
+async function suspendBiz(id, btn) {
+  const resp = await withButtonLoading(btn, 'Suspending...', () => AdminAPI.patch(`/businesses/${id}/`, { status: 'suspended' }));
   if (resp.ok) { toast('Business suspended', 'success'); loadBusinesses(); }
-  else toast('Failed', 'error');
+  else toast(resp.data?.error || 'Failed', 'error');
 }
 
-async function toggleFeature(id, featured) {
-  const resp = await AdminAPI.patch(`/businesses/${id}/`, { is_featured: featured });
+async function toggleFeature(id, featured, btn) {
+  const resp = await withButtonLoading(btn, 'Saving...', () => AdminAPI.patch(`/businesses/${id}/`, { is_featured: featured }));
   if (resp.ok) { toast(featured ? 'Business featured!' : 'Business unfeatured', 'success'); loadBusinesses(); }
-  else toast('Failed', 'error');
+  else toast(resp.data?.error || 'Failed', 'error');
 }
 
-async function deleteBiz(id, name) {
+async function deleteBiz(id, name, btn) {
   if (!confirm(`Delete "${name}"? This cannot be undone.`)) return;
-  const resp = await AdminAPI.delete(`/businesses/${id}/delete/`);
+  const resp = await withButtonLoading(btn, 'Deleting...', () => AdminAPI.delete(`/businesses/${id}/delete/`));
   if (resp.ok) { toast('Business deleted', 'success'); loadBusinesses(); }
-  else toast('Failed to delete', 'error');
+  else toast(resp.data?.error || 'Failed to delete', 'error');
 }
 
 // USERS
 async function loadUsers() {
+  tableLoading('users-table-body', 6);
   const resp = await AdminAPI.get('/users/');
-  if (!resp.ok) return;
+  if (!resp.ok) { tableError('users-table-body', 6, resp.data?.error || 'Failed to load users.'); return; }
   userData = resp.data;
   renderUsersTable(userData);
 }
@@ -772,9 +845,12 @@ function renderUsersTable(data) {
       </td>
       <td><span style="font-size:0.82rem;">${formatDate(u.date_joined)}</span></td>
       <td>
-        ${u.is_active
-          ? `<button class="act-btn act-ban" onclick="banUser(${u.id})">Ban</button>`
-          : `<button class="act-btn act-unban" onclick="unbanUser(${u.id})">Unban</button>`}
+        <div style="display:flex;gap:0.4rem;flex-wrap:wrap;">
+          ${u.is_active
+            ? `<button class="act-btn act-ban" onclick="banUser(${u.id}, this)">Ban</button>`
+            : `<button class="act-btn act-unban" onclick="unbanUser(${u.id}, this)">Unban</button>`}
+          <button class="act-btn act-delete" onclick="deleteUser(${u.id}, '${(u.full_name||u.email).replace(/'/g,"&#39;")}', this)">Delete</button>
+        </div>
       </td>
     </tr>`).join('');
 }
@@ -791,24 +867,32 @@ function searchUsers(q) {
   renderUsersTable(filtered);
 }
 
-async function banUser(id) {
+async function banUser(id, btn) {
   if (!confirm('Ban this user?')) return;
-  const resp = await AdminAPI.patch(`/users/${id}/`, { is_active: false });
+  const resp = await withButtonLoading(btn, 'Banning...', () => AdminAPI.patch(`/users/${id}/`, { is_active: false }));
   if (resp.ok) { toast('User banned', 'success'); loadUsers(); }
-  else toast('Failed', 'error');
+  else toast(resp.data?.error || 'Failed', 'error');
 }
 
-async function unbanUser(id) {
-  const resp = await AdminAPI.patch(`/users/${id}/`, { is_active: true });
+async function unbanUser(id, btn) {
+  const resp = await withButtonLoading(btn, 'Unbanning...', () => AdminAPI.patch(`/users/${id}/`, { is_active: true }));
   if (resp.ok) { toast('User unbanned', 'success'); loadUsers(); }
-  else toast('Failed', 'error');
+  else toast(resp.data?.error || 'Failed', 'error');
+}
+
+async function deleteUser(id, name, btn) {
+  if (!confirm(`Delete "${name}"? This also deletes any businesses they own. This cannot be undone.`)) return;
+  const resp = await withButtonLoading(btn, 'Deleting...', () => AdminAPI.delete(`/users/${id}/delete/`));
+  if (resp.ok) { toast(resp.data?.message || 'User deleted', 'success'); loadUsers(); loadDashboard(); }
+  else toast(resp.data?.error || 'Failed to delete', 'error');
 }
 
 // ORDERS
 async function loadOrders() {
+  tableLoading('orders-table-body', 7);
   const ep = orderFilter ? `/orders/?status=${orderFilter}` : '/orders/';
   const resp = await AdminAPI.get(ep);
-  if (!resp.ok) return;
+  if (!resp.ok) { tableError('orders-table-body', 7, resp.data?.error || 'Failed to load orders.'); return; }
   orderData = resp.data;
   renderOrdersTable(orderData);
 }
@@ -844,8 +928,9 @@ function filterOrders(status, btn) {
 
 // REVIEWS
 async function loadReviews() {
+  tableLoading('reviews-table-body', 6);
   const resp = await AdminAPI.get('/reviews/');
-  if (!resp.ok) return;
+  if (!resp.ok) { tableError('reviews-table-body', 6, resp.data?.error || 'Failed to load reviews.'); return; }
   document.getElementById('reviews-count').textContent = `${resp.data.length} reviews`;
   const tbody = document.getElementById('reviews-table-body');
   if (!resp.data.length) { tbody.innerHTML = '<tr><td colspan="6"><div class="admin-empty"><div class="empty-icon">⭐</div><p>No reviews</p></div></td></tr>'; return; }
@@ -865,34 +950,38 @@ async function loadReviews() {
       <td>
         <div style="display:flex;gap:0.4rem;">
           ${r.is_approved
-            ? `<button class="act-btn act-reject" onclick="hideReview(${r.id})">Hide</button>`
-            : `<button class="act-btn act-approve" onclick="approveReview(${r.id})">Approve</button>`}
-          <button class="act-btn act-delete" onclick="deleteReview(${r.id})">Delete</button>
+            ? `<button class="act-btn act-reject" onclick="hideReview(${r.id}, this)">Hide</button>`
+            : `<button class="act-btn act-approve" onclick="approveReview(${r.id}, this)">Approve</button>`}
+          <button class="act-btn act-delete" onclick="deleteReview(${r.id}, this)">Delete</button>
         </div>
       </td>
     </tr>`).join('');
 }
 
-async function approveReview(id) {
-  const resp = await AdminAPI.patch(`/reviews/${id}/`, { is_approved: true });
+async function approveReview(id, btn) {
+  const resp = await withButtonLoading(btn, 'Saving...', () => AdminAPI.patch(`/reviews/${id}/`, { is_approved: true }));
   if (resp.ok) { toast('Review approved', 'success'); loadReviews(); }
+  else toast(resp.data?.error || 'Failed', 'error');
 }
 
-async function hideReview(id) {
-  const resp = await AdminAPI.patch(`/reviews/${id}/`, { is_approved: false });
+async function hideReview(id, btn) {
+  const resp = await withButtonLoading(btn, 'Saving...', () => AdminAPI.patch(`/reviews/${id}/`, { is_approved: false }));
   if (resp.ok) { toast('Review hidden', 'success'); loadReviews(); }
+  else toast(resp.data?.error || 'Failed', 'error');
 }
 
-async function deleteReview(id) {
+async function deleteReview(id, btn) {
   if (!confirm('Delete this review permanently?')) return;
-  const resp = await AdminAPI.delete(`/reviews/${id}/delete/`);
+  const resp = await withButtonLoading(btn, 'Deleting...', () => AdminAPI.delete(`/reviews/${id}/delete/`));
   if (resp.ok) { toast('Review deleted', 'success'); loadReviews(); }
+  else toast(resp.data?.error || 'Failed to delete', 'error');
 }
 
 // CATEGORIES
 async function loadCategories() {
+  tableLoading('cats-table-body', 5);
   const resp = await AdminAPI.get('/categories/');
-  if (!resp.ok) return;
+  if (!resp.ok) { tableError('cats-table-body', 5, resp.data?.error || 'Failed to load categories.'); return; }
   catData = resp.data;
   const tbody = document.getElementById('cats-table-body');
   if (!resp.data.length) { tbody.innerHTML = '<tr><td colspan="5"><div class="admin-empty"><p>No categories</p></div></td></tr>'; return; }
@@ -902,28 +991,28 @@ async function loadCategories() {
       <td><span style="font-weight:600;">${c.name}</span></td>
       <td><span style="font-size:0.78rem;color:rgba(255,255,255,0.4);">${c.slug}</span></td>
       <td><span style="font-size:0.875rem;">${c.business_count} businesses</span></td>
-      <td><button class="act-btn act-delete" onclick="deleteCategory(${c.id}, '${c.name}')">Delete</button></td>
+      <td><button class="act-btn act-delete" onclick="deleteCategory(${c.id}, '${c.name}', this)">Delete</button></td>
     </tr>`).join('');
 }
 
 function openCatModal() { document.getElementById('cat-modal').style.display = 'flex'; }
 function closeCatModal() { document.getElementById('cat-modal').style.display = 'none'; }
 
-async function createCategory() {
+async function createCategory(btn) {
   const name = document.getElementById('cat-name').value;
   const icon = document.getElementById('cat-icon').value;
   const order = document.getElementById('cat-order').value;
   if (!name || !icon) { toast('Name and icon are required', 'error'); return; }
-  const resp = await AdminAPI.post('/categories/create/', { name, icon, order });
+  const resp = await withButtonLoading(btn, 'Creating...', () => AdminAPI.post('/categories/create/', { name, icon, order }));
   if (resp.ok) { toast('Category created!', 'success'); closeCatModal(); loadCategories(); document.getElementById('cat-name').value=''; document.getElementById('cat-icon').value=''; }
-  else toast('Failed to create', 'error');
+  else toast(resp.data?.error || 'Failed to create', 'error');
 }
 
-async function deleteCategory(id, name) {
+async function deleteCategory(id, name, btn) {
   if (!confirm(`Delete category "${name}"?`)) return;
-  const resp = await AdminAPI.delete(`/categories/${id}/delete/`);
+  const resp = await withButtonLoading(btn, 'Deleting...', () => AdminAPI.delete(`/categories/${id}/delete/`));
   if (resp.ok) { toast('Category deleted', 'success'); loadCategories(); }
-  else toast('Cannot delete — businesses may be using it', 'error');
+  else toast(resp.data?.error || 'Cannot delete — businesses may be using it', 'error');
 }
 
 // Close modal on outside click
@@ -935,8 +1024,9 @@ document.getElementById('cat-modal').addEventListener('click', function(e) {
 let adSelectedBizId = null;
 
 async function loadAdvertisements() {
+  tableLoading('ads-table-body', 4);
   const resp = await AdminAPI.get('/advertisements/');
-  if (!resp.ok) return;
+  if (!resp.ok) { tableError('ads-table-body', 4, resp.data?.error || 'Failed to load advertisements.'); return; }
   const tbody = document.getElementById('ads-table-body');
   if (!resp.data.length) { tbody.innerHTML = '<tr><td colspan="4"><div class="admin-empty"><p>No advertisements yet</p></div></td></tr>'; return; }
   tbody.innerHTML = resp.data.map(a => `
@@ -944,7 +1034,7 @@ async function loadAdvertisements() {
       <td>${a.image ? `<img src="${a.image}" style="width:70px;height:36px;object-fit:cover;border-radius:6px;">` : '—'}</td>
       <td><span style="font-weight:600;">${a.business_name}</span></td>
       <td><label class="toggle-switch"><input type="checkbox" ${a.is_active?'checked':''} onchange="toggleAdActive(${a.id}, this.checked)"><span class="toggle-slider"></span></label></td>
-      <td><button class="act-btn act-delete" onclick="deleteAdvertisement(${a.id}, '${a.business_name}')">Delete</button></td>
+      <td><button class="act-btn act-delete" onclick="deleteAdvertisement(${a.id}, '${a.business_name}', this)">Delete</button></td>
     </tr>`).join('');
 }
 
@@ -976,28 +1066,28 @@ function selectAdBusiness(id, name) {
   sel.style.display = 'block';
 }
 
-async function createAdvertisement() {
+async function createAdvertisement(btn) {
   const file = document.getElementById('ad-image').files[0];
   if (!adSelectedBizId) { toast('Select a business first', 'error'); return; }
   if (!file) { toast('Choose an image', 'error'); return; }
   const fd = new FormData();
   fd.append('business_id', adSelectedBizId);
   fd.append('image', file);
-  const resp = await AdminAPI.post('/advertisements/create/', fd, true);
+  const resp = await withButtonLoading(btn, 'Creating...', () => AdminAPI.post('/advertisements/create/', fd, true));
   if (resp.ok) { toast('Advertisement created!', 'success'); closeAdModal(); loadAdvertisements(); }
   else toast(resp.data?.error || 'Failed to create', 'error');
 }
 
 async function toggleAdActive(id, active) {
   const resp = await AdminAPI.patch(`/advertisements/${id}/`, { is_active: active });
-  if (!resp.ok) toast('Failed to update', 'error');
+  if (!resp.ok) toast(resp.data?.error || 'Failed to update', 'error');
 }
 
-async function deleteAdvertisement(id, name) {
+async function deleteAdvertisement(id, name, btn) {
   if (!confirm(`Delete the advertisement for "${name}"?`)) return;
-  const resp = await AdminAPI.delete(`/advertisements/${id}/delete/`);
+  const resp = await withButtonLoading(btn, 'Deleting...', () => AdminAPI.delete(`/advertisements/${id}/delete/`));
   if (resp.ok) { toast('Advertisement deleted', 'success'); loadAdvertisements(); }
-  else toast('Delete failed', 'error');
+  else toast(resp.data?.error || 'Delete failed', 'error');
 }
 
 document.getElementById('ad-modal').addEventListener('click', function(e) {
@@ -1005,39 +1095,156 @@ document.getElementById('ad-modal').addEventListener('click', function(e) {
 });
 
 // ADD BUSINESS
-function openBizModal() {
-  ['nb2-name','nb2-short','nb2-desc','nb2-phone','nb2-wa','nb2-email','nb2-web','nb2-fb','nb2-ig','nb2-addr','nb2-lat','nb2-lon','nb2-owner-email'].forEach(id => document.getElementById(id).value = '');
+let bizModalMode = 'create';
+let bizModalEditId = null;
+let bizPhotoFiles = { logo: null, banner: null };
+
+function pickPhoto(input, statusId) {
+  const file = input.files[0];
+  if (!file) return;
+  const slot = statusId.startsWith('nb2-logo') ? 'logo' : 'banner';
+  bizPhotoFiles[slot] = file;
+  document.getElementById(statusId).innerHTML = `✅ ${file.name}`;
+}
+
+function bizShowError(msg) {
+  const el = document.getElementById('biz-modal-error');
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+
+function bizClearError() {
+  document.getElementById('biz-modal-error').style.display = 'none';
+}
+
+async function bizUseMyLocation() {
+  const status = document.getElementById('nb2-loc-status');
+  status.textContent = 'Getting location...';
+  try {
+    const c = await Location.detect();
+    document.getElementById('nb2-lat').value = c.lat.toFixed(7);
+    document.getElementById('nb2-lon').value = c.lon.toFixed(7);
+    status.textContent = `✅ Location set (${c.lat.toFixed(5)}, ${c.lon.toFixed(5)})`;
+  } catch {
+    status.textContent = '❌ Could not get location — check browser permissions, or paste a Maps link instead.';
+  }
+}
+
+function bizParseMapsLink() {
+  const url = document.getElementById('nb2-maps-link').value.trim();
+  const status = document.getElementById('nb2-loc-status');
+  if (!url) return;
+  let m = url.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
+  if (!m) m = url.match(/!3d(-?\d+\.\d+)!4d(-?\d+\.\d+)/);
+  if (!m) m = url.match(/[?&]q=(-?\d+\.\d+),(-?\d+\.\d+)/);
+  if (m) {
+    document.getElementById('nb2-lat').value = m[1];
+    document.getElementById('nb2-lon').value = m[2];
+    status.textContent = `✅ Parsed from link (${m[1]}, ${m[2]})`;
+  } else {
+    status.textContent = '❌ Could not read coordinates from that link — try "Share → Copy Link" for the full URL, or enter coordinates manually.';
+  }
+}
+
+function bizPopulateCatAndParentOptions(excludeId) {
+  document.getElementById('nb2-cat').innerHTML = '<option value="">Select category...</option>' + catData.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+  const branchable = bizData.filter(b => !excludeId || b.id !== excludeId);
+  document.getElementById('nb2-parent').innerHTML = '<option value="">Not a branch</option>' + branchable.map(b => `<option value="${b.id}">${b.name}${b.city ? ' — ' + b.city : ''}</option>`).join('');
+}
+
+function bizResetForm() {
+  ['nb2-name','nb2-short','nb2-desc','nb2-phone','nb2-wa','nb2-email','nb2-web','nb2-fb','nb2-ig','nb2-addr','nb2-lat','nb2-lon','nb2-owner-email','nb2-maps-link'].forEach(id => document.getElementById(id).value = '');
   document.getElementById('nb2-city').value = 'Pokhara';
-  document.getElementById('nb2-logo').value = '';
-  document.getElementById('nb2-banner').value = '';
+  document.getElementById('nb2-parent').value = '';
+  document.getElementById('nb2-loc-status').textContent = '';
+  ['nb2-logo-cam','nb2-logo-gal','nb2-banner-cam','nb2-banner-gal'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('nb2-logo-status').textContent = 'No photo chosen';
+  document.getElementById('nb2-banner-status').textContent = 'No photo chosen';
+  bizPhotoFiles = { logo: null, banner: null };
   document.getElementById('nb2-payment-mode').value = 'cash_only';
   ['nb2-card-payment','nb2-wifi','nb2-smoking','nb2-offer-package'].forEach(id => document.getElementById(id).value = 'na');
   ['nb2-registered','nb2-parking'].forEach(id => document.getElementById(id).value = 'unspecified');
   document.getElementById('nb2-delivery').checked = false;
   document.getElementById('nb2-verified').checked = false;
   document.getElementById('nb2-accepts-orders').checked = false;
-  document.getElementById('nb2-cat').innerHTML = catData.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+  bizClearError();
+}
+
+function openBizModal() {
+  bizModalMode = 'create';
+  bizModalEditId = null;
+  bizResetForm();
+  bizPopulateCatAndParentOptions(null);
+  document.getElementById('biz-modal-title').textContent = 'Add New Business';
+  document.getElementById('biz-submit-btn').textContent = 'Create Business';
   document.getElementById('biz-modal').style.display = 'flex';
+}
+
+async function openBizModalForEdit(id) {
+  bizModalMode = 'edit';
+  bizModalEditId = id;
+  bizResetForm();
+  bizPopulateCatAndParentOptions(id);
+  document.getElementById('biz-modal-title').textContent = 'Modify Business';
+  document.getElementById('biz-submit-btn').textContent = 'Saving...';
+  document.getElementById('biz-submit-btn').disabled = true;
+  document.getElementById('biz-modal').style.display = 'flex';
+
+  const resp = await AdminAPI.get(`/businesses/${id}/detail/`);
+  document.getElementById('biz-submit-btn').disabled = false;
+  document.getElementById('biz-submit-btn').textContent = 'Save Changes';
+  if (!resp.ok) { bizShowError(resp.data?.error || 'Could not load business details.'); return; }
+  const b = resp.data;
+  document.getElementById('nb2-name').value = b.name || '';
+  document.getElementById('nb2-phone').value = b.phone || '';
+  document.getElementById('nb2-wa').value = b.whatsapp || '';
+  document.getElementById('nb2-email').value = b.email || '';
+  document.getElementById('nb2-web').value = b.website || '';
+  document.getElementById('nb2-fb').value = b.facebook || '';
+  document.getElementById('nb2-ig').value = b.instagram || '';
+  document.getElementById('nb2-short').value = b.short_description || '';
+  document.getElementById('nb2-desc').value = b.description || '';
+  document.getElementById('nb2-addr').value = b.address || '';
+  document.getElementById('nb2-city').value = b.city || '';
+  document.getElementById('nb2-lat').value = b.latitude || '';
+  document.getElementById('nb2-lon').value = b.longitude || '';
+  document.getElementById('nb2-owner-email').value = b.owner_email || '';
+  if (b.category) document.getElementById('nb2-cat').value = b.category.id;
+  if (b.parent) document.getElementById('nb2-parent').value = b.parent;
+  document.getElementById('nb2-payment-mode').value = b.payment_mode || 'cash_only';
+  document.getElementById('nb2-card-payment').value = b.card_payment || 'na';
+  document.getElementById('nb2-wifi').value = b.free_wifi || 'na';
+  document.getElementById('nb2-smoking').value = b.smoking || 'na';
+  document.getElementById('nb2-offer-package').value = b.offer_package || 'na';
+  document.getElementById('nb2-registered').value = b.is_registered === true ? 'yes' : b.is_registered === false ? 'no' : 'unspecified';
+  document.getElementById('nb2-parking').value = b.has_parking === true ? 'yes' : b.has_parking === false ? 'no' : 'unspecified';
+  document.getElementById('nb2-delivery').checked = b.offer_delivery === true;
+  document.getElementById('nb2-verified').checked = b.is_verified === true;
+  document.getElementById('nb2-accepts-orders').checked = b.accepts_orders === true;
+  if (b.logo) document.getElementById('nb2-logo-status').innerHTML = '✅ Current photo set (choose a new one to replace)';
+  if (b.banner) document.getElementById('nb2-banner-status').innerHTML = '✅ Current photo set (choose a new one to replace)';
 }
 
 function closeBizModal() { document.getElementById('biz-modal').style.display = 'none'; }
 
 async function createBusinessAdmin() {
-  const name = document.getElementById('nb2-name').value;
-  const phone = document.getElementById('nb2-phone').value;
-  const address = document.getElementById('nb2-addr').value;
-  const lat = document.getElementById('nb2-lat').value;
-  const lon = document.getElementById('nb2-lon').value;
-  if (!name || !phone || !address || !lat || !lon) { toast('Name, phone, address, and coordinates are required', 'error'); return; }
+  bizClearError();
+  const name = document.getElementById('nb2-name').value.trim();
+  const phone = document.getElementById('nb2-phone').value.trim();
+  const category = document.getElementById('nb2-cat').value;
+  if (!name || !phone || !category) { bizShowError('Business Name, Contact No., and Category are required.'); return; }
 
   const regSel = document.getElementById('nb2-registered').value;
   const parkSel = document.getElementById('nb2-parking').value;
   const fd = new FormData();
   const fields = {
-    name, phone, address, latitude: lat, longitude: lon,
-    category: document.getElementById('nb2-cat').value,
+    name, phone, category,
+    parent: document.getElementById('nb2-parent').value,
+    address: document.getElementById('nb2-addr').value,
+    latitude: document.getElementById('nb2-lat').value,
+    longitude: document.getElementById('nb2-lon').value,
     short_description: document.getElementById('nb2-short').value,
-    description: document.getElementById('nb2-desc').value || 'No description provided.',
+    description: document.getElementById('nb2-desc').value,
     whatsapp: document.getElementById('nb2-wa').value,
     email: document.getElementById('nb2-email').value,
     website: document.getElementById('nb2-web').value,
@@ -1057,14 +1264,28 @@ async function createBusinessAdmin() {
     accepts_orders: document.getElementById('nb2-accepts-orders').checked,
   };
   Object.entries(fields).forEach(([k, v]) => { if (v !== '' && v !== null && v !== undefined) fd.append(k, v); });
-  const logoFile = document.getElementById('nb2-logo').files[0];
-  const bannerFile = document.getElementById('nb2-banner').files[0];
-  if (logoFile) fd.append('logo', logoFile);
-  if (bannerFile) fd.append('banner', bannerFile);
+  if (bizPhotoFiles.logo) fd.append('logo', bizPhotoFiles.logo);
+  if (bizPhotoFiles.banner) fd.append('banner', bizPhotoFiles.banner);
 
-  const resp = await AdminAPI.post('/businesses/create/', fd, true);
-  if (resp.ok) { toast('Business created!', 'success'); closeBizModal(); loadBusinesses(); loadDashboard(); }
-  else toast(resp.data?.error || 'Failed to create business', 'error');
+  const btn = document.getElementById('biz-submit-btn');
+  btn.disabled = true;
+  btn.textContent = bizModalMode === 'edit' ? 'Saving...' : 'Creating...';
+
+  const resp = bizModalMode === 'edit'
+    ? await AdminAPI.patch(`/businesses/${bizModalEditId}/`, fd, true)
+    : await AdminAPI.post('/businesses/create/', fd, true);
+
+  btn.disabled = false;
+  btn.textContent = bizModalMode === 'edit' ? 'Save Changes' : 'Create Business';
+
+  if (resp.ok) {
+    toast(bizModalMode === 'edit' ? 'Business updated!' : 'Business created!', 'success');
+    closeBizModal();
+    loadBusinesses();
+    loadDashboard();
+  } else {
+    bizShowError(resp.data?.error || `Failed to ${bizModalMode === 'edit' ? 'update' : 'create'} business. ${resp.status === 0 ? 'Check your connection.' : ''}`);
+  }
 }
 
 document.getElementById('biz-modal').addEventListener('click', function(e) {

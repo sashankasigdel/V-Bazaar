@@ -215,6 +215,7 @@
           <div class="form-group"><label class="form-label">Business Name *</label><input type="text" id="nb-name" class="form-input"></div>
           <div class="form-group"><label class="form-label">Category *</label><select id="nb-cat" class="form-input"></select></div>
         </div>
+        <div class="form-group"><label class="form-label">Branch of (optional — leave blank if this is a main business)</label><select id="nb-parent" class="form-input"><option value="">Not a branch</option></select></div>
         <div class="form-group"><label class="form-label">Short Description *</label><input type="text" id="nb-short" class="form-input" maxlength="300"></div>
         <div class="form-group"><label class="form-label">Full Description *</label><textarea id="nb-desc" class="form-input" rows="3" style="resize:vertical;"></textarea></div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
@@ -227,7 +228,7 @@
           <div class="form-group"><label class="form-label">Longitude *</label><input type="number" id="nb-lon" class="form-input" step="0.0000001" placeholder="83.9856"></div>
         </div>
         <p style="font-size:0.8rem;color:var(--slate-light);margin-bottom:1rem;">💡 Right-click on Google Maps to get your coordinates.</p>
-        <button onclick="createBiz()" class="btn btn-primary btn-lg">Register Business →</button>
+        <button onclick="createBiz(this)" class="btn btn-primary btn-lg">Register Business →</button>
       </div>
     </div>
   </div>
@@ -283,6 +284,7 @@ async function init() {
   const catOpts = cats.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
   document.getElementById('bp-cat').innerHTML = catOpts;
   document.getElementById('nb-cat').innerHTML = catOpts;
+  document.getElementById('nb-parent').innerHTML = '<option value="">Not a branch</option>' + bizList.map(b => `<option value="${b.id}">${b.name}</option>`).join('');
   const sel = document.getElementById('biz-sel');
   if (!bizList.length) { sel.innerHTML = '<option>No businesses yet</option>'; show('create'); return; }
   sel.innerHTML = bizList.map(b => `<option value="${b.slug}">${b.name}</option>`).join('');
@@ -542,17 +544,24 @@ async function replyRev(id) {
   if (resp.ok) { UI.toast('Reply posted!','success'); loadReviews(); } else UI.toast('Failed','error');
 }
 
-async function createBiz() {
-  const data = { name:document.getElementById('nb-name').value, category:document.getElementById('nb-cat').value, short_description:document.getElementById('nb-short').value, description:document.getElementById('nb-desc').value, phone:document.getElementById('nb-phone').value, city:document.getElementById('nb-city').value, state:'Gandaki Pradesh', address:document.getElementById('nb-addr').value, latitude:document.getElementById('nb-lat').value, longitude:document.getElementById('nb-lon').value };
+async function createBiz(btn) {
+  const data = { name:document.getElementById('nb-name').value, category:document.getElementById('nb-cat').value, parent:document.getElementById('nb-parent').value || null, short_description:document.getElementById('nb-short').value, description:document.getElementById('nb-desc').value, phone:document.getElementById('nb-phone').value, city:document.getElementById('nb-city').value, state:'Gandaki Pradesh', address:document.getElementById('nb-addr').value, latitude:document.getElementById('nb-lat').value, longitude:document.getElementById('nb-lon').value };
   if (!data.name||!data.phone||!data.latitude||!data.longitude) { UI.toast('Please fill all required fields','error'); return; }
+  const original = btn?.textContent;
+  if (btn) { btn.disabled = true; btn.textContent = 'Registering...'; }
   const resp = await API.createBusiness(data);
+  if (btn) { btn.disabled = false; btn.textContent = original; }
   if (resp.ok) {
     UI.toast('Business registered! Awaiting admin approval.','success');
     const bizResp = await API.getMyBusinesses();
     bizList = bizResp.data?.results||bizResp.data||[];
     document.getElementById('biz-sel').innerHTML = bizList.map(b=>`<option value="${b.slug}">${b.name}</option>`).join('');
     switchBiz(bizList[bizList.length-1].slug);
-  } else UI.toast('Failed: '+JSON.stringify(resp.data),'error');
+  } else {
+    const first = resp.data && typeof resp.data === 'object' ? Object.values(resp.data)[0] : null;
+    const msg = Array.isArray(first) ? first[0] : (first || resp.data?.detail || 'Could not register business.');
+    UI.toast('Failed: ' + msg, 'error');
+  }
 }
 
 init();

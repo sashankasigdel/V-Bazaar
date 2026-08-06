@@ -64,22 +64,28 @@ const http = {
     if (!isForm) headers['Content-Type'] = 'application/json';
     const config = { method, headers };
     if (data) config.body = isForm ? data : JSON.stringify(data);
-    let resp = await fetch(`${API_BASE}${endpoint}`, config);
+    let resp;
+    try { resp = await fetch(`${API_BASE}${endpoint}`, config); }
+    catch { return { ok: false, status: 0, data: { error: 'Could not reach the server. Check your connection and try again.', detail: 'Could not reach the server. Check your connection and try again.' } }; }
     if (resp.status === 401 && Auth.getRefresh()) {
-      const r = await fetch(`${API_BASE}/auth/token/refresh/`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ refresh: Auth.getRefresh() }),
-      });
+      let r;
+      try {
+        r = await fetch(`${API_BASE}/auth/token/refresh/`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ refresh: Auth.getRefresh() }),
+        });
+      } catch { return { ok: false, status: 0, data: { error: 'Could not reach the server. Check your connection and try again.', detail: 'Could not reach the server. Check your connection and try again.' } }; }
       if (r.ok) {
         const { access } = await r.json();
         Auth.setTokens(access, null);
         headers['Authorization'] = `Bearer ${access}`;
         config.headers = headers;
-        resp = await fetch(`${API_BASE}${endpoint}`, config);
-      } else { Auth.clearTokens(); window.location.href = '/login/'; return; }
+        try { resp = await fetch(`${API_BASE}${endpoint}`, config); }
+        catch { return { ok: false, status: 0, data: { error: 'Could not reach the server. Check your connection and try again.', detail: 'Could not reach the server. Check your connection and try again.' } }; }
+      } else { Auth.clearTokens(); window.location.href = '/login/'; return { ok: false, status: 401, data: null }; }
     }
     const result = { status: resp.status, ok: resp.ok };
-    try { result.data = await resp.json(); } catch { result.data = null; }
+    try { result.data = await resp.json(); } catch { result.data = resp.ok ? null : { error: `Server error (${resp.status}).`, detail: `Server error (${resp.status}).` }; }
     return result;
   },
   get: (ep) => http.request('GET', ep),

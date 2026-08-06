@@ -37,18 +37,19 @@ class Business(models.Model):
         ONLINE = 'online', 'Online Payment'
 
     owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name='businesses')
+    parent = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True, related_name='branches')
     name = models.CharField(max_length=200)
     slug = models.SlugField(unique=True)
     category = models.ForeignKey(BusinessCategory, on_delete=models.SET_NULL, null=True, related_name='businesses')
-    description = models.TextField()
+    description = models.TextField(blank=True, default='')
     short_description = models.CharField(max_length=300, blank=True)
     logo = models.ImageField(upload_to='businesses/logos/', blank=True, null=True)
     banner = models.ImageField(upload_to='businesses/banners/', blank=True, null=True)
-    address = models.TextField()
-    city = models.CharField(max_length=100)
+    address = models.TextField(blank=True, default='')
+    city = models.CharField(max_length=100, blank=True, default='')
     state = models.CharField(max_length=100, blank=True)
-    latitude = models.DecimalField(max_digits=10, decimal_places=7)
-    longitude = models.DecimalField(max_digits=10, decimal_places=7)
+    latitude = models.DecimalField(max_digits=10, decimal_places=7, null=True, blank=True)
+    longitude = models.DecimalField(max_digits=10, decimal_places=7, null=True, blank=True)
     phone = models.CharField(max_length=20)
     whatsapp = models.CharField(max_length=20, blank=True)
     email = models.EmailField(blank=True)
@@ -82,6 +83,8 @@ class Business(models.Model):
         return self.name
 
     def distance_from(self, lat, lon):
+        if self.latitude is None or self.longitude is None:
+            return None
         R = 6371
         lat1, lon1 = float(self.latitude), float(self.longitude)
         lat2, lon2 = float(lat), float(lon)

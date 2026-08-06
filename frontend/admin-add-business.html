@@ -48,20 +48,22 @@ body{background:var(--cream);}
 
   <div class="step" data-step="3">
     <h2>Profile Photo</h2>
-    <p class="hint">Take a photo or choose one from the gallery. Optional — you can skip this.</p>
-    <label class="photo-drop" id="w-logo-drop">
-      <span id="w-logo-placeholder">📷 Tap to take/choose photo</span>
-      <input type="file" id="w-logo" accept="image/*" capture="environment" style="display:none;" onchange="previewWizardPhoto('w-logo','w-logo-placeholder')">
-    </label>
+    <p class="hint">Take a live photo, or pick one from your gallery. Optional — you can skip this.</p>
+    <div id="w-logo-preview" style="margin-bottom:0.75rem;"></div>
+    <div style="display:flex;gap:0.75rem;">
+      <label class="btn btn-secondary" style="flex:1;text-align:center;cursor:pointer;">📷 Camera<input type="file" id="w-logo-cam" accept="image/*" capture="environment" style="display:none;" onchange="pickWizardPhoto(this,'logo')"></label>
+      <label class="btn btn-secondary" style="flex:1;text-align:center;cursor:pointer;">🖼️ Gallery<input type="file" id="w-logo-gal" accept="image/*" style="display:none;" onchange="pickWizardPhoto(this,'logo')"></label>
+    </div>
   </div>
 
   <div class="step" data-step="4">
     <h2>Cover Photo</h2>
     <p class="hint">A wider shot of the storefront or interior. Optional.</p>
-    <label class="photo-drop" id="w-banner-drop">
-      <span id="w-banner-placeholder">📷 Tap to take/choose photo</span>
-      <input type="file" id="w-banner" accept="image/*" capture="environment" style="display:none;" onchange="previewWizardPhoto('w-banner','w-banner-placeholder')">
-    </label>
+    <div id="w-banner-preview" style="margin-bottom:0.75rem;"></div>
+    <div style="display:flex;gap:0.75rem;">
+      <label class="btn btn-secondary" style="flex:1;text-align:center;cursor:pointer;">📷 Camera<input type="file" id="w-banner-cam" accept="image/*" capture="environment" style="display:none;" onchange="pickWizardPhoto(this,'banner')"></label>
+      <label class="btn btn-secondary" style="flex:1;text-align:center;cursor:pointer;">🖼️ Gallery<input type="file" id="w-banner-gal" accept="image/*" style="display:none;" onchange="pickWizardPhoto(this,'banner')"></label>
+    </div>
   </div>
 
   <div class="step" data-step="5">
@@ -82,7 +84,8 @@ body{background:var(--cream);}
       <input type="text" id="w-maps-link" class="form-input" placeholder="https://maps.google.com/...">
       <button type="button" class="btn btn-secondary btn-sm" style="margin-top:0.5rem;" onclick="parseMapsLink()">Parse Link</button>
     </div>
-    <div class="form-group"><label class="form-label">City *</label><input type="text" id="w-city" class="form-input" value="Pokhara"></div>
+    <p class="hint" style="margin:0.75rem 0 0;">Location is optional — you can skip this step and add it later.</p>
+    <div class="form-group"><label class="form-label">City</label><input type="text" id="w-city" class="form-input" value="Pokhara"></div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
       <div class="form-group"><label class="form-label">Latitude</label><input type="number" step="0.0000001" id="w-lat" class="form-input"></div>
       <div class="form-group"><label class="form-label">Longitude</label><input type="number" step="0.0000001" id="w-lon" class="form-input"></div>
@@ -117,25 +120,31 @@ async function adminRequest(method, endpoint, data = null, isForm = false) {
   if (data && !isForm) headers['Content-Type'] = 'application/json';
   const config = { method, headers };
   if (data) config.body = isForm ? data : JSON.stringify(data);
-  let resp = await fetch(`${API_BASE}/admin-panel${endpoint}`, config);
+  let resp;
+  try { resp = await fetch(`${API_BASE}/admin-panel${endpoint}`, config); }
+  catch { return { ok: false, status: 0, data: { error: 'Could not reach the server. Check your connection and try again.' } }; }
   if (resp.status === 401 && AdminAuth.getRefresh()) {
-    const r = await fetch(`${API_BASE}/auth/token/refresh/`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ refresh: AdminAuth.getRefresh() }) });
+    let r;
+    try { r = await fetch(`${API_BASE}/auth/token/refresh/`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ refresh: AdminAuth.getRefresh() }) }); }
+    catch { return { ok: false, status: 0, data: { error: 'Could not reach the server. Check your connection and try again.' } }; }
     if (r.ok) {
       const { access } = await r.json();
       localStorage.setItem('admin_access_token', access);
       headers['Authorization'] = `Bearer ${access}`;
       config.headers = headers;
-      resp = await fetch(`${API_BASE}/admin-panel${endpoint}`, config);
-    } else { AdminAuth.clear(); window.location.href = '/admin-login/'; return { ok: false, data: null }; }
+      try { resp = await fetch(`${API_BASE}/admin-panel${endpoint}`, config); }
+      catch { return { ok: false, status: 0, data: { error: 'Could not reach the server. Check your connection and try again.' } }; }
+    } else { AdminAuth.clear(); window.location.href = '/admin-login/'; return { ok: false, status: 401, data: null }; }
   }
   const result = { status: resp.status, ok: resp.ok };
-  try { result.data = await resp.json(); } catch { result.data = null; }
+  try { result.data = await resp.json(); } catch { result.data = resp.ok ? null : { error: `Server error (${resp.status}).` }; }
   return result;
 }
 
 let step = 1;
 const TOTAL_STEPS = 7;
 let selectedCatId = null, selectedCatName = '', categories = [];
+let wizardPhotos = { logo: null, banner: null };
 
 function showStep(n) {
   document.querySelectorAll('.step').forEach(s => s.classList.toggle('active', Number(s.dataset.step) === n));
@@ -156,11 +165,8 @@ function wizardNext() {
 
 function validateStep(n) {
   if (n === 1 && !document.getElementById('w-name').value.trim()) { UI.toast('Enter a business name', 'error'); return false; }
+  if (n === 2 && !selectedCatId) { UI.toast('Pick a category', 'error'); return false; }
   if (n === 5 && !document.getElementById('w-phone').value.trim()) { UI.toast('Enter a contact number', 'error'); return false; }
-  if (n === 6) {
-    if (!document.getElementById('w-lat').value || !document.getElementById('w-lon').value) { UI.toast('Set a location first', 'error'); return false; }
-    if (!document.getElementById('w-city').value.trim()) { UI.toast('Enter a city', 'error'); return false; }
-  }
   return true;
 }
 
@@ -180,11 +186,14 @@ function selectCategory(id, name) {
   document.getElementById(`cat-${id}`).classList.add('selected');
 }
 
-function previewWizardPhoto(inputId, placeholderId) {
-  const file = document.getElementById(inputId).files[0];
+function pickWizardPhoto(input, slot) {
+  const file = input.files[0];
   if (!file) return;
+  wizardPhotos[slot] = file;
   const reader = new FileReader();
-  reader.onload = e => { document.getElementById(placeholderId).outerHTML = `<img src="${e.target.result}" id="${placeholderId}">`; };
+  reader.onload = e => {
+    document.getElementById(`w-${slot}-preview`).innerHTML = `<img src="${e.target.result}" style="max-width:100%;max-height:180px;border-radius:var(--radius-sm);">`;
+  };
   reader.readAsDataURL(file);
 }
 
@@ -218,16 +227,14 @@ function parseMapsLink() {
 }
 
 function renderReview() {
-  const logoFile = document.getElementById('w-logo').files[0];
-  const bannerFile = document.getElementById('w-banner').files[0];
   document.getElementById('w-review').innerHTML = `
     <div><strong>Name:</strong> ${document.getElementById('w-name').value || '—'}</div>
     <div><strong>Category:</strong> ${selectedCatName || '—'}</div>
-    <div><strong>Profile Photo:</strong> ${logoFile ? logoFile.name : 'Not set'}</div>
-    <div><strong>Cover Photo:</strong> ${bannerFile ? bannerFile.name : 'Not set'}</div>
+    <div><strong>Profile Photo:</strong> ${wizardPhotos.logo ? wizardPhotos.logo.name : 'Not set'}</div>
+    <div><strong>Cover Photo:</strong> ${wizardPhotos.banner ? wizardPhotos.banner.name : 'Not set'}</div>
     <div><strong>Phone:</strong> ${document.getElementById('w-phone').value || '—'}</div>
-    <div><strong>City:</strong> ${document.getElementById('w-city').value || '—'}</div>
-    <div><strong>Coordinates:</strong> ${document.getElementById('w-lat').value}, ${document.getElementById('w-lon').value}</div>`;
+    <div><strong>City:</strong> ${document.getElementById('w-city').value || 'Not set'}</div>
+    <div><strong>Coordinates:</strong> ${document.getElementById('w-lat').value && document.getElementById('w-lon').value ? `${document.getElementById('w-lat').value}, ${document.getElementById('w-lon').value}` : 'Not set'}</div>`;
 }
 
 async function submitBusiness() {
@@ -236,16 +243,16 @@ async function submitBusiness() {
   const fd = new FormData();
   fd.append('name', document.getElementById('w-name').value);
   fd.append('phone', document.getElementById('w-phone').value);
-  fd.append('city', document.getElementById('w-city').value);
-  fd.append('address', document.getElementById('w-city').value);
+  fd.append('category', selectedCatId);
+  const city = document.getElementById('w-city').value;
+  const lat = document.getElementById('w-lat').value;
+  const lon = document.getElementById('w-lon').value;
+  if (city) { fd.append('city', city); fd.append('address', city); }
+  if (lat) fd.append('latitude', lat);
+  if (lon) fd.append('longitude', lon);
   fd.append('description', 'Added via mobile — pending full profile.');
-  fd.append('latitude', document.getElementById('w-lat').value);
-  fd.append('longitude', document.getElementById('w-lon').value);
-  if (selectedCatId) fd.append('category', selectedCatId);
-  const logoFile = document.getElementById('w-logo').files[0];
-  const bannerFile = document.getElementById('w-banner').files[0];
-  if (logoFile) fd.append('logo', logoFile);
-  if (bannerFile) fd.append('banner', bannerFile);
+  if (wizardPhotos.logo) fd.append('logo', wizardPhotos.logo);
+  if (wizardPhotos.banner) fd.append('banner', wizardPhotos.banner);
 
   const resp = await adminRequest('POST', '/businesses/create/', fd, true);
   btn.disabled = false; btn.textContent = 'Create Business';

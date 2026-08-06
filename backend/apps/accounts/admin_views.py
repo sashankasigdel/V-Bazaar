@@ -84,46 +84,61 @@ def admin_businesses(request):
             'owner_email': b.owner.email,
             'owner_name': b.owner.get_full_name(),
             'category': b.category.name if b.category else '',
+            'category_id': b.category_id,
             'status': b.status,
             'is_featured': b.is_featured,
+            'is_verified': b.is_verified,
+            'accepts_orders': b.accepts_orders,
             'average_rating': str(b.average_rating),
             'total_orders': b.total_orders,
             'total_views': b.total_views,
             'city': b.city,
             'phone': b.phone,
+            'parent_id': b.parent_id,
+            'parent_name': b.parent.name if b.parent else '',
             'created_at': b.created_at.isoformat(),
         })
+    return Response(data)
+
+
+@api_view(['GET'])
+@permission_classes([IsAdminUser])
+def admin_business_detail(request, pk):
+    from apps.businesses.serializers import BusinessDetailSerializer
+    try:
+        business = Business.objects.get(pk=pk)
+    except Business.DoesNotExist:
+        return Response({'error': 'Not found.'}, status=404)
+    data = BusinessDetailSerializer(business, context={'request': request}).data
+    data['owner_email'] = business.owner.email
     return Response(data)
 
 
 @api_view(['PATCH'])
 @permission_classes([IsAdminUser])
 def admin_update_business(request, pk):
+    from apps.businesses.serializers import AdminBusinessCreateSerializer
     try:
         business = Business.objects.get(pk=pk)
-        if 'status' in request.data:
-            business.status = request.data['status']
-        if 'is_featured' in request.data:
-            business.is_featured = request.data['is_featured']
-        if 'is_verified' in request.data:
-            business.is_verified = request.data['is_verified']
-        if 'accepts_orders' in request.data:
-            business.accepts_orders = request.data['accepts_orders']
-        if request.data.get('owner_email'):
-            from apps.accounts.services import get_or_create_dummy_business_owner
-            owner, _created = get_or_create_dummy_business_owner(email=request.data['owner_email'])
-            business.owner = owner
-        business.save()
-        return Response({
-            'id': business.id,
-            'status': business.status,
-            'is_featured': business.is_featured,
-            'is_verified': business.is_verified,
-            'accepts_orders': business.accepts_orders,
-            'owner_email': business.owner.email,
-        })
     except Business.DoesNotExist:
         return Response({'error': 'Not found.'}, status=404)
+
+    serializer = AdminBusinessCreateSerializer(business, data=request.data, partial=True)
+    if not serializer.is_valid():
+        first = next(iter(serializer.errors.values()))
+        message = first[0] if isinstance(first, list) else first
+        return Response({'error': str(message)}, status=400)
+    business = serializer.save()
+    return Response({
+        'id': business.id,
+        'name': business.name,
+        'slug': business.slug,
+        'status': business.status,
+        'is_featured': business.is_featured,
+        'is_verified': business.is_verified,
+        'accepts_orders': business.accepts_orders,
+        'owner_email': business.owner.email,
+    })
 
 
 @api_view(['POST'])
@@ -227,7 +242,9 @@ def admin_bulk_import_businesses(request):
 
         category_slug = str(cell(row, 'category_slug', '')).strip()
         category = BusinessCategory.objects.filter(slug=category_slug).first() if category_slug else None
-        if category_slug and not category:
+        if not category_slug:
+            errors.append('Missing required field: category_slug')
+        elif not category:
             errors.append(f'Category slug "{category_slug}" not found.')
 
         try:
@@ -235,7 +252,6 @@ def admin_bulk_import_businesses(request):
             lon = float(cell(row, 'longitude'))
         except (TypeError, ValueError):
             lat = lon = None
-            errors.append('Invalid or missing latitude/longitude.')
 
         logo_file = banner_file = None
         logo_fn = str(cell(row, 'logo_filename', '')).strip()
@@ -354,6 +370,20 @@ def admin_update_user(request, pk):
             user.is_verified = request.data['is_verified']
         user.save()
         return Response({'id': user.id, 'is_active': user.is_active})
+    except User.DoesNotExist:
+        return Response({'error': 'Not found.'}, status=404)
+
+
+@api_view(['DELETE'])
+@permission_classes([IsAdminUser])
+def admin_delete_user(request, pk):
+    if request.user.pk == pk:
+        return Response({'error': "You can't delete your own account while logged in as it."}, status=400)
+    try:
+        user = User.objects.get(pk=pk)
+        business_count = user.businesses.count()
+        user.delete()
+        return Response({'message': f'User deleted.{f" {business_count} business(es) owned by this user were also deleted." if business_count else ""}'})
     except User.DoesNotExist:
         return Response({'error': 'Not found.'}, status=404)
 

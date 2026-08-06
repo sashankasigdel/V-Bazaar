@@ -32,6 +32,7 @@ class BusinessListSerializer(serializers.ModelSerializer):
     category_name = serializers.CharField(source='category.name', read_only=True)
     category_icon = serializers.CharField(source='category.icon', read_only=True)
     category_slug = serializers.CharField(source='category.slug', read_only=True)
+    parent_name = serializers.CharField(source='parent.name', read_only=True, default=None)
     distance = serializers.SerializerMethodField()
     is_open = serializers.SerializerMethodField()
     is_saved = serializers.SerializerMethodField()
@@ -42,7 +43,7 @@ class BusinessListSerializer(serializers.ModelSerializer):
                   'short_description', 'address', 'city', 'latitude', 'longitude',
                   'average_rating', 'total_reviews', 'is_featured',
                   'distance', 'is_open', 'is_saved', 'status', 'phone',
-                  'accepts_orders', 'is_verified']
+                  'accepts_orders', 'is_verified', 'parent', 'parent_name']
 
     def get_distance(self, obj):
         request = self.context.get('request')
@@ -79,6 +80,12 @@ class BusinessListSerializer(serializers.ModelSerializer):
         return False
 
 
+class BranchSummarySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Business
+        fields = ['id', 'name', 'slug', 'city', 'status']
+
+
 class BusinessDetailSerializer(serializers.ModelSerializer):
     category = BusinessCategorySerializer(read_only=True)
     hours = BusinessHoursSerializer(many=True, read_only=True)
@@ -86,6 +93,9 @@ class BusinessDetailSerializer(serializers.ModelSerializer):
     is_open = serializers.SerializerMethodField()
     is_saved = serializers.SerializerMethodField()
     distance = serializers.SerializerMethodField()
+    parent_name = serializers.CharField(source='parent.name', read_only=True, default=None)
+    parent_slug = serializers.CharField(source='parent.slug', read_only=True, default=None)
+    branches = BranchSummarySerializer(many=True, read_only=True)
 
     class Meta:
         model = Business
@@ -96,6 +106,7 @@ class BusinessDetailSerializer(serializers.ModelSerializer):
                   'payment_mode', 'card_payment', 'free_wifi', 'smoking', 'offer_package',
                   'is_registered', 'has_parking', 'offer_delivery',
                   'average_rating', 'total_reviews', 'total_orders',
+                  'parent', 'parent_name', 'parent_slug', 'branches',
                   'hours', 'gallery', 'is_open', 'is_saved', 'distance', 'created_at']
 
     def get_is_open(self, obj):
@@ -144,13 +155,20 @@ def _unique_slug(name):
 
 
 class BusinessCreateUpdateSerializer(serializers.ModelSerializer):
+    category = serializers.PrimaryKeyRelatedField(queryset=BusinessCategory.objects.all(), required=True)
+
     class Meta:
         model = Business
-        fields = ['name', 'category', 'description', 'short_description', 'logo', 'banner',
+        fields = ['name', 'category', 'parent', 'description', 'short_description', 'logo', 'banner',
                   'address', 'city', 'state', 'latitude', 'longitude',
                   'phone', 'whatsapp', 'email', 'website', 'facebook', 'instagram',
                   'payment_mode', 'card_payment', 'free_wifi', 'smoking', 'offer_package',
                   'is_registered', 'has_parking', 'offer_delivery']
+
+    def validate_parent(self, value):
+        if value is not None and value.owner_id != self.context['request'].user.id:
+            raise serializers.ValidationError('You can only set one of your own businesses as the parent.')
+        return value
 
     def create(self, validated_data):
         validated_data['slug'] = _unique_slug(validated_data.get('name', ''))
@@ -160,10 +178,11 @@ class BusinessCreateUpdateSerializer(serializers.ModelSerializer):
 
 class AdminBusinessCreateSerializer(serializers.ModelSerializer):
     owner_email = serializers.EmailField(required=False, allow_blank=True, write_only=True)
+    category = serializers.PrimaryKeyRelatedField(queryset=BusinessCategory.objects.all(), required=True)
 
     class Meta:
         model = Business
-        fields = ['name', 'category', 'description', 'short_description', 'logo', 'banner',
+        fields = ['name', 'category', 'parent', 'description', 'short_description', 'logo', 'banner',
                   'address', 'city', 'state', 'latitude', 'longitude',
                   'phone', 'whatsapp', 'email', 'website', 'facebook', 'instagram',
                   'status', 'is_featured',
@@ -180,6 +199,14 @@ class AdminBusinessCreateSerializer(serializers.ModelSerializer):
         )
         validated_data['owner'] = owner
         return super().create(validated_data)
+
+    def update(self, instance, validated_data):
+        owner_email = validated_data.pop('owner_email', '') or None
+        if owner_email:
+            from apps.accounts.services import get_or_create_dummy_business_owner
+            owner, _created = get_or_create_dummy_business_owner(email=owner_email)
+            instance.owner = owner
+        return super().update(instance, validated_data)
 
 
 class AdvertisementSerializer(serializers.ModelSerializer):
