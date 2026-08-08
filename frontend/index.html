@@ -6,12 +6,14 @@
 <title>Bazaar — Discover Local Businesses</title>
 <link rel="stylesheet" href="/css/main.css">
 <style>
-.ads-hero{position:relative;height:440px;border-radius:var(--radius-lg);overflow:hidden;background:var(--slate);}
+.hero.has-ads{padding:0;}
+#hero-ads{position:relative;height:480px;overflow:hidden;}
 .ad-slide{position:absolute;inset:0;opacity:0;transition:opacity 0.6s ease;cursor:pointer;}
 .ad-slide.active{opacity:1;}
 .ad-slide img{width:100%;height:100%;object-fit:cover;}
 .ad-slide-overlay{position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,0.75),rgba(0,0,0,0.15) 55%,transparent 75%);}
-.ad-slide-content{position:absolute;left:2rem;bottom:2rem;right:2rem;color:white;max-width:600px;}
+.ad-slide-content{position:absolute;left:0;bottom:0;right:0;padding:2rem 1.5rem;color:white;}
+.ad-slide-content-inner{max-width:720px;margin:0 auto;}
 .ad-slide-eyebrow{font-size:0.78rem;text-transform:uppercase;letter-spacing:0.1em;opacity:0.85;margin-bottom:0.5rem;font-weight:600;}
 .ad-slide-content h2{color:white;font-size:clamp(1.6rem,3.2vw,2.4rem);margin-bottom:1rem;}
 .ads-progress{position:absolute;left:1.5rem;top:1.5rem;right:1.5rem;display:flex;gap:0.5rem;z-index:5;}
@@ -20,8 +22,8 @@
 .ads-pause-btn{position:absolute;right:1.5rem;bottom:1.5rem;z-index:5;width:36px;height:36px;border-radius:50%;background:rgba(0,0,0,0.4);color:white;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);}
 .ads-pause-btn:hover{background:rgba(0,0,0,0.6);}
 @media(max-width:600px){
-  .ads-hero{height:320px;border-radius:var(--radius-md);}
-  .ad-slide-content{left:1.25rem;bottom:1.25rem;right:1.25rem;}
+  #hero-ads{height:360px;}
+  .ad-slide-content{padding:1.5rem 1.25rem;}
 }
 </style>
 </head>
@@ -44,10 +46,15 @@
   </div>
 </nav>
 
-<section class="hero">
-  <div class="hero-content">
+<section class="hero" id="hero-section">
+  <div class="hero-content" id="hero-static">
     <h1>Discover <em>Local Businesses</em> Near You</h1>
     <p>Your neighbourhood marketplace — find restaurants, shops, services and more.</p>
+  </div>
+  <div id="hero-ads" style="display:none;">
+    <div class="ads-progress" id="ads-progress"></div>
+    <div id="ads-slides"></div>
+    <button class="ads-pause-btn" id="ads-pause-btn" onclick="toggleAdsPause()"></button>
   </div>
 </section>
 
@@ -70,14 +77,6 @@
       <div class="skeleton" style="height:260px;border-radius:18px;"></div>
       <div class="skeleton" style="height:260px;border-radius:18px;"></div>
       <div class="skeleton" style="height:260px;border-radius:18px;"></div>
-    </div>
-  </section>
-
-  <section class="section" id="ads-section" style="display:none;">
-    <div class="ads-hero" id="ads-hero">
-      <div class="ads-progress" id="ads-progress"></div>
-      <div id="ads-slides"></div>
-      <button class="ads-pause-btn" id="ads-pause-btn" onclick="toggleAdsPause()"></button>
     </div>
   </section>
 
@@ -154,11 +153,11 @@ async function loadAds() {
     <div class="ad-slide" data-i="${i}" onclick="window.location.href='/business/?slug=${a.business_slug}'">
       <img src="${a.image}" alt="${a.business_name}">
       <div class="ad-slide-overlay"></div>
-      <div class="ad-slide-content">
+      <div class="ad-slide-content"><div class="ad-slide-content-inner">
         <div class="ad-slide-eyebrow">Featured</div>
         <h2>${a.business_name}</h2>
         <a href="/business/?slug=${a.business_slug}" class="btn btn-primary" onclick="event.stopPropagation()">${uiIcon('shop',16)} View Business</a>
-      </div>
+      </div></div>
     </div>`).join('');
 
   document.getElementById('ads-progress').innerHTML = adsData.length > 1
@@ -168,7 +167,9 @@ async function loadAds() {
   document.getElementById('ads-pause-btn').style.display = adsData.length > 1 ? 'flex' : 'none';
   document.getElementById('ads-pause-btn').innerHTML = uiIcon('pause', 16);
 
-  document.getElementById('ads-section').style.display = 'block';
+  document.getElementById('hero-section').classList.add('has-ads');
+  document.getElementById('hero-static').style.display = 'none';
+  document.getElementById('hero-ads').style.display = 'block';
   showAdSlide(0);
   startAdsTimer();
 }
