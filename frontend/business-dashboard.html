@@ -28,23 +28,22 @@
     <select id="biz-sel" class="form-input" style="width:auto;background:var(--slate);color:white;border:none;" onchange="switchBiz(this.value)"><option>Loading...</option></select>
   </div>
   <div class="navbar-actions">
-    <a id="view-btn" href="#" target="_blank" class="nav-link">👁 View Public Page</a>
-    <a href="/dashboard/" class="nav-link">📦 My Orders</a>
-    <a href="/" class="nav-link">🛍️ Shop as Customer</a>
-    <button onclick="doLogout()" class="nav-link" style="color:var(--danger);">Log Out</button>
+    <a id="view-btn" href="#" target="_blank" class="nav-link"><span id="ic-view"></span> View Public Page</a>
+    <a href="/dashboard/" class="nav-link"><span id="ic-myorders"></span> My Orders</a>
+    <a href="/" class="nav-link"><span id="ic-shop"></span> Shop as Customer</a>
   </div>
 </nav>
 
 <div class="dashboard-layout">
   <div class="sidebar">
-    <div onclick="show('analytics')" class="sidebar-nav-item active" id="nav-analytics">📊 Analytics</div>
-    <div onclick="show('orders')" class="sidebar-nav-item" id="nav-orders">📦 Orders</div>
-    <div onclick="show('products')" class="sidebar-nav-item" id="nav-products">🛍️ Products</div>
-    <div onclick="show('profile')" class="sidebar-nav-item" id="nav-profile">🏪 Business Profile</div>
-    <div onclick="show('hours')" class="sidebar-nav-item" id="nav-hours">🕐 Opening Hours</div>
-    <div onclick="show('reviews')" class="sidebar-nav-item" id="nav-reviews">⭐ Reviews</div>
-    <div onclick="show('branches')" class="sidebar-nav-item" id="nav-branches">🔗 Branches</div>
-    <div onclick="show('create')" class="sidebar-nav-item" id="nav-create" style="margin-top:2rem;border-top:1px solid var(--border);padding-top:1rem;">➕ Add New Business</div>
+    <div onclick="show('analytics')" class="sidebar-nav-item active" id="nav-analytics"> Analytics</div>
+    <div onclick="show('orders')" class="sidebar-nav-item" id="nav-orders"> Orders</div>
+    <div onclick="show('products')" class="sidebar-nav-item" id="nav-products"> Products</div>
+    <div onclick="show('profile')" class="sidebar-nav-item" id="nav-profile"> Business Profile</div>
+    <div onclick="show('hours')" class="sidebar-nav-item" id="nav-hours"> Opening Hours</div>
+    <div onclick="show('reviews')" class="sidebar-nav-item" id="nav-reviews"> Reviews</div>
+    <div onclick="show('branches')" class="sidebar-nav-item" id="nav-branches"> Branches</div>
+    <div onclick="show('create')" class="sidebar-nav-item" id="nav-create" style="margin-top:2rem;border-top:1px solid var(--border);padding-top:1rem;"> Add New Business</div>
   </div>
 
   <div class="dashboard-content">
@@ -54,7 +53,7 @@
       <div class="dash-card" id="status-card" style="display:none;">
         <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem;">
           <div><h4 style="font-family:var(--font-body);margin-bottom:0.25rem;">Business Status</h4><p id="status-msg" style="font-size:0.875rem;margin:0;"></p></div>
-          <div style="display:flex;gap:0.75rem;"><a id="q-view" href="#" target="_blank" class="btn btn-secondary btn-sm">👁 Public Page</a><button onclick="show('products')" class="btn btn-ghost btn-sm">+ Add Products</button></div>
+          <div style="display:flex;gap:0.75rem;"><a id="q-view" href="#" target="_blank" class="btn btn-secondary btn-sm"><span id="ic-qview"></span> Public Page</a><button onclick="show('products')" class="btn btn-ghost btn-sm">+ Add Products</button></div>
         </div>
       </div>
     </div>
@@ -87,15 +86,15 @@
 
       <div class="dash-card" style="max-width:640px;">
         <h3 style="font-family:var(--font-body);font-size:1rem;font-weight:700;margin-bottom:1.25rem;">Logo & Banner</h3>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:1rem;">
+        <div class="form-grid-2" style="margin-bottom:1rem;">
           <div>
             <label class="form-label">Business Logo</label>
-            <div id="logo-preview" style="width:100px;height:100px;border-radius:var(--radius-md);background:var(--cream);border:1.5px dashed var(--border);display:flex;align-items:center;justify-content:center;overflow:hidden;margin-bottom:0.5rem;font-size:1.5rem;">🏪</div>
+            <div id="logo-preview" style="width:100px;height:100px;border-radius:var(--radius-md);background:var(--cream);border:1.5px dashed var(--border);display:flex;align-items:center;justify-content:center;overflow:hidden;margin-bottom:0.5rem;font-size:1.5rem;"></div>
             <input type="file" id="logo-input" accept="image/*" onchange="previewImage('logo-input','logo-preview')" style="font-size:0.8rem;">
           </div>
           <div>
             <label class="form-label">Business Banner</label>
-            <div id="banner-preview" style="width:100%;height:100px;border-radius:var(--radius-md);background:var(--cream);border:1.5px dashed var(--border);display:flex;align-items:center;justify-content:center;overflow:hidden;margin-bottom:0.5rem;font-size:1.5rem;">🖼️</div>
+            <div id="banner-preview" style="width:100%;height:100px;border-radius:var(--radius-md);background:var(--cream);border:1.5px dashed var(--border);display:flex;align-items:center;justify-content:center;overflow:hidden;margin-bottom:0.5rem;font-size:1.5rem;"></div>
             <input type="file" id="banner-input" accept="image/*" onchange="previewImage('banner-input','banner-preview')" style="font-size:0.8rem;">
           </div>
         </div>
@@ -117,13 +116,13 @@
 
       <div class="dash-card" style="max-width:640px;">
         <h3 style="font-family:var(--font-body);font-size:1rem;font-weight:700;margin-bottom:1.25rem;">Business Details</h3>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+        <div class="form-grid-2">
           <div class="form-group"><label class="form-label">Business Name</label><input type="text" id="bp-name" class="form-input"></div>
           <div class="form-group"><label class="form-label">Category</label><select id="bp-cat" class="form-input"></select></div>
         </div>
         <div class="form-group"><label class="form-label">Short Description</label><input type="text" id="bp-short" class="form-input" maxlength="300"></div>
         <div class="form-group"><label class="form-label">Full Description</label><textarea id="bp-desc" class="form-input" rows="4" style="resize:vertical;"></textarea></div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+        <div class="form-grid-2">
           <div class="form-group"><label class="form-label">Phone</label><input type="tel" id="bp-phone" class="form-input"></div>
           <div class="form-group"><label class="form-label">WhatsApp</label><input type="tel" id="bp-wa" class="form-input"></div>
           <div class="form-group"><label class="form-label">Email</label><input type="email" id="bp-email" class="form-input"></div>
@@ -134,7 +133,7 @@
         <div class="form-group">
           <label class="form-label">Location</label>
           <div style="display:flex;gap:0.75rem;flex-wrap:wrap;margin-bottom:0.5rem;">
-            <button type="button" class="btn btn-secondary btn-sm" onclick="pickLocation('bp')">📍 Use Current Location</button>
+            <button type="button" class="btn btn-secondary btn-sm" onclick="pickLocation('bp')"><span id="ic-loc-bp"></span> Use Current Location</button>
             <input type="text" id="bp-maps-link" class="form-input" placeholder="Or paste a Google Maps link" style="flex:1;min-width:200px;">
             <button type="button" class="btn btn-secondary btn-sm" onclick="parseLocationLink('bp')">Parse Link</button>
           </div>
@@ -148,7 +147,7 @@
       <div class="dash-card" style="max-width:640px;">
         <h3 style="font-family:var(--font-body);font-size:1rem;font-weight:700;margin-bottom:0.4rem;">Business Features</h3>
         <p style="font-size:0.8rem;color:var(--slate-light);margin-bottom:1.25rem;">Optional — let customers know what to expect. Leave any as "Not Applicable" if it doesn't fit your business.</p>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+        <div class="form-grid-2">
           <div class="form-group"><label class="form-label">Payment Mode</label>
             <select id="bp-payment-mode" class="form-input">
               <option value="cash_only">Cash Only</option>
@@ -194,7 +193,7 @@
       </div>
 
       <div class="dash-card" style="max-width:640px;border:1px solid rgba(232,184,10,0.4);background:linear-gradient(180deg,rgba(232,184,10,0.06),transparent);">
-        <h3 style="font-family:var(--font-body);font-size:1rem;font-weight:700;margin-bottom:0.4rem;">⭐ Premium Features</h3>
+        <h3 style="font-family:var(--font-body);font-size:1rem;font-weight:700;margin-bottom:0.4rem;display:flex;align-items:center;gap:0.4rem;" id="premium-header-title"> Premium Features</h3>
         <p style="font-size:0.8rem;color:var(--slate-light);margin-bottom:1.25rem;">These are enabled by our team after verification. Contact Sales to unlock them.</p>
         <div class="form-group" style="display:flex;align-items:center;gap:0.75rem;cursor:pointer;" onclick="alert('Contact Sales to enable this feature.')">
           <label class="toggle-switch"><input type="checkbox" id="bp-verified" disabled><span class="toggle-slider"></span></label>
@@ -210,6 +209,11 @@
             <div style="font-size:0.78rem;color:var(--slate-light);">Lets customers add products to cart and checkout; unlocks your Orders panel.</div>
           </div>
         </div>
+      </div>
+
+      <div class="dash-card" style="max-width:640px;">
+        <h3 style="font-family:var(--font-body);font-size:1rem;font-weight:700;margin-bottom:0.75rem;">Account</h3>
+        <button onclick="doLogout()" class="btn btn-secondary" style="color:var(--danger);border-color:var(--danger);"><span id="ic-logout"></span> Log Out</button>
       </div>
     </div>
 
@@ -235,14 +239,14 @@
     <div id="sec-create" style="display:none;">
       <h2 style="font-family:var(--font-body);font-weight:700;font-size:1.25rem;margin-bottom:1.5rem;">Register New Business</h2>
       <div class="dash-card" style="max-width:640px;">
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+        <div class="form-grid-2">
           <div class="form-group"><label class="form-label">Business Name *</label><input type="text" id="nb-name" class="form-input"></div>
           <div class="form-group"><label class="form-label">Category *</label><select id="nb-cat" class="form-input"></select></div>
         </div>
         <div class="form-group"><label class="form-label">Branch of (optional — leave blank if this is a main business)</label><select id="nb-parent" class="form-input"><option value="">Not a branch</option></select></div>
         <div class="form-group"><label class="form-label">Short Description *</label><input type="text" id="nb-short" class="form-input" maxlength="300"></div>
         <div class="form-group"><label class="form-label">Full Description *</label><textarea id="nb-desc" class="form-input" rows="3" style="resize:vertical;"></textarea></div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+        <div class="form-grid-2">
           <div class="form-group"><label class="form-label">Phone *</label><input type="tel" id="nb-phone" class="form-input"></div>
           <div class="form-group"><label class="form-label">City *</label><input type="text" id="nb-city" class="form-input" value="Pokhara"></div>
         </div>
@@ -250,7 +254,7 @@
         <div class="form-group">
           <label class="form-label">Location *</label>
           <div style="display:flex;gap:0.75rem;flex-wrap:wrap;margin-bottom:0.5rem;">
-            <button type="button" class="btn btn-secondary btn-sm" onclick="pickLocation('nb')">📍 Use Current Location</button>
+            <button type="button" class="btn btn-secondary btn-sm" onclick="pickLocation('nb')"><span id="ic-loc-nb"></span> Use Current Location</button>
             <input type="text" id="nb-maps-link" class="form-input" placeholder="Or paste a Google Maps link" style="flex:1;min-width:200px;">
             <button type="button" class="btn btn-secondary btn-sm" onclick="parseLocationLink('nb')">Parse Link</button>
           </div>
@@ -279,7 +283,7 @@
     </div>
     <div class="form-group"><label class="form-label">Name *</label><input type="text" id="p-name" class="form-input"></div>
     <div class="form-group"><label class="form-label">Description</label><textarea id="p-desc" class="form-input" rows="2" style="resize:vertical;"></textarea></div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+    <div class="form-grid-2">
       <div class="form-group"><label class="form-label">Type</label><select id="p-type" class="form-input"><option value="product">Product</option><option value="service">Service</option></select></div>
       <div class="form-group"><label class="form-label">Price (Rs.) *</label><input type="number" id="p-price" class="form-input" step="0.01"></div>
       <div class="form-group"><label class="form-label">Discount Price</label><input type="number" id="p-disc" class="form-input" step="0.01" placeholder="Optional"></div>
@@ -380,7 +384,7 @@ async function loadBranches() {
   if (!resp.ok) { list.innerHTML = '<div class="empty-state"><h3>Could not load branches</h3></div>'; return; }
   const branches = resp.data.branches || [];
   if (!branches.length) {
-    list.innerHTML = '<div class="empty-state"><div class="empty-icon">🔗</div><h3>No branches yet</h3><p>Add a branch for another location of this business.</p></div>';
+    list.innerHTML = `<div class="empty-state"><div class="empty-icon">${uiIcon('branch',40)}</div><h3>No branches yet</h3><p>Add a branch for another location of this business.</p></div>`;
     return;
   }
   const statusColor = { active: 'var(--success)', pending: 'var(--warning)', suspended: 'var(--danger)' };
@@ -403,10 +407,10 @@ async function loadAnalytics() {
   const resp = await API.getAnalytics(curBiz.slug);
   const a = resp.data || {};
   document.getElementById('stats-grid').innerHTML = `
-    <div class="stat-card"><div style="font-size:1.5rem;margin-bottom:0.5rem;">👁️</div><div class="stat-value">${curBiz.total_views||0}</div><div class="stat-label">Total Views</div></div>
-    <div class="stat-card"><div style="font-size:1.5rem;margin-bottom:0.5rem;">📦</div><div class="stat-value">${curBiz.total_orders||0}</div><div class="stat-label">Total Orders</div></div>
-    <div class="stat-card"><div style="font-size:1.5rem;margin-bottom:0.5rem;">⭐</div><div class="stat-value">${parseFloat(curBiz.average_rating||0).toFixed(1)}</div><div class="stat-label">Avg Rating</div></div>
-    <div class="stat-card"><div style="font-size:1.5rem;margin-bottom:0.5rem;">💬</div><div class="stat-value">${curBiz.total_reviews||0}</div><div class="stat-label">Reviews</div></div>`;
+    <div class="stat-card"><div style="margin-bottom:0.5rem;">${uiIcon('eye',24)}</div><div class="stat-value">${curBiz.total_views||0}</div><div class="stat-label">Total Views</div></div>
+    <div class="stat-card"><div style="margin-bottom:0.5rem;">${uiIcon('box',24)}</div><div class="stat-value">${curBiz.total_orders||0}</div><div class="stat-label">Total Orders</div></div>
+    <div class="stat-card"><div style="margin-bottom:0.5rem;">${uiIcon('reviews',24)}</div><div class="stat-value">${parseFloat(curBiz.average_rating||0).toFixed(1)}</div><div class="stat-label">Avg Rating</div></div>
+    <div class="stat-card"><div style="margin-bottom:0.5rem;">${uiIcon('message',24)}</div><div class="stat-value">${curBiz.total_reviews||0}</div><div class="stat-label">Reviews</div></div>`;
   document.getElementById('status-card').style.display = 'block';
   document.getElementById('status-msg').innerHTML = curBiz.status==='active'
     ? '<span style="color:var(--success);font-weight:600;">✅ Active</span> — visible to customers'
@@ -416,14 +420,14 @@ async function loadAnalytics() {
 async function loadOrders(sf='') {
   if (!curBiz) return;
   if (curBiz.accepts_orders === false) {
-    document.getElementById('orders-list').innerHTML = `<div class="empty-state"><div class="empty-icon">🔒</div><h3>Online Orders — Premium Feature</h3><p>Enable "Accepts Online Orders" to let customers place orders directly through your page and manage them here. Contact Sales to unlock this feature.</p></div>`;
+    document.getElementById('orders-list').innerHTML = `<div class="empty-state"><div class="empty-icon">${uiIcon('lock',40)}</div><h3>Online Orders — Premium Feature</h3><p>Enable "Accepts Online Orders" to let customers place orders directly through your page and manage them here. Contact Sales to unlock this feature.</p></div>`;
     return;
   }
   const resp = await API.getBusinessOrders(curBiz.slug);
   allOrders = resp.data?.results||resp.data||[];
   const filtered = sf ? allOrders.filter(o=>o.status===sf) : allOrders;
   const list = document.getElementById('orders-list');
-  if (!filtered.length) { list.innerHTML = '<div class="empty-state"><div class="empty-icon">📦</div><h3>No orders yet</h3><p>Orders from customers will appear here.</p></div>'; return; }
+  if (!filtered.length) { list.innerHTML = `<div class="empty-state"><div class="empty-icon">${uiIcon('box',40)}</div><h3>No orders yet</h3><p>Orders from customers will appear here.</p></div>`; return; }
   list.innerHTML = filtered.map(o => {
     const nx = NEXT[o.status];
     return `<div class="dash-card" style="margin-bottom:1rem;"><div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:0.75rem;flex-wrap:wrap;gap:0.5rem;"><div><div style="font-weight:700;">Order #${o.id}</div><div style="font-size:0.8rem;color:var(--slate-light);">${UI.formatDate(o.created_at)} · ${o.item_count} items</div></div><div style="display:flex;align-items:center;gap:0.75rem;"><span class="status-pill ${SCLS[o.status]||''}">${LABELS[o.status]||o.status}</span><span style="font-weight:700;color:var(--saffron);">${UI.formatPrice(o.total)}</span></div></div><div style="font-size:0.875rem;color:var(--slate-mid);margin-bottom:0.75rem;">${o.is_paid?'✅ Paid':'⏳ '+(o.payment_method==='cash'?'Cash on delivery':'Unpaid')}</div><div style="display:flex;gap:0.75rem;flex-wrap:wrap;">${nx?`<button onclick="updOrder(${o.id},'${nx}')" class="btn btn-primary btn-sm">Mark as ${LABELS[nx]} →</button>`:''} ${o.status==='pending'?`<button onclick="updOrder(${o.id},'cancelled')" class="btn btn-secondary btn-sm" style="color:var(--danger);">Cancel</button>`:''}</div></div>`;
@@ -443,7 +447,7 @@ async function loadProds() {
   const resp = await API.getMyProducts(curBiz.slug);
   const prods = resp.data?.results||resp.data||[];
   const list = document.getElementById('prods-list');
-  if (!prods.length) { list.innerHTML = '<div class="empty-state"><div class="empty-icon">🛍️</div><h3>No products yet</h3><button onclick="openProdModal()" class="btn btn-primary" style="margin-top:1rem;">+ Add Product</button></div>'; return; }
+  if (!prods.length) { list.innerHTML = `<div class="empty-state"><div class="empty-icon">${uiIcon('menu',40)}</div><h3>No products yet</h3><button onclick="openProdModal()" class="btn btn-primary" style="margin-top:1rem;">+ Add Product</button></div>`; return; }
   list.innerHTML = `<div class="dash-card">${prods.map(p=>`<div class="prod-row"><div class="prod-thumb">${p.image?`<img src="${p.image}">`:categoryIcon(curBiz?.category_slug,28)}</div><div style="flex:1;min-width:0;"><div style="font-weight:600;font-size:0.9rem;">${p.name}</div><div style="font-size:0.8rem;color:var(--slate-light);">${p.type==='service'?'🔧 Service':'📦 Product'}</div></div><div style="font-weight:700;color:var(--saffron);font-size:0.9rem;flex-shrink:0;">${UI.formatPrice(p.effective_price)}</div><label class="toggle-switch" title="Available"><input type="checkbox" ${p.is_available?'checked':''} onchange="API.updateProduct(${p.id},{is_available:this.checked})"><span class="toggle-slider"></span></label><button onclick='openProdModal(${JSON.stringify(p).replace(/'/g,"&#39;")})' class="btn btn-secondary btn-sm">Edit</button><button onclick="delProd(${p.id})" class="btn btn-sm" style="color:var(--danger);">✕</button></div>`).join('')}</div>`;
 }
 
@@ -531,7 +535,7 @@ async function loadProfile() {
   else logoPrev.innerHTML = categoryIcon(b.category?.slug, 28);
   const bannerPrev = document.getElementById('banner-preview');
   if (b.banner) bannerPrev.innerHTML = `<img src="${b.banner}" style="width:100%;height:100%;object-fit:cover;">`;
-  else bannerPrev.innerHTML = '🖼️';
+  else bannerPrev.innerHTML = uiIcon('photo', 28);
 
   loadGallery();
 }
@@ -620,8 +624,8 @@ async function loadReviews() {
   const resp = await API.getReviews(curBiz.slug);
   const reviews = resp.data?.results||resp.data||[];
   const list = document.getElementById('reviews-list');
-  if (!reviews.length) { list.innerHTML='<div class="empty-state"><div class="empty-icon">⭐</div><h3>No reviews yet</h3></div>'; return; }
-  list.innerHTML = reviews.map(r=>`<div class="review-card"><div class="review-header"><div class="reviewer-avatar">${(r.customer_name||'U')[0].toUpperCase()}</div><div><div class="reviewer-name">${r.customer_name||'Customer'}</div><div class="review-date">${UI.timeAgo(r.created_at)}</div></div><div class="stars-display" style="margin-left:auto;">${'★'.repeat(r.rating)}${'☆'.repeat(5-r.rating)}</div></div><div class="review-content">${r.content}</div>${r.owner_reply?`<div class="owner-reply"><strong>🏪 Your reply:</strong> ${r.owner_reply}</div>`:`<div style="margin-top:0.75rem;display:flex;gap:0.5rem;"><input type="text" id="rpl-${r.id}" class="form-input" placeholder="Reply..." style="flex:1;"><button onclick="replyRev(${r.id})" class="btn btn-primary btn-sm">Reply</button></div>`}</div>`).join('');
+  if (!reviews.length) { list.innerHTML=`<div class="empty-state"><div class="empty-icon">${uiIcon('reviews',40)}</div><h3>No reviews yet</h3></div>`; return; }
+  list.innerHTML = reviews.map(r=>`<div class="review-card"><div class="review-header"><div class="reviewer-avatar">${(r.customer_name||'U')[0].toUpperCase()}</div><div><div class="reviewer-name">${r.customer_name||'Customer'}</div><div class="review-date">${UI.timeAgo(r.created_at)}</div></div><div class="stars-display" style="margin-left:auto;">${'★'.repeat(r.rating)}${'☆'.repeat(5-r.rating)}</div></div><div class="review-content">${r.content}</div>${r.owner_reply?`<div class="owner-reply"><strong>Your reply:</strong> ${r.owner_reply}</div>`:`<div style="margin-top:0.75rem;display:flex;gap:0.5rem;"><input type="text" id="rpl-${r.id}" class="form-input" placeholder="Reply..." style="flex:1;"><button onclick="replyRev(${r.id})" class="btn btn-primary btn-sm">Reply</button></div>`}</div>`).join('');
 }
 
 async function replyRev(id) {
@@ -651,6 +655,26 @@ async function createBiz(btn) {
   }
 }
 
+function renderStaticIcons() {
+  document.getElementById('nav-analytics').innerHTML = uiIcon('chart') + ' Analytics';
+  document.getElementById('nav-orders').innerHTML = uiIcon('box') + ' Orders';
+  document.getElementById('nav-products').innerHTML = uiIcon('menu') + ' Products';
+  document.getElementById('nav-profile').innerHTML = uiIcon('shop') + ' Business Profile';
+  document.getElementById('nav-hours').innerHTML = uiIcon('clock') + ' Opening Hours';
+  document.getElementById('nav-reviews').innerHTML = uiIcon('reviews') + ' Reviews';
+  document.getElementById('nav-branches').innerHTML = uiIcon('branch') + ' Branches';
+  document.getElementById('nav-create').innerHTML = uiIcon('plus') + ' Add New Business';
+  document.getElementById('ic-view').innerHTML = uiIcon('eye', 16);
+  document.getElementById('ic-myorders').innerHTML = uiIcon('box', 16);
+  document.getElementById('ic-shop').innerHTML = uiIcon('menu', 16);
+  document.getElementById('ic-qview').innerHTML = uiIcon('eye', 16);
+  document.getElementById('premium-header-title').innerHTML = uiIcon('lock', 18) + ' Premium Features';
+  document.getElementById('ic-logout').innerHTML = uiIcon('logout', 16);
+  document.getElementById('ic-loc-bp').innerHTML = uiIcon('location', 16);
+  document.getElementById('ic-loc-nb').innerHTML = uiIcon('location', 16);
+}
+
+renderStaticIcons();
 init();
 </script>
 </body>

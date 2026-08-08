@@ -226,7 +226,7 @@ body { font-family: var(--font-body); background: #0F1623; color: white; margin:
           <div style="text-align:center;padding:3rem;color:rgba(255,255,255,0.3);grid-column:1/-1;"><div style="font-size:2rem;margin-bottom:0.5rem;">⏳</div>Loading stats...</div>
         </div>
 
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;">
+        <div class="form-grid-2" style="gap:1.5rem">
           <!-- Recent Businesses -->
           <div class="admin-card">
             <div class="admin-card-header">
@@ -406,7 +406,7 @@ body { font-family: var(--font-body); background: #0F1623; color: white; margin:
     <h3 id="biz-modal-title">Add New Business</h3>
     <p style="font-size:0.78rem;color:rgba(255,255,255,0.4);margin-bottom:1rem;">Only Business Name, Contact Number, and Category are required. Everything else can be filled in now or added later via Modify or the business's own profile.</p>
 
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 1rem;">
+    <div class="form-grid-2">
       <div><label style="font-size:0.82rem;color:rgba(255,255,255,0.5);display:block;margin-bottom:0.4rem;">Business Name *</label><input class="admin-input" type="text" id="nb2-name"></div>
       <div><label style="font-size:0.82rem;color:rgba(255,255,255,0.5);display:block;margin-bottom:0.4rem;">Category *</label><select class="admin-input" id="nb2-cat"></select></div>
     </div>
@@ -419,7 +419,7 @@ body { font-family: var(--font-body); background: #0F1623; color: white; margin:
     <label style="font-size:0.82rem;color:rgba(255,255,255,0.5);display:block;margin-bottom:0.4rem;">Full Description</label>
     <textarea class="admin-input" id="nb2-desc" rows="3" style="resize:vertical;"></textarea>
 
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 1rem;">
+    <div class="form-grid-2">
       <div><label style="font-size:0.82rem;color:rgba(255,255,255,0.5);display:block;margin-bottom:0.4rem;">WhatsApp</label><input class="admin-input" type="tel" id="nb2-wa"></div>
       <div><label style="font-size:0.82rem;color:rgba(255,255,255,0.5);display:block;margin-bottom:0.4rem;">Email</label><input class="admin-input" type="email" id="nb2-email"></div>
       <div><label style="font-size:0.82rem;color:rgba(255,255,255,0.5);display:block;margin-bottom:0.4rem;">Website</label><input class="admin-input" type="url" id="nb2-web"></div>
@@ -441,7 +441,7 @@ body { font-family: var(--font-body); background: #0F1623; color: white; margin:
     <input type="hidden" id="nb2-lat">
     <input type="hidden" id="nb2-lon">
 
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 1rem;">
+    <div class="form-grid-2">
       <div>
         <label style="font-size:0.82rem;color:rgba(255,255,255,0.5);display:block;margin-bottom:0.4rem;">Logo</label>
         <div style="display:flex;gap:0.5rem;margin-bottom:0.4rem;">
@@ -464,7 +464,7 @@ body { font-family: var(--font-body); background: #0F1623; color: white; margin:
     <input class="admin-input" type="email" id="nb2-owner-email" placeholder="owner@example.com">
 
     <h4 style="margin:1rem 0 0.5rem;color:rgba(255,255,255,0.7);font-size:0.9rem;">Business Features</h4>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 1rem;">
+    <div class="form-grid-2">
       <div><label style="font-size:0.82rem;color:rgba(255,255,255,0.5);display:block;margin-bottom:0.4rem;">Payment Mode</label>
         <select class="admin-input" id="nb2-payment-mode"><option value="cash_only">Cash Only</option><option value="online">Online Payment</option></select></div>
       <div><label style="font-size:0.82rem;color:rgba(255,255,255,0.5);display:block;margin-bottom:0.4rem;">Card Payment</label>

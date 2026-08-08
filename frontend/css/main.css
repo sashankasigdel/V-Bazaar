@@ -230,6 +230,13 @@ select.form-input{appearance:none;background-image:url("data:image/svg+xml,%3Csv
 .split-layout{display:grid;grid-template-columns:1fr 320px;gap:2rem;align-items:start}
 .split-layout-wide{display:grid;grid-template-columns:1fr 380px;gap:2rem;align-items:start}
 
+/* FORM GRID (paired/tripled form fields that must stack on narrow screens) */
+.form-grid-2{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+.form-grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem}
+@media(max-width:600px){
+  .form-grid-2,.form-grid-3{grid-template-columns:1fr}
+}
+
 /* TABLET */
 @media(max-width:1024px){
   .container{padding:0 1.25rem}
