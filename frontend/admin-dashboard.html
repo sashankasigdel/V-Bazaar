@@ -387,7 +387,7 @@ body { font-family: var(--font-body); background: #0F1623; color: white; margin:
 <div class="admin-modal-overlay" id="ad-modal">
   <div class="admin-modal">
     <h3>Add New Advertisement</h3>
-    <label style="font-size:0.82rem;color:rgba(255,255,255,0.5);display:block;margin-bottom:0.4rem;">Business (must already be registered)</label>
+    <label style="font-size:0.82rem;color:rgba(255,255,255,0.5);display:block;margin-bottom:0.4rem;">Business (must be Active — ads for pending/suspended businesses won't show)</label>
     <input class="admin-input" type="text" id="ad-biz-search" placeholder="Search by business name or ID..." oninput="filterAdBizOptions(this.value)">
     <div id="ad-biz-options" style="max-height:160px;overflow-y:auto;margin-bottom:0.75rem;"></div>
     <div id="ad-biz-selected" style="display:none;background:rgba(232,99,10,0.12);color:var(--saffron);border-radius:8px;padding:0.5rem 0.75rem;font-size:0.85rem;font-weight:600;margin-bottom:1rem;"></div>
@@ -1090,8 +1090,10 @@ function filterAdBizOptions(q) {
   const box = document.getElementById('ad-biz-options');
   const query = q.trim().toLowerCase();
   if (!query) { box.innerHTML = ''; return; }
-  const matches = bizData.filter(b => b.name.toLowerCase().includes(query) || String(b.id) === query).slice(0, 8);
-  box.innerHTML = matches.map(b => `<div onclick="selectAdBusiness(${b.id}, '${b.name.replace(/'/g,"&#39;")}')" style="padding:0.5rem 0.75rem;border-radius:6px;cursor:pointer;font-size:0.85rem;" onmouseover="this.style.background='rgba(255,255,255,0.06)'" onmouseout="this.style.background='transparent'">#${b.id} — ${b.name}</div>`).join('') || '<div style="padding:0.5rem 0.75rem;font-size:0.82rem;color:rgba(255,255,255,0.4);">No matches</div>';
+  const matches = bizData.filter(b => b.status === 'active' && (b.name.toLowerCase().includes(query) || String(b.id) === query)).slice(0, 8);
+  const inactiveMatch = bizData.some(b => b.status !== 'active' && (b.name.toLowerCase().includes(query) || String(b.id) === query));
+  box.innerHTML = matches.map(b => `<div onclick="selectAdBusiness(${b.id}, '${b.name.replace(/'/g,"&#39;")}')" style="padding:0.5rem 0.75rem;border-radius:6px;cursor:pointer;font-size:0.85rem;" onmouseover="this.style.background='rgba(255,255,255,0.06)'" onmouseout="this.style.background='transparent'">#${b.id} — ${b.name}</div>`).join('')
+    || (inactiveMatch ? '<div style="padding:0.5rem 0.75rem;font-size:0.82rem;color:#F87171;">Found, but that business isn\'t Active — ads only show for active businesses. Approve it first.</div>' : '<div style="padding:0.5rem 0.75rem;font-size:0.82rem;color:rgba(255,255,255,0.4);">No matches</div>');
 }
 
 function selectAdBusiness(id, name) {
