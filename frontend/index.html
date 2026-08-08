@@ -34,10 +34,6 @@
 </section>
 
 <div class="container">
-  <section class="section" id="ads-section" style="display:none;">
-    <div id="ads-carousel" style="display:flex;gap:1rem;overflow-x:auto;scroll-snap-type:x mandatory;padding-bottom:0.5rem;"></div>
-  </section>
-
   <section class="section">
     <div class="section-header"><h2>Browse Categories</h2><a href="/search/" style="font-size:0.875rem;font-weight:600;color:var(--saffron);">View All</a></div>
     <div id="cat-grid" style="display:flex;flex-wrap:wrap;gap:1.75rem;"></div>
@@ -57,6 +53,10 @@
       <div class="skeleton" style="height:260px;border-radius:18px;"></div>
       <div class="skeleton" style="height:260px;border-radius:18px;"></div>
     </div>
+  </section>
+
+  <section class="section" id="ads-section" style="display:none;">
+    <div id="ads-carousel" style="display:flex;gap:1rem;overflow-x:auto;scroll-snap-type:x mandatory;padding-bottom:0.5rem;scroll-behavior:smooth;"></div>
   </section>
 
   <section class="section">
@@ -113,6 +113,8 @@ async function init() {
   if (saved) { userLoc = saved; document.getElementById('location-prompt').style.display = 'none'; await loadBusinesses(); }
 }
 
+let adsAutoScrollTimer = null;
+
 async function loadAds() {
   const resp = await API.getAdvertisements();
   if (!resp.ok) return;
@@ -126,6 +128,23 @@ async function loadAds() {
       <div style="position:absolute;left:1rem;bottom:0.85rem;color:white;font-weight:700;font-size:1rem;">${a.business_name}</div>
     </div>`).join('');
   document.getElementById('ads-section').style.display = 'block';
+  initAdsAutoScroll(carousel);
+}
+
+function initAdsAutoScroll(carousel) {
+  clearInterval(adsAutoScrollTimer);
+  if (carousel.children.length < 2) return;
+  const advance = () => {
+    const first = carousel.firstElementChild;
+    if (!first) return;
+    const cardWidth = first.getBoundingClientRect().width + 16;
+    const atEnd = carousel.scrollLeft + carousel.clientWidth >= carousel.scrollWidth - 10;
+    carousel.scrollTo({ left: atEnd ? 0 : carousel.scrollLeft + cardWidth, behavior: 'smooth' });
+  };
+  adsAutoScrollTimer = setInterval(advance, 3000);
+  carousel.addEventListener('mouseenter', () => clearInterval(adsAutoScrollTimer));
+  carousel.addEventListener('mouseleave', () => { clearInterval(adsAutoScrollTimer); adsAutoScrollTimer = setInterval(advance, 3000); });
+  carousel.addEventListener('touchstart', () => clearInterval(adsAutoScrollTimer), { passive: true });
 }
 
 const CATS_VISIBLE = 6;

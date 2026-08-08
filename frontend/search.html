@@ -13,6 +13,11 @@
 .filter-opt{display:flex;align-items:center;gap:0.5rem;padding:0.35rem 0;cursor:pointer;font-size:0.875rem;color:var(--slate-mid);}
 .filter-opt input{accent-color:var(--saffron);width:16px;height:16px;}
 input[type=range]{width:100%;accent-color:var(--saffron);}
+.search-layout{display:grid;grid-template-columns:260px 1fr;gap:2rem;align-items:start;}
+@media(max-width:900px){
+  .search-layout{grid-template-columns:1fr;}
+  .filter-sidebar{position:static;}
+}
 </style>
 </head>
 <body>
@@ -29,7 +34,7 @@ input[type=range]{width:100%;accent-color:var(--saffron);}
 </nav>
 
 <div class="container" style="padding-top:2rem;padding-bottom:4rem;">
-  <div style="display:grid;grid-template-columns:260px 1fr;gap:2rem;align-items:start;">
+  <div class="search-layout">
     <div class="filter-sidebar">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem;">
         <h3 style="font-family:var(--font-body);font-size:1rem;font-weight:700;">Filters</h3>

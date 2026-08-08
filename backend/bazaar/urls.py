@@ -1,7 +1,6 @@
 from django.contrib import admin
 from django.urls import path, include, re_path
 from django.conf import settings
-from django.conf.urls.static import static
 from django.views.static import serve
 import os
 
@@ -23,6 +22,16 @@ urlpatterns = [
     re_path(r'^js/(?P<path>.*)$', serve, {'document_root': os.path.join(FRONTEND_DIR, 'js')}),
     re_path(r'^images/(?P<path>.*)$', serve, {'document_root': os.path.join(FRONTEND_DIR, 'images')}),
 
+    # Serve uploaded media (business logos/banners/gallery) — explicit view instead of
+    # django.conf.urls.static.static() because that helper is a no-op when DEBUG=False,
+    # which silently broke every uploaded photo URL in production.
+    re_path(r'^media/(?P<path>.*)$', serve, {'document_root': settings.MEDIA_ROOT}),
+
+    # PWA: service worker must be served from the root scope, manifest from a stable top-level path.
+    path('sw.js', serve, {'path': 'sw.js', 'document_root': FRONTEND_DIR}),
+    path('manifest.json', serve, {'path': 'manifest.json', 'document_root': FRONTEND_DIR}),
+    path('favicon.ico', serve, {'path': 'favicon.ico', 'document_root': FRONTEND_DIR}),
+
     # Serve frontend HTML pages
     path('', serve, {'path': 'index.html', 'document_root': FRONTEND_DIR}),
     path('login/', serve, {'path': 'login.html', 'document_root': FRONTEND_DIR}),
@@ -36,4 +45,4 @@ urlpatterns = [
     path('admin-dashboard/', serve, {'path': 'admin-dashboard.html', 'document_root': FRONTEND_DIR}),
     path('admin-login/', serve, {'path': 'admin-login.html', 'document_root': FRONTEND_DIR}),
     path('admin-add-business/', serve, {'path': 'admin-add-business.html', 'document_root': FRONTEND_DIR}),
-] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+]

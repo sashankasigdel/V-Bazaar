@@ -149,9 +149,31 @@ body { font-family: var(--font-body); background: #0F1623; color: white; margin:
 /* CHART BARS */
 .mini-bar { height: 6px; border-radius: 999px; background: var(--saffron); }
 
+@media (max-width: 1024px) {
+  .admin-content { padding: 1.5rem; }
+}
+
 @media (max-width: 768px) {
   .admin-layout { grid-template-columns: 1fr; }
-  .admin-sidebar { display: none; }
+  .admin-sidebar {
+    flex-direction: row; align-items: center; height: auto;
+    position: sticky; top: 0; z-index: 50; overflow-x: auto; -webkit-overflow-scrolling: touch;
+    border-right: none; border-bottom: 1px solid rgba(255,255,255,0.08);
+  }
+  .admin-logo { display: none; }
+  .admin-nav { display: flex; padding: 0; flex: none; }
+  .admin-nav-section { display: none; }
+  .admin-nav-item { flex: 0 0 auto; white-space: nowrap; border-left: none; border-bottom: 3px solid transparent; padding: 0.75rem 1rem; }
+  .admin-nav-item.active { border-left-color: transparent; border-bottom-color: var(--saffron); }
+  .admin-user-info { display: none; }
+  .admin-content { padding: 1rem; }
+  .admin-header { padding: 0.85rem 1rem; }
+  .stats-row { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
+}
+
+@media (max-width: 480px) {
+  .admin-table { font-size: 0.8rem; }
+  .admin-modal { padding: 1.25rem; }
 }
 </style>
 </head>
@@ -416,10 +438,8 @@ body { font-family: var(--font-body); background: #0F1623; color: white; margin:
       <button type="button" onclick="bizParseMapsLink()" style="background:rgba(255,255,255,0.06);color:white;border:1px solid rgba(255,255,255,0.1);padding:0.5rem 1rem;border-radius:8px;font-size:0.82rem;cursor:pointer;">Parse Link</button>
     </div>
     <div id="nb2-loc-status" style="font-size:0.78rem;color:rgba(255,255,255,0.4);margin-bottom:0.75rem;"></div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 1rem;">
-      <div><label style="font-size:0.82rem;color:rgba(255,255,255,0.5);display:block;margin-bottom:0.4rem;">Latitude</label><input class="admin-input" type="number" step="0.0000001" id="nb2-lat"></div>
-      <div><label style="font-size:0.82rem;color:rgba(255,255,255,0.5);display:block;margin-bottom:0.4rem;">Longitude</label><input class="admin-input" type="number" step="0.0000001" id="nb2-lon"></div>
-    </div>
+    <input type="hidden" id="nb2-lat">
+    <input type="hidden" id="nb2-lon">
 
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 1rem;">
       <div>
@@ -470,6 +490,19 @@ body { font-family: var(--font-body); background: #0F1623; color: white; margin:
     <div style="display:flex;gap:0.75rem;justify-content:flex-end;margin-top:1rem;">
       <button onclick="closeBizModal()" style="background:rgba(255,255,255,0.06);color:white;border:1px solid rgba(255,255,255,0.1);padding:0.5rem 1.25rem;border-radius:8px;font-size:0.875rem;cursor:pointer;">Cancel</button>
       <button onclick="createBusinessAdmin()" id="biz-submit-btn" style="background:var(--saffron);color:white;border:none;padding:0.5rem 1.25rem;border-radius:8px;font-size:0.875rem;font-weight:600;cursor:pointer;">Create Business</button>
+    </div>
+  </div>
+</div>
+
+<!-- MANAGE BRANCHES MODAL -->
+<div class="admin-modal-overlay" id="branches-modal">
+  <div class="admin-modal" style="max-width:520px;max-height:85vh;overflow-y:auto;">
+    <h3 id="branches-modal-title">Branches</h3>
+    <p style="font-size:0.78rem;color:rgba(255,255,255,0.4);margin-bottom:1rem;">Branches are separate business listings linked to this one. Add a branch to give a second location its own profile, products, and orders.</p>
+    <div id="branches-list" style="margin-bottom:1rem;"></div>
+    <div style="display:flex;gap:0.75rem;justify-content:flex-end;">
+      <button onclick="closeBranchesModal()" style="background:rgba(255,255,255,0.06);color:white;border:1px solid rgba(255,255,255,0.1);padding:0.5rem 1.25rem;border-radius:8px;font-size:0.875rem;cursor:pointer;">Close</button>
+      <button onclick="addBranchFromModal()" style="background:var(--saffron);color:white;border:none;padding:0.5rem 1.25rem;border-radius:8px;font-size:0.875rem;font-weight:600;cursor:pointer;">+ Add Branch</button>
     </div>
   </div>
 </div>
@@ -751,7 +784,9 @@ function renderBizTable(data) {
   document.getElementById('biz-count').textContent = `${filtered.length} businesses`;
   const tbody = document.getElementById('biz-table-body');
   if (!filtered.length) { tbody.innerHTML = '<tr><td colspan="7"><div class="admin-empty"><div class="empty-icon">🏪</div><p>No businesses found</p></div></td></tr>'; return; }
-  tbody.innerHTML = filtered.map(b => `
+  tbody.innerHTML = filtered.map(b => {
+    const branchCount = bizData.filter(x => x.parent_id === b.id).length;
+    return `
     <tr class="${b.status==='pending'?'pending-row':''}">
       <td>
         <div style="font-weight:600;">${b.name}</div>
@@ -768,6 +803,7 @@ function renderBizTable(data) {
       <td>
         <div style="display:flex;gap:0.4rem;flex-wrap:wrap;">
           <button class="act-btn act-feature" onclick="openBizModalForEdit(${b.id})">Modify</button>
+          <button class="act-btn act-feature" onclick="openBranchesModal(${b.id})">🔗 Branches${branchCount ? ` (${branchCount})` : ''}</button>
           ${b.status==='pending'?`<button class="act-btn act-approve" onclick="approveBiz(${b.id}, this)">Approve</button>`:'' }
           ${b.status==='active'?`<button class="act-btn act-reject" onclick="suspendBiz(${b.id}, this)">Suspend</button>`:''}
           ${b.status==='suspended'?`<button class="act-btn act-approve" onclick="approveBiz(${b.id}, this)">Reactivate</button>`:''}
@@ -775,7 +811,8 @@ function renderBizTable(data) {
           <button class="act-btn act-delete" onclick="deleteBiz(${b.id}, '${b.name}', this)">Delete</button>
         </div>
       </td>
-    </tr>`).join('');
+    </tr>`;
+  }).join('');
 }
 
 function filterBiz(status, btn) {
@@ -1152,6 +1189,39 @@ function bizPopulateCatAndParentOptions(excludeId) {
   document.getElementById('nb2-parent').innerHTML = '<option value="">Not a branch</option>' + branchable.map(b => `<option value="${b.id}">${b.name}${b.city ? ' — ' + b.city : ''}</option>`).join('');
 }
 
+let branchesModalParentId = null;
+
+async function openBranchesModal(bizId) {
+  branchesModalParentId = bizId;
+  const biz = bizData.find(b => b.id === bizId);
+  document.getElementById('branches-modal-title').textContent = `Branches of ${biz?.name || 'this business'}`;
+  document.getElementById('branches-list').innerHTML = '<div class="admin-empty"><div class="spinner"></div></div>';
+  document.getElementById('branches-modal').style.display = 'flex';
+  const resp = await AdminAPI.get(`/businesses/${bizId}/detail/`);
+  if (!resp.ok) { document.getElementById('branches-list').innerHTML = '<div class="admin-empty"><p>Could not load branches.</p></div>'; return; }
+  const branches = resp.data.branches || [];
+  document.getElementById('branches-list').innerHTML = branches.length
+    ? branches.map(br => `
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:0.6rem 0;border-bottom:1px solid rgba(255,255,255,0.06);">
+        <div><div style="font-weight:600;font-size:0.9rem;">${br.name}</div><div style="font-size:0.75rem;color:rgba(255,255,255,0.4);">${br.city || ''}${br.city ? ' · ' : ''}<span class="badge badge-${br.status}">${br.status}</span></div></div>
+        <button class="act-btn act-feature" onclick="closeBranchesModal();openBizModalForEdit(${br.id})">Modify</button>
+      </div>`).join('')
+    : '<div class="admin-empty"><p>No branches yet.</p></div>';
+}
+
+function closeBranchesModal() { document.getElementById('branches-modal').style.display = 'none'; }
+
+function addBranchFromModal() {
+  const parentId = branchesModalParentId;
+  closeBranchesModal();
+  openBizModal();
+  document.getElementById('nb2-parent').value = parentId;
+}
+
+document.getElementById('branches-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeBranchesModal();
+});
+
 function bizResetForm() {
   ['nb2-name','nb2-short','nb2-desc','nb2-phone','nb2-wa','nb2-email','nb2-web','nb2-fb','nb2-ig','nb2-addr','nb2-lat','nb2-lon','nb2-owner-email','nb2-maps-link'].forEach(id => document.getElementById(id).value = '');
   document.getElementById('nb2-city').value = 'Pokhara';
@@ -1208,6 +1278,7 @@ async function openBizModalForEdit(id) {
   document.getElementById('nb2-city').value = b.city || '';
   document.getElementById('nb2-lat').value = b.latitude || '';
   document.getElementById('nb2-lon').value = b.longitude || '';
+  document.getElementById('nb2-loc-status').textContent = (b.latitude && b.longitude) ? `📍 Location set (${parseFloat(b.latitude).toFixed(5)}, ${parseFloat(b.longitude).toFixed(5)})` : 'No location set yet.';
   document.getElementById('nb2-owner-email').value = b.owner_email || '';
   if (b.category) document.getElementById('nb2-cat').value = b.category.id;
   if (b.parent) document.getElementById('nb2-parent').value = b.parent;
