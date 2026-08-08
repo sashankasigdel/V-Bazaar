@@ -21,8 +21,7 @@
 <nav class="navbar">
   <a href="/" class="navbar-brand">Bazaar<span class="brand-dot">.</span></a>
   <div class="navbar-actions">
-    <a href="/" class="nav-link">🏠 Home</a>
-    <button onclick="doLogout()" class="nav-link" style="color:var(--danger);">Log Out</button>
+    <a href="/" class="nav-link"><span id="ic-home"></span> Home</a>
   </div>
 </nav>
 
@@ -33,12 +32,11 @@
       <div id="uname" style="font-weight:700;font-size:0.95rem;"></div>
       <div id="uemail" style="font-size:0.78rem;color:var(--slate-light);"></div>
     </div>
-    <div onclick="show('orders')" class="sidebar-nav-item active" id="nav-orders">📦 My Orders</div>
-    <div onclick="show('saved')" class="sidebar-nav-item" id="nav-saved">❤️ Saved Businesses</div>
-    <div onclick="show('profile')" class="sidebar-nav-item" id="nav-profile">👤 Profile</div>
-    <div onclick="show('notifications')" class="sidebar-nav-item" id="nav-notifications">🔔 Notifications</div>
-    <a href="/business-dashboard/" id="owner-link" style="display:none;text-decoration:none;" class="sidebar-nav-item">🏪 My Business Dashboard</a>
-    <div onclick="doLogout()" class="sidebar-nav-item" style="color:var(--danger);margin-top:2rem;">🚪 Log Out</div>
+    <div onclick="show('orders')" class="sidebar-nav-item active" id="nav-orders"> My Orders</div>
+    <div onclick="show('saved')" class="sidebar-nav-item" id="nav-saved"> Saved Businesses</div>
+    <div onclick="show('profile')" class="sidebar-nav-item" id="nav-profile"> Profile</div>
+    <div onclick="show('notifications')" class="sidebar-nav-item" id="nav-notifications"> Notifications</div>
+    <a href="/business-dashboard/" id="owner-link" style="display:none;text-decoration:none;" class="sidebar-nav-item"> My Business Dashboard</a>
   </div>
 
   <div class="dashboard-content">
@@ -57,7 +55,7 @@
       <div style="max-width:520px;">
         <div class="dash-card">
           <h3 style="font-family:var(--font-body);font-size:1rem;font-weight:700;margin-bottom:1.25rem;">Personal Info</h3>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+          <div class="form-grid-2">
             <div class="form-group" style="margin-bottom:0;"><label class="form-label">First Name</label><input type="text" id="p-fn" class="form-input"></div>
             <div class="form-group" style="margin-bottom:0;"><label class="form-label">Last Name</label><input type="text" id="p-ln" class="form-input"></div>
           </div>
@@ -70,6 +68,10 @@
           <div class="form-group"><label class="form-label">Current Password</label><input type="password" id="p-old" class="form-input"></div>
           <div class="form-group"><label class="form-label">New Password</label><input type="password" id="p-new" class="form-input"></div>
           <button onclick="changePwd()" class="btn btn-secondary">Update Password</button>
+        </div>
+        <div class="dash-card">
+          <h3 style="font-family:var(--font-body);font-size:1rem;font-weight:700;margin-bottom:0.75rem;">Account</h3>
+          <button onclick="doLogout()" class="btn btn-secondary" style="color:var(--danger);border-color:var(--danger);"><span id="ic-logout"></span> Log Out</button>
         </div>
       </div>
     </div>
@@ -88,6 +90,14 @@
 <script src="/js/app.js"></script>
 <script>
 if (!Auth.isLoggedIn()) window.location.href = '/login/';
+
+document.getElementById('ic-home').innerHTML = uiIcon('home', 16);
+document.getElementById('nav-orders').innerHTML = uiIcon('box') + ' My Orders';
+document.getElementById('nav-saved').innerHTML = uiIcon('heart') + ' Saved Businesses';
+document.getElementById('nav-profile').innerHTML = uiIcon('user') + ' Profile';
+document.getElementById('nav-notifications').innerHTML = uiIcon('bell') + ' Notifications';
+document.getElementById('owner-link').innerHTML = uiIcon('shop') + ' My Business Dashboard';
+document.getElementById('ic-logout').innerHTML = uiIcon('logout', 16);
 
 const user = Auth.getUser();
 if (user) {
@@ -123,7 +133,7 @@ async function loadOrders() {
   const resp = await API.getOrders();
   const list = document.getElementById('orders-list');
   const orders = resp.data?.results||resp.data||[];
-  if (!orders.length) { list.innerHTML = '<div class="empty-state"><div class="empty-icon">📦</div><h3>No orders yet</h3><p>When you place orders, they\'ll appear here.</p><a href="/" class="btn btn-primary" style="margin-top:1rem;">Start Shopping</a></div>'; return; }
+  if (!orders.length) { list.innerHTML = `<div class="empty-state"><div class="empty-icon">${uiIcon('box',40)}</div><h3>No orders yet</h3><p>When you place orders, they'll appear here.</p><a href="/" class="btn btn-primary" style="margin-top:1rem;">Start Shopping</a></div>`; return; }
   list.innerHTML = orders.map(o => {
     const si = STEPS.indexOf(o.status);
     const isCan = o.status==='cancelled';
@@ -136,7 +146,7 @@ async function loadSaved() {
   const resp = await API.getSavedBusinesses();
   const grid = document.getElementById('saved-grid');
   const bizs = resp.data?.results||resp.data||[];
-  if (!bizs.length) { grid.innerHTML = '<div class="empty-state"><div class="empty-icon">❤️</div><h3>No saved businesses</h3><p>Tap the heart on any business to save it.</p></div>'; return; }
+  if (!bizs.length) { grid.innerHTML = `<div class="empty-state"><div class="empty-icon">${uiIcon('heart',40)}</div><h3>No saved businesses</h3><p>Tap the heart on any business to save it.</p></div>`; return; }
   grid.innerHTML = bizs.map(b => renderBusinessCard(b)).join('');
 }
 
@@ -156,7 +166,7 @@ async function loadNotifs() {
   const resp = await API.getNotifications();
   const list = document.getElementById('notif-list');
   const notifs = resp.data?.results||resp.data||[];
-  if (!notifs.length) { list.innerHTML = '<div class="empty-state"><div class="empty-icon">🔔</div><h3>No notifications</h3></div>'; return; }
+  if (!notifs.length) { list.innerHTML = `<div class="empty-state"><div class="empty-icon">${uiIcon('bell',40)}</div><h3>No notifications</h3></div>`; return; }
   list.innerHTML = notifs.map(n => `<div style="background:${n.is_read?'white':'var(--saffron-light)'};border-radius:var(--radius-md);border:1px solid ${n.is_read?'var(--border)':'rgba(232,99,10,0.2)'};padding:1rem 1.25rem;margin-bottom:0.75rem;cursor:pointer;" onclick="markOne(${n.id},this)"><div style="display:flex;justify-content:space-between;gap:0.5rem;"><div style="font-weight:${n.is_read?'400':'700'};font-size:0.875rem;">${n.title}</div><div style="font-size:0.75rem;color:var(--slate-light);flex-shrink:0;">${UI.timeAgo(n.created_at)}</div></div><div style="font-size:0.82rem;color:var(--slate-mid);margin-top:0.25rem;">${n.message}</div></div>`).join('');
 }
 

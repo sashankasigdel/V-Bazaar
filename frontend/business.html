@@ -14,7 +14,7 @@
   <div class="navbar-actions">
     <a href="/" class="nav-link">← Back</a>
     <span data-guest-only><a href="/login/" class="btn-nav">Sign in</a></span>
-    <span data-auth-required style="display:none;"><a href="/dashboard/#profile" class="btn-nav">👤 My Profile</a> <a href="/business-dashboard/" class="btn-nav" data-owner-only style="display:none;background:var(--emerald);">🏪 My Business</a></span>
+    <span data-auth-required style="display:none;"><a href="/dashboard/#profile" class="btn-nav"><span id="ic-profile"></span> My Profile</a> <a href="/business-dashboard/" class="btn-nav" data-owner-only style="display:none;background:var(--emerald);"><span id="ic-mybiz"></span> My Business</a></span>
   </div>
 </nav>
 
@@ -132,6 +132,8 @@ const slug = new URLSearchParams(window.location.search).get('slug');
 if (!slug) window.location.href = '/';
 let biz = null, selRating = 0;
 
+document.getElementById('ic-profile').innerHTML = uiIcon('user', 16);
+document.getElementById('ic-mybiz').innerHTML = uiIcon('shop', 16);
 document.getElementById('tabbtn-menu').innerHTML = uiIcon('menu') + ' Menu';
 document.getElementById('tabbtn-about').innerHTML = uiIcon('about') + ' About';
 document.getElementById('tabbtn-gallery').innerHTML = uiIcon('gallery') + ' Gallery';

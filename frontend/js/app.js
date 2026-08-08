@@ -44,6 +44,10 @@ const UI_ICON_PATHS = {
   logout: '<path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><path d="M10 17l5-5-5-5"/><path d="M15 12H3"/>',
   photo: '<rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="8.5" cy="9.5" r="1.5"/><path d="M21 15.5 16 10l-4.5 5-2-2L3 18.5"/>',
   message: '<path d="M4 4h16v12H8l-4 4V4z"/>',
+  user: '<circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-3.5 3-6 7-6s7 2.5 7 6"/>',
+  heart: '<path d="M12 21s-7-4.35-9.5-8.5C.5 8.5 3 4.5 7 4.5c2 0 3.5 1 5 2.5 1.5-1.5 3-2.5 5-2.5 4 0 6.5 4 4.5 8-2.5 4.15-9.5 8.5-9.5 8.5z"/>',
+  bell: '<path d="M6 8a6 6 0 0 1 12 0c0 5 2 6 2 6H4s2-1 2-6"/><path d="M9.5 20a2.5 2.5 0 0 0 5 0"/>',
+  home: '<path d="M4 11.5 12 4l8 7.5"/><path d="M6 10v9a1 1 0 0 0 1 1h4v-6h2v6h4a1 1 0 0 0 1-1v-9"/>',
 };
 
 function uiIcon(name, sizePx = 18) {

@@ -19,9 +19,8 @@
       <a href="/register/" class="btn-nav">Sign up</a>
     </span>
     <span data-auth-required style="display:none;">
-      <a href="/dashboard/#profile" class="nav-link">👤 My Profile</a>
-      <a href="/business-dashboard/" class="nav-link" data-owner-only style="display:none;">🏪 My Business</a>
-      <button onclick="doLogout()" class="nav-link" style="color:var(--danger);">Log out</button>
+      <a href="/dashboard/#profile" class="nav-link"><span id="ic-profile"></span> My Profile</a>
+      <a href="/business-dashboard/" class="nav-link" data-owner-only style="display:none;"><span id="ic-mybiz"></span> My Business</a>
     </span>
   </div>
 </nav>
@@ -103,6 +102,9 @@
 let params = { ordering: '-average_rating' };
 let page = 1;
 let userLoc = null;
+
+document.getElementById('ic-profile').innerHTML = uiIcon('user', 16);
+document.getElementById('ic-mybiz').innerHTML = uiIcon('shop', 16);
 
 async function init() {
   await loadAds();
