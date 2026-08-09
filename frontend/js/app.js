@@ -112,10 +112,12 @@ const UI_ICON_PATHS = {
   moon: '<path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/>',
   chevronLeft: '<path d="M15 5l-7 7 7 7"/>',
   chevronRight: '<path d="M9 5l7 7-7 7"/>',
+  chevronDown: '<path d="M5 9l7 7 7-7"/>',
   starFilled: '<path d="M12 2.5l3 6.6 7.2.9-5.3 4.9 1.4 7.1L12 18.2l-6.3 3.8 1.4-7.1-5.3-4.9 7.2-.9z" fill="currentColor" stroke="none"/>',
   more: '<circle cx="5" cy="12" r="1.8" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.8" fill="currentColor" stroke="none"/><circle cx="19" cy="12" r="1.8" fill="currentColor" stroke="none"/>',
   megaphone: '<path d="M3 10v4h3l6 4V6l-6 4H3z"/><path d="M15 9a3 3 0 0 1 0 6"/>',
   filter: '<path d="M4 5h16l-6 7.5V19l-4 2v-8.5z"/>',
+  search: '<circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/>',
 };
 
 function uiIcon(name, sizePx = 18) {
@@ -321,6 +323,77 @@ const UI = {
   timeAgo: (d) => { const s = (Date.now() - new Date(d)) / 1000; if (s < 60) return 'just now'; if (s < 3600) return `${Math.floor(s/60)}m ago`; if (s < 86400) return `${Math.floor(s/3600)}h ago`; return `${Math.floor(s/86400)}d ago`; },
   loading: (el, n = 3) => { el.innerHTML = Array(n).fill('<div class="skeleton" style="height:240px;border-radius:18px;"></div>').join(''); },
 };
+
+// ===== Shared vb- navbar, used by index.html/business.html/search.html so all three match exactly =====
+function setVbTheme(mode) {
+  document.documentElement.setAttribute('data-theme', mode);
+  localStorage.setItem('vb_theme', mode);
+  const l = document.getElementById('theme-light-btn'), d = document.getElementById('theme-dark-btn');
+  if (l) l.classList.toggle('active', mode === 'light');
+  if (d) d.classList.toggle('active', mode === 'dark');
+}
+
+function renderVbNavbar(mountId, opts = {}) {
+  const { exploreActive = false, searchValue = '' } = opts;
+  const mount = document.getElementById(mountId);
+  if (!mount) return;
+  const user = Auth.getUser();
+  const initials = user ? (((user.first_name?.[0]||'')+(user.last_name?.[0]||'')).toUpperCase() || (user.email?.[0]||'U').toUpperCase()) : 'U';
+  mount.innerHTML = `
+    <div class="vb-nav-left">
+      <a href="/" class="vb-brand"><span class="vb-brand-icon">${coloredIcon('shop',18,'white')}</span><span class="vb-brand-text"> V-Bazaar</span></a>
+      <a href="/search/" class="vb-explore-pill${exploreActive ? ' active' : ''}">${plainIcon('compass',15)} <span>Explore</span></a>
+    </div>
+    <div class="vb-nav-center">
+      <div class="vb-search-pill">
+        ${plainIcon('search',16)}
+        <input type="text" id="vb-nav-search-input" value="${searchValue}" placeholder="Search business near you !!!" onkeydown="if(event.key==='Enter')window.location.href='/search/?q='+encodeURIComponent(this.value)">
+      </div>
+    </div>
+    <div class="vb-nav-right">
+      <div class="vb-theme-toggle">
+        <button class="vb-theme-btn" id="theme-light-btn" onclick="setVbTheme('light')" title="Light">${plainIcon('sun',15)}</button>
+        <button class="vb-theme-btn" id="theme-dark-btn" onclick="setVbTheme('dark')" title="Dark">${plainIcon('moon',15)}</button>
+      </div>
+      <span data-guest-only style="display:flex;gap:0.5rem;">
+        <a href="/login/" class="nav-link">Log in</a>
+        <a href="/register/" class="btn-nav">Sign up</a>
+      </span>
+      <span data-auth-required style="display:none;">
+        <a href="/dashboard/#profile" class="vb-profile-pill"><span class="vb-avatar">${initials}</span><span class="vb-profile-text"> My Profile</span></a>
+      </span>
+    </div>`;
+  setVbTheme(localStorage.getItem('vb_theme') || 'light');
+  document.querySelectorAll('[data-auth-required]').forEach(el => el.style.display = user ? '' : 'none');
+  document.querySelectorAll('[data-guest-only]').forEach(el => el.style.display = user ? 'none' : '');
+}
+
+// ===== Shared vb- business card, used by index.html/business.html/search.html =====
+function renderVbCard(b, featured, lat, lon) {
+  const dist = lat && lon && b.latitude ? calcDistance(lat, lon, b.latitude, b.longitude) : null;
+  const rating = b.average_rating > 0 ? parseFloat(b.average_rating).toFixed(1) : null;
+  const distText = dist !== null ? (dist < 1 ? (dist*1000).toFixed(0)+'m' : dist.toFixed(1)+'km') : '';
+  return `<div class="vb-card ${featured ? 'vb-card-featured' : ''}" onclick="window.location.href='/business/?slug=${b.slug}'">
+    <div class="vb-card-img">
+      ${b.banner ? `<img src="${b.banner}" alt="${b.name}" loading="lazy">` : `<div style="width:100%;height:100%;background:linear-gradient(135deg,var(--saffron-light),#FDE0C8);"></div>`}
+      ${featured ? `<span class="vb-badge vb-badge-gold">${plainIcon('starFilled',11)} Featured</span>` : ''}
+      <button class="vb-save-btn ${b.is_saved ? 'saved' : ''}" onclick="event.stopPropagation();handleToggleSave(${b.id},this)">${plainIcon('heart',15)}</button>
+    </div>
+    <div class="vb-card-body">
+      <div class="vb-card-category">${b.category_name || 'Business'}</div>
+      <div class="vb-card-title-row">
+        <span class="vb-card-title">${b.name}${b.is_verified ? coloredIcon('about',14,'var(--saffron)') : ''}</span>
+        ${rating ? `<span class="vb-rating-badge">${plainIcon('starFilled',11)} ${rating}</span>` : ''}
+      </div>
+      <div class="vb-card-address">${plainIcon('location',13)} ${b.city || ''}</div>
+      <div class="vb-card-actions">
+        <a href="tel:${b.phone || ''}" class="vb-act-btn" onclick="event.stopPropagation()" title="Call">${plainIcon('phone',14)}</a>
+        <a href="${b.phone ? 'https://wa.me/'+b.phone.replace(/\D/g,'') : '#'}" target="_blank" class="vb-act-btn" onclick="event.stopPropagation()" title="Message">${plainIcon('message',14)}</a>
+        <a href="https://www.google.com/maps/dir/?api=1&destination=${b.latitude},${b.longitude}" target="_blank" class="vb-act-btn ${distText ? 'vb-act-btn-wide' : ''}" onclick="event.stopPropagation()" title="Directions">${plainIcon('directions',14)}${distText ? ` <span style="font-size:0.72rem;font-weight:600;">${distText}</span>` : ''}</a>
+      </div>
+    </div>
+  </div>`;
+}
 
 function calcDistance(lat1, lon1, lat2, lon2) {
   const R = 6371, dL = (lat2 - lat1) * Math.PI / 180, dN = (lon2 - lon1) * Math.PI / 180;

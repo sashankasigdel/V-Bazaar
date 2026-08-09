@@ -1,4 +1,4 @@
-const CACHE_NAME = 'vbazaar-v1';
+const CACHE_NAME = 'vbazaar-v2';
 const APP_SHELL = ['/css/main.css', '/js/app.js', '/images/icon-192.png', '/images/icon-512.png'];
 
 self.addEventListener('install', (event) => {

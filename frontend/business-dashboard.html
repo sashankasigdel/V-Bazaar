@@ -368,6 +368,8 @@ async function init() {
   if (!bizList.length) { sel.innerHTML = '<option>No businesses yet</option>'; show('create'); return; }
   sel.innerHTML = bizList.map(b => `<option value="${b.slug}">${b.name}</option>`).join('');
   switchBiz(bizList[0].slug);
+  const hash = window.location.hash.replace('#','');
+  if (hash) show(hash);
 }
 
 function switchBiz(slug) {

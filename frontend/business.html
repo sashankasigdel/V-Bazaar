@@ -3,9 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Business — Bazaar</title>
+<title>Business — V-Bazaar</title>
 <link rel="stylesheet" href="/css/main.css">
 <style>
+body{background:var(--cream);}
 #biz-banner-wrap{height:300px;}
 #logo{width:80px;height:80px;font-size:2rem;margin-top:-40px;}
 #biz-name{font-size:1.75rem;}
@@ -14,24 +15,27 @@
   #logo{width:64px;height:64px;margin-top:-32px;font-size:1.6rem;}
   #biz-name{font-size:1.35rem;}
 }
+.vb-prod-group-title{font-family:var(--font-body);font-weight:700;font-size:1rem;color:var(--charcoal);margin:1.5rem 0 0.9rem;}
+.vb-prod-group-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:1rem;margin-bottom:0.5rem;}
+.vb-branch-card{display:flex;justify-content:space-between;align-items:center;padding:0.9rem 1.1rem;border-radius:var(--radius-md);background:var(--cream-dark);color:inherit;transition:all var(--transition);}
+.vb-branch-card:hover{background:var(--saffron-light);}
+.vb-review-reply-toggle{display:inline-flex;align-items:center;gap:0.3rem;margin-top:0.6rem;font-size:0.8rem;font-weight:600;color:var(--saffron);cursor:pointer;}
+.vb-review-reply-toggle .chev{display:inline-block;transition:transform 0.2s;}
+.vb-outlet-badges{display:flex;flex-wrap:wrap;gap:0.4rem;margin-top:0.4rem;}
+.vb-outlet-badge{font-size:0.72rem;padding:0.25rem 0.6rem;border-radius:999px;background:var(--cream-dark);color:var(--charcoal);}
+html[data-theme="dark"] body{background:#1F2222;}
+html[data-theme="dark"] #content > div,html[data-theme="dark"] .dash-card{background:#242727;border-color:#3A3D3D;}
+html[data-theme="dark"] .vb-outlet-badge,html[data-theme="dark"] .vb-branch-card{background:#2E3131;color:#D0D0D0;}
 </style>
 </head>
 <body>
-<nav class="navbar">
-  <a href="/" class="navbar-brand">Bazaar<span class="brand-dot">.</span></a>
-  <div class="navbar-search"><span class="search-icon">🔍</span><input type="text" placeholder="Search..." onkeydown="if(event.key==='Enter')window.location.href='/search/?q='+this.value"></div>
-  <div class="navbar-actions">
-    <a href="/" class="nav-link">← Back</a>
-    <span data-guest-only><a href="/login/" class="btn-nav">Sign in</a></span>
-    <span data-auth-required style="display:none;"><a href="/dashboard/#profile" class="btn-nav"><span id="ic-profile"></span> My Profile</a> <a href="/business-dashboard/" class="btn-nav" data-owner-only style="display:none;background:var(--emerald);"><span id="ic-mybiz"></span> My Business</a></span>
-  </div>
-</nav>
+<nav class="vb-nav" id="vb-nav"></nav>
 
 <div id="loading" style="text-align:center;padding:5rem;"><div class="spinner" style="margin:0 auto;"></div></div>
 <div id="content" style="display:none;">
   <div id="biz-banner-wrap" style="background:var(--cream-dark);overflow:hidden;position:relative;">
     <img id="banner" src="" alt="" style="width:100%;height:100%;object-fit:cover;display:none;">
-    <div id="banner-placeholder" style="width:100%;height:100%;background:linear-gradient(135deg,#1A2332,#3D4F6B);"></div>
+    <div id="banner-placeholder" style="width:100%;height:100%;background:linear-gradient(135deg,var(--charcoal),#3D4141);"></div>
   </div>
   <div style="background:white;border-bottom:1px solid var(--border);">
     <div class="container" style="padding-top:1rem;padding-bottom:1rem;">
@@ -49,7 +53,7 @@
               <p id="biz-short" style="color:var(--slate-mid);font-size:0.9rem;"></p>
             </div>
             <div style="display:flex;gap:0.75rem;flex-wrap:wrap;">
-              <button id="save-btn" onclick="toggleSaveB()" class="btn btn-secondary btn-sm"><span id="ic-save"></span> Save</button>
+              <button id="save-btn" onclick="toggleSaveB()" class="btn btn-secondary btn-sm"></button>
               <a id="wa-btn" href="#" target="_blank" class="btn btn-success btn-sm" style="display:none;"><span id="ic-wa"></span> WhatsApp</a>
               <a id="call-btn" href="#" class="btn btn-secondary btn-sm" style="display:none;"><span id="ic-call"></span> Call</a>
               <a id="maps-btn" href="#" target="_blank" class="btn btn-secondary btn-sm"><span id="ic-maps"></span> Directions</a>
@@ -64,23 +68,29 @@
     <div class="split-layout">
       <div>
         <div class="tab-bar">
-          <button class="tab-btn active" id="tabbtn-menu" onclick="showTab('products',this)"> Menu</button>
+          <button class="tab-btn active" id="tabbtn-products" onclick="showTab('products',this)"> Product</button>
           <button class="tab-btn" id="tabbtn-about" onclick="showTab('about',this)"> About</button>
           <button class="tab-btn" id="tabbtn-gallery" onclick="showTab('gallery',this)"> Gallery</button>
-          <button class="tab-btn" id="tabbtn-reviews" onclick="showTab('reviews',this)"> Reviews</button>
-          <button class="tab-btn" id="tabbtn-location" onclick="showTab('location',this)"> Location</button>
+          <button class="tab-btn" id="tabbtn-branches" onclick="showTab('branches',this)"> Branches</button>
+          <button class="tab-btn" id="tabbtn-reviews" onclick="showTab('reviews',this)"> Review</button>
         </div>
         <div id="tab-products" class="tab-content active">
-          <div id="products-grid" class="grid-3" style="grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:1rem;"></div>
+          <div id="products-grid"></div>
         </div>
         <div id="tab-about" class="tab-content">
           <div class="dash-card"><h3 style="margin-bottom:1rem;font-family:var(--font-body);">About</h3><p id="biz-desc" style="line-height:1.8;"></p><div id="contacts" style="margin-top:1rem;display:flex;flex-wrap:wrap;gap:0.5rem;"></div><div id="biz-badges" style="margin-top:0.75rem;display:flex;flex-wrap:wrap;gap:0.5rem;"></div><div id="biz-parent-note" style="display:none;margin-top:0.75rem;font-size:0.85rem;color:var(--slate-light);"></div></div>
-          <div id="branches-card" class="dash-card" style="display:none;"><h3 style="margin-bottom:1rem;font-family:var(--font-body);">Branches</h3><div id="branches-list" style="display:flex;flex-direction:column;gap:0.5rem;"></div></div>
           <div class="dash-card"><h3 style="margin-bottom:1rem;font-family:var(--font-body);">Opening Hours</h3><div id="hours-list"></div></div>
         </div>
         <div id="tab-gallery" class="tab-content">
           <div id="gallery-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:0.75rem;"></div>
           <div id="gallery-empty" style="display:none;" class="empty-state"><div class="empty-icon">🖼️</div><h3>No photos yet</h3></div>
+        </div>
+        <div id="tab-branches" class="tab-content">
+          <div class="dash-card">
+            <h3 style="margin-bottom:1rem;font-family:var(--font-body);">Branches</h3>
+            <div id="branches-list" style="display:flex;flex-direction:column;gap:0.5rem;"></div>
+            <div id="branches-empty" style="display:none;padding:2rem;" class="empty-state"><div class="empty-icon">🏢</div><h3>No other branches</h3></div>
+          </div>
         </div>
         <div id="tab-reviews" class="tab-content">
           <div style="background:white;border-radius:var(--radius-lg);border:1px solid var(--border);padding:1.5rem;margin-bottom:1.5rem;display:flex;gap:2rem;align-items:center;">
@@ -101,29 +111,24 @@
           </div>
           <div id="reviews-list"></div>
         </div>
-        <div id="tab-location" class="tab-content">
-          <div class="dash-card" style="text-align:center;padding:2.5rem 1.5rem;">
-            <div id="ic-location-big" style="width:56px;height:56px;border-radius:50%;background:var(--saffron-light);display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;color:var(--saffron);"></div>
-            <p id="biz-addr" style="font-size:0.95rem;font-weight:600;margin-bottom:1.5rem;"></p>
-            <a id="gmaps-link" href="#" target="_blank" class="btn btn-primary">Open in Google Maps →</a>
-          </div>
-        </div>
       </div>
 
       <div style="position:sticky;top:80px;">
         <div class="dash-card">
-          <h4 style="font-family:var(--font-body);margin-bottom:0.25rem;">Order from here</h4>
-          <p id="order-subtitle" style="font-size:0.82rem;color:var(--slate-light);margin-bottom:1rem;">Add items from the menu</p>
+          <h4 style="font-family:var(--font-body);margin-bottom:0.25rem;">Orders / Appointment / Booking</h4>
+          <p id="order-subtitle" style="font-size:0.82rem;color:var(--slate-light);margin-bottom:1rem;">Add items from the Product tab</p>
           <div id="mini-cart" style="max-height:220px;overflow-y:auto;margin-bottom:1rem;"></div>
           <div id="mini-total" style="display:none;border-top:1px solid var(--border);padding-top:0.75rem;margin-bottom:0.75rem;">
             <div style="display:flex;justify-content:space-between;font-size:0.875rem;"><span>Subtotal</span><span id="mini-sub" style="font-weight:700;color:var(--saffron);"></span></div>
           </div>
           <button onclick="goCheckout()" id="checkout-btn" class="btn btn-primary" style="width:100%;justify-content:center;display:none;">Proceed to Checkout →</button>
-          <p id="cart-hint" style="font-size:0.78rem;color:var(--slate-light);text-align:center;">Browse the menu and add items above</p>
+          <p id="cart-hint" style="font-size:0.78rem;color:var(--slate-light);text-align:center;">Browse the Product tab and add items above</p>
         </div>
         <div class="dash-card">
-          <h4 style="font-family:var(--font-body);margin-bottom:1rem;">Business Info</h4>
+          <h4 style="font-family:var(--font-body);margin-bottom:1rem;">Outlet Info</h4>
           <div id="sidebar-info" style="display:flex;flex-direction:column;gap:0.75rem;font-size:0.875rem;"></div>
+          <div id="sidebar-today-hours" style="margin-top:0.75rem;font-size:0.85rem;font-weight:600;"></div>
+          <div class="vb-outlet-badges" id="sidebar-badges"></div>
         </div>
       </div>
     </div>
@@ -138,24 +143,22 @@ const slug = new URLSearchParams(window.location.search).get('slug');
 if (!slug) window.location.href = '/';
 let biz = null, selRating = 0;
 
-document.getElementById('ic-profile').innerHTML = uiIcon('user', 16);
-document.getElementById('ic-mybiz').innerHTML = uiIcon('shop', 16);
-document.getElementById('tabbtn-menu').innerHTML = uiIcon('menu') + ' Menu';
+document.getElementById('tabbtn-products').innerHTML = uiIcon('menu') + ' Product';
 document.getElementById('tabbtn-about').innerHTML = uiIcon('about') + ' About';
 document.getElementById('tabbtn-gallery').innerHTML = uiIcon('gallery') + ' Gallery';
-document.getElementById('tabbtn-reviews').innerHTML = uiIcon('reviews') + ' Reviews';
-document.getElementById('tabbtn-location').innerHTML = uiIcon('location') + ' Location';
-document.getElementById('ic-location-big').innerHTML = uiIcon('location', 28);
-document.getElementById('ic-save').innerHTML = uiIcon('heart', 16);
+document.getElementById('tabbtn-branches').innerHTML = uiIcon('branch') + ' Branches';
+document.getElementById('tabbtn-reviews').innerHTML = uiIcon('reviews') + ' Review';
+document.getElementById('save-btn').innerHTML = `${uiIcon('heart', 16)} Save`;
 document.getElementById('ic-wa').innerHTML = uiIcon('message', 16);
 document.getElementById('ic-call').innerHTML = uiIcon('phone', 16);
 document.getElementById('ic-maps').innerHTML = uiIcon('directions', 16);
 
 async function init() {
+  renderVbNavbar('vb-nav');
   const resp = await API.getBusiness(slug);
   if (!resp.ok) { document.getElementById('loading').innerHTML = '<div class="empty-state"><div class="empty-icon">😕</div><h3>Not found</h3><a href="/" class="btn btn-primary" style="margin-top:1rem;">Go Home</a></div>'; return; }
   biz = resp.data;
-  document.title = `${biz.name} — Bazaar`;
+  document.title = `${biz.name} — V-Bazaar`;
   document.getElementById('loading').style.display = 'none';
   document.getElementById('content').style.display = 'block';
   render();
@@ -171,10 +174,9 @@ function render() {
   const logoEl = document.getElementById('logo');
   if (b.logo) logoEl.innerHTML = `<img src="${b.logo}" style="width:100%;height:100%;object-fit:cover;">`;
   else logoEl.innerHTML = categoryIcon(b.category?.slug, 40);
-  document.getElementById('biz-name').innerHTML = `${b.name}${b.is_verified ? ' <span style="font-size:0.65em;color:var(--success);vertical-align:middle;">✅ Verified</span>' : ''}`;
+  document.getElementById('biz-name').innerHTML = `${b.name}${b.is_verified ? ' ' + coloredIcon('about',18,'var(--saffron)') : ''}`;
   document.getElementById('biz-short').textContent = b.short_description || '';
   document.getElementById('biz-desc').textContent = b.description || '';
-  document.getElementById('biz-addr').textContent = `${b.address}, ${b.city}`;
   document.getElementById('biz-cat').innerHTML = `${categoryIcon(b.category?.slug, 16)} ${b.category?.name || 'Business'}`;
   if (b.is_open !== null) document.getElementById('biz-status').innerHTML = b.is_open ? '<span style="color:var(--success);">● Open Now</span>' : '<span style="color:var(--danger);">● Closed</span>';
   if (b.accepts_orders === false) document.getElementById('order-subtitle').innerHTML = '<span style="color:var(--danger);font-weight:600;">Not accepting orders right now</span>';
@@ -184,7 +186,6 @@ function render() {
   document.getElementById('rev-count').textContent = `${b.total_reviews} reviews`;
   const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${b.latitude},${b.longitude}`;
   document.getElementById('maps-btn').href = mapsUrl;
-  document.getElementById('gmaps-link').href = mapsUrl;
   if (b.whatsapp) { const wa = document.getElementById('wa-btn'); wa.href = `https://wa.me/${b.whatsapp.replace(/\D/g,'')}`; wa.style.display = 'inline-flex'; }
   if (b.phone) { const ca = document.getElementById('call-btn'); ca.href = `tel:${b.phone}`; ca.style.display = 'inline-flex'; }
   if (b.is_saved) { document.getElementById('save-btn').innerHTML = `${uiIcon('heart',16)} Saved`; document.getElementById('save-btn').classList.add('btn-ghost'); document.getElementById('save-btn').classList.remove('btn-secondary'); }
@@ -196,6 +197,10 @@ function render() {
   document.getElementById('hours-list').innerHTML = b.hours?.length
     ? b.hours.map(h => `<div style="display:flex;justify-content:space-between;padding:0.6rem 0;border-bottom:1px solid var(--border-light);font-size:0.875rem;${h.day===todayIdx?'background:var(--saffron-light);margin:0 -0.5rem;padding:0.6rem 0.5rem;border-radius:6px;':''}"><span style="font-weight:600;">${days[h.day]}${h.day===todayIdx?' (Today)':''}</span><span>${h.is_closed?'<span style="color:var(--danger);">Closed</span>':`${h.open_time?.slice(0,5)} – ${h.close_time?.slice(0,5)}`}</span></div>`).join('')
     : '<p style="color:var(--slate-light);font-size:0.875rem;">Hours not specified</p>';
+  const todayHours = b.hours?.find(h => h.day === todayIdx);
+  document.getElementById('sidebar-today-hours').innerHTML = todayHours
+    ? (todayHours.is_closed ? '<span style="color:var(--danger);">Closed today</span>' : `Today: ${todayHours.open_time?.slice(0,5)} – ${todayHours.close_time?.slice(0,5)}`)
+    : '';
 
   // Contacts
   const cs = [];
@@ -215,8 +220,8 @@ function render() {
   if (b.offer_delivery === true) fb.push('🚚 Delivery Available');
   if (b.has_parking === true) fb.push('🅿️ Parking');
   if (b.is_registered === true) fb.push('✅ Registered Business');
-  const badgesEl = document.getElementById('biz-badges');
-  if (badgesEl) badgesEl.innerHTML = fb.map(f => `<span style="display:inline-flex;align-items:center;gap:0.4rem;padding:0.35rem 0.8rem;border-radius:999px;background:var(--cream-dark);font-size:0.78rem;">${f}</span>`).join('');
+  document.getElementById('biz-badges').innerHTML = fb.map(f => `<span style="display:inline-flex;align-items:center;gap:0.4rem;padding:0.35rem 0.8rem;border-radius:999px;background:var(--cream-dark);font-size:0.78rem;">${f}</span>`).join('');
+  document.getElementById('sidebar-badges').innerHTML = fb.map(f => `<span class="vb-outlet-badge">${f}</span>`).join('');
 
   // Parent / branches
   const parentNote = document.getElementById('biz-parent-note');
@@ -225,8 +230,9 @@ function render() {
     parentNote.style.display = 'block';
   }
   if (b.branches?.length) {
-    document.getElementById('branches-card').style.display = 'block';
-    document.getElementById('branches-list').innerHTML = b.branches.map(br => `<a href="/business/?slug=${br.slug}" style="display:flex;justify-content:space-between;align-items:center;padding:0.6rem 0.75rem;border-radius:var(--radius-sm);background:var(--cream-dark);color:inherit;text-decoration:none;font-size:0.875rem;"><span style="font-weight:600;">${br.name}</span><span style="color:var(--slate-light);font-size:0.8rem;">${br.city||''}</span></a>`).join('');
+    document.getElementById('branches-list').innerHTML = b.branches.map(br => `<a href="/business/?slug=${br.slug}" class="vb-branch-card"><span style="font-weight:600;">${br.name}</span><span style="color:var(--slate-light);font-size:0.8rem;">${br.city||''}</span></a>`).join('');
+  } else {
+    document.getElementById('branches-empty').style.display = 'block';
   }
 
   // Sidebar
@@ -248,7 +254,14 @@ async function loadProducts() {
   const grid = document.getElementById('products-grid');
   const prods = resp.data?.results || resp.data || [];
   if (!prods.length) { grid.innerHTML = `<div class="empty-state" style="padding:2rem;"><div class="empty-icon">${categoryIcon(biz.category?.slug, 40)}</div><h3>No products listed</h3></div>`; return; }
-  grid.innerHTML = prods.map(p => renderProductCard(p, biz.id, biz.name, biz.category?.slug, biz.accepts_orders)).join('');
+  const card = p => renderProductCard(p, biz.id, biz.name, biz.category?.slug, biz.accepts_orders);
+  const groups = [
+    { label: 'Products', items: prods.filter(p => p.type !== 'service') },
+    { label: 'Services', items: prods.filter(p => p.type === 'service') },
+  ].filter(g => g.items.length);
+  grid.innerHTML = groups.length > 1
+    ? groups.map(g => `<div class="vb-prod-group-title">${g.label}</div><div class="vb-prod-group-grid">${g.items.map(card).join('')}</div>`).join('')
+    : `<div class="vb-prod-group-grid">${prods.map(card).join('')}</div>`;
 }
 
 async function loadReviews() {
@@ -256,7 +269,14 @@ async function loadReviews() {
   const reviews = resp.data?.results || resp.data || [];
   const list = document.getElementById('reviews-list');
   if (!reviews.length) { list.innerHTML = '<div class="empty-state"><div class="empty-icon">💬</div><h3>No reviews yet</h3><p>Be the first to review!</p></div>'; return; }
-  list.innerHTML = reviews.map(r => `<div class="review-card"><div class="review-header"><div class="reviewer-avatar">${(r.customer_name||'U')[0].toUpperCase()}</div><div><div class="reviewer-name">${r.customer_name||'Customer'}</div><div class="review-date">${UI.timeAgo(r.created_at)}</div></div><div class="stars-display" style="margin-left:auto;">${'★'.repeat(r.rating)}${'☆'.repeat(5-r.rating)}</div></div>${r.title?`<div style="font-weight:600;font-size:0.875rem;margin-bottom:0.4rem;">${r.title}</div>`:''}<div class="review-content">${r.content}</div>${r.owner_reply?`<div class="owner-reply"><strong>🏪 Owner:</strong> ${r.owner_reply}</div>`:''}</div>`).join('');
+  list.innerHTML = reviews.map(r => `<div class="review-card"><div class="review-header"><div class="reviewer-avatar">${(r.customer_name||'U')[0].toUpperCase()}</div><div><div class="reviewer-name">${r.customer_name||'Customer'}</div><div class="review-date">${UI.timeAgo(r.created_at)}</div></div><div class="stars-display" style="margin-left:auto;">${'★'.repeat(r.rating)}${'☆'.repeat(5-r.rating)}</div></div>${r.title?`<div style="font-weight:600;font-size:0.875rem;margin-bottom:0.4rem;">${r.title}</div>`:''}<div class="review-content">${r.content}</div>${r.owner_reply?`<div class="vb-review-reply-toggle" onclick="toggleReply(this)">Reply <span class="chev">⌄</span></div><div class="owner-reply" style="display:none;"><strong>🏪 Owner:</strong> ${r.owner_reply}</div>`:''}</div>`).join('');
+}
+
+function toggleReply(el) {
+  const reply = el.nextElementSibling;
+  const open = reply.style.display === 'block';
+  reply.style.display = open ? 'none' : 'block';
+  el.querySelector('.chev').style.transform = open ? '' : 'rotate(180deg)';
 }
 
 function setRating(n) {
