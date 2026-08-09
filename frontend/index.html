@@ -26,7 +26,25 @@ body{background:var(--cream);}
 .vb-profile-pill{display:flex;align-items:center;gap:0.5rem;padding:0.35rem 1rem 0.35rem 0.35rem;border-radius:999px;border:1.5px solid var(--border);font-size:0.85rem;font-weight:600;color:var(--charcoal);flex-shrink:0;white-space:nowrap;}
 .vb-avatar{width:26px;height:26px;border-radius:50%;background:var(--saffron-light);color:var(--saffron-dark);display:flex;align-items:center;justify-content:center;font-size:0.72rem;font-weight:700;flex-shrink:0;}
 @media(max-width:900px){ .vb-nav-center{display:none;} .vb-nav{grid-template-columns:auto auto;justify-content:space-between;} }
-@media(max-width:600px){ .vb-explore-pill span{display:none;} }
+@media(max-width:640px){
+  .vb-nav{padding:0.55rem 0.75rem;gap:0.4rem;}
+  .vb-nav-left{gap:0.5rem;}
+  .vb-nav-right{gap:0.4rem;}
+  .vb-brand-icon{width:26px;height:26px;border-radius:8px;}
+  .vb-brand{font-size:0.92rem;gap:0.35rem;}
+  .vb-explore-pill{padding:0.45rem;border-radius:50%;}
+  .vb-explore-pill span:last-child{display:none;}
+  .vb-theme-toggle{padding:0.2rem;gap:0.15rem;}
+  .vb-theme-btn{width:24px;height:24px;}
+  .nav-link{padding:0.32rem 0.55rem;font-size:0.76rem;}
+  .btn-nav{padding:0.32rem 0.65rem;font-size:0.76rem;}
+  .vb-profile-pill{padding:0.2rem;border:none;background:none;gap:0;}
+  .vb-profile-text{display:none;}
+  .vb-avatar{width:28px;height:28px;font-size:0.75rem;}
+}
+@media(max-width:400px){
+  .vb-brand-text{display:none;}
+}
 
 /* HERO / SPONSORED AD SLIDER */
 .vb-hero{padding:1.5rem 1.5rem 0;}
@@ -51,26 +69,44 @@ body{background:var(--cream);}
 .vb-dot{width:8px;height:8px;border-radius:999px;background:rgba(255,255,255,0.4);cursor:pointer;transition:all 0.25s;}
 .vb-dot.active{width:22px;background:var(--saffron);}
 @media(max-width:600px){
-  .vb-hero{padding:1rem 1rem 0;}
-  .vb-hero-box{height:320px;}
-  .vb-slide-content{left:1.25rem;bottom:1.25rem;right:1.25rem;}
-  .vb-slide-nav{position:static;justify-content:center;margin-top:0.75rem;}
+  .vb-hero{padding:0.75rem 0.75rem 0;}
+  .vb-hero-box{height:210px;}
+  .vb-slide-content{left:1rem;bottom:1rem;right:1rem;max-width:none;}
+  .vb-ad-pill{padding:0.2rem 0.6rem;font-size:0.62rem;margin-bottom:0.5rem;}
+  .vb-slide-content h2{font-size:1.05rem;margin-bottom:0.35rem;}
+  .vb-slide-content .btn{padding:0.4rem 0.8rem;font-size:0.78rem;}
+  .vb-slide-nav{bottom:0.6rem;right:0.6rem;gap:0.35rem;}
+  .vb-slide-arrow{width:24px;height:24px;}
+  .vb-dot{width:6px;height:6px;}
+  .vb-dot.active{width:16px;}
   .vb-slide-content p{display:none;}
+  .vb-hero-static{padding:1.25rem;}
+  .vb-hero-static h1{font-size:1.3rem;}
+  .vb-hero-static p{font-size:0.82rem;}
 }
 
-/* CATEGORIES */
-.vb-cat-grid{display:flex;flex-wrap:wrap;gap:1rem;}
-.vb-cat-tile{width:100px;padding:1rem 0.5rem;border-radius:var(--radius-md);border:1.5px solid var(--border);background:white;display:flex;flex-direction:column;align-items:center;gap:0.6rem;cursor:pointer;transition:all var(--transition);}
+/* CATEGORIES — always exactly one row; anything that doesn't fit is reachable via the More tile's modal */
+.vb-cat-grid{display:flex;flex-wrap:nowrap;overflow:hidden;gap:1rem;}
+.vb-cat-tile{width:100px;flex-shrink:0;padding:1rem 0.5rem;border-radius:var(--radius-md);border:1.5px solid var(--border);background:white;display:flex;flex-direction:column;align-items:center;gap:0.6rem;cursor:pointer;transition:all var(--transition);}
 .vb-cat-tile:hover{border-color:var(--saffron);background:var(--saffron-light);}
 .vb-cat-icon{width:44px;height:44px;border-radius:var(--radius-sm);background:var(--cream-dark);color:var(--charcoal);display:flex;align-items:center;justify-content:center;transition:all var(--transition);}
 .vb-cat-tile:hover .vb-cat-icon{background:var(--saffron);color:white;}
 .vb-cat-label{font-size:0.78rem;font-weight:600;text-align:center;color:var(--charcoal);line-height:1.25;}
+@media(max-width:480px){ .vb-cat-tile{width:80px;padding:0.75rem 0.4rem;} .vb-cat-icon{width:38px;height:38px;} }
+
+/* CATEGORY MODAL (opened from the More tile) */
+.vb-modal-overlay{display:none;position:fixed;inset:0;background:rgba(20,22,22,0.55);z-index:300;align-items:center;justify-content:center;padding:1.5rem;}
+.vb-modal-overlay.open{display:flex;}
+.vb-modal{background:white;border-radius:var(--radius-lg);max-width:600px;width:100%;max-height:80vh;overflow-y:auto;padding:1.5rem;}
+.vb-modal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;}
+.vb-modal-close{width:32px;height:32px;border-radius:50%;background:var(--cream-dark);display:flex;align-items:center;justify-content:center;color:var(--charcoal);cursor:pointer;flex-shrink:0;}
+.vb-modal-cat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:1rem;}
 
 /* SECTION HEADERS */
 .vb-section{padding:2.5rem 0;}
 .vb-section-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;flex-wrap:wrap;gap:0.75rem;}
 .vb-section-title{display:flex;align-items:center;gap:0.6rem;font-family:var(--font-body);font-weight:700;font-size:1.3rem;color:var(--charcoal);}
-.vb-premium-pill{background:var(--gold);color:white;font-size:0.7rem;font-weight:700;padding:0.2rem 0.7rem;border-radius:999px;text-transform:uppercase;letter-spacing:0.04em;}
+.vb-premium-pill{background:linear-gradient(135deg,var(--saffron),var(--teal));color:white;font-size:0.7rem;font-weight:700;padding:0.2rem 0.7rem;border-radius:999px;text-transform:uppercase;letter-spacing:0.04em;box-shadow:0 2px 8px rgba(238,108,41,0.35);}
 
 /* FILTER ROW */
 .vb-filter-row{display:flex;align-items:center;gap:1rem;flex-wrap:wrap;}
@@ -78,27 +114,43 @@ body{background:var(--cream);}
 .vb-filter-check{display:flex;align-items:center;gap:0.4rem;font-size:0.85rem;color:var(--charcoal);cursor:pointer;padding:0.5rem 0.9rem;border:1.5px solid var(--border);border-radius:999px;background:white;}
 .vb-filter-check input{accent-color:var(--saffron);width:16px;height:16px;}
 
-/* CARDS */
-.vb-card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1.5rem;}
+/* FEATURED CAROUSEL — auto-scrolls, drag/swipe-scrollable, ~10% of the next card peeks on the edge */
+.vb-featured-scroll{display:flex;gap:1.25rem;overflow-x:auto;scroll-snap-type:x mandatory;scroll-behavior:smooth;padding-bottom:0.5rem;-webkit-overflow-scrolling:touch;scrollbar-width:thin;}
+.vb-featured-scroll .vb-card{flex:0 0 auto;width:calc(31% - 0.85rem);scroll-snap-align:start;}
+@media(max-width:900px){ .vb-featured-scroll .vb-card{width:calc(47% - 0.65rem);} }
+@media(max-width:600px){ .vb-featured-scroll .vb-card{width:86%;} }
+
+/* CARDS — sized ~10% smaller than the original design on web, ~20% smaller on mobile */
+.vb-card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(252px,1fr));gap:1.35rem;}
 .vb-card{background:white;border-radius:var(--radius-lg);border:1.5px solid var(--border);overflow:hidden;cursor:pointer;transition:all var(--transition);position:relative;}
 .vb-card:hover{transform:translateY(-3px);box-shadow:var(--shadow-lg);}
-.vb-card-featured{border-color:var(--gold);box-shadow:0 0 0 1px var(--gold),var(--shadow-sm);}
-.vb-card-featured:hover{box-shadow:0 0 0 1px var(--gold),var(--shadow-lg);}
-.vb-card-img{position:relative;height:170px;background:var(--cream-dark);overflow:hidden;}
+.vb-card-featured{border:2px solid transparent;background:linear-gradient(white,white) padding-box,linear-gradient(135deg,var(--saffron),var(--teal)) border-box;box-shadow:0 6px 20px rgba(238,108,41,0.2);}
+.vb-card-featured:hover{box-shadow:0 10px 28px rgba(238,108,41,0.3);}
+.vb-card-img{position:relative;height:153px;background:var(--cream-dark);overflow:hidden;}
 .vb-card-img img{width:100%;height:100%;object-fit:cover;}
-.vb-badge{position:absolute;top:0.7rem;left:0.7rem;display:flex;align-items:center;gap:0.3rem;padding:0.25rem 0.65rem;border-radius:999px;font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.02em;}
-.vb-badge-gold{background:var(--gold);color:white;}
-.vb-save-btn{position:absolute;top:0.7rem;right:0.7rem;width:32px;height:32px;border-radius:50%;background:white;display:flex;align-items:center;justify-content:center;box-shadow:var(--shadow-sm);color:var(--slate-light);transition:all var(--transition);}
+.vb-badge{position:absolute;top:0.6rem;left:0.6rem;display:flex;align-items:center;gap:0.3rem;padding:0.22rem 0.6rem;border-radius:999px;font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.02em;}
+.vb-badge-gold{background:linear-gradient(135deg,var(--saffron),#FF9558);color:white;box-shadow:0 2px 6px rgba(238,108,41,0.4);}
+.vb-save-btn{position:absolute;top:0.6rem;right:0.6rem;width:29px;height:29px;border-radius:50%;background:white;display:flex;align-items:center;justify-content:center;box-shadow:var(--shadow-sm);color:var(--slate-light);transition:all var(--transition);}
 .vb-save-btn.saved{color:var(--saffron);}
-.vb-card-body{padding:1.1rem;}
-.vb-card-category{font-size:0.72rem;font-weight:700;color:var(--saffron);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:0.35rem;}
-.vb-card-title-row{display:flex;align-items:center;justify-content:space-between;gap:0.5rem;margin-bottom:0.35rem;}
-.vb-card-title{font-weight:700;font-size:0.98rem;color:var(--charcoal);display:flex;align-items:center;gap:0.3rem;}
-.vb-rating-badge{display:flex;align-items:center;gap:0.25rem;background:var(--gold-light);color:var(--gold-dark);font-size:0.75rem;font-weight:700;padding:0.15rem 0.55rem;border-radius:999px;flex-shrink:0;}
-.vb-card-address{display:flex;align-items:center;gap:0.35rem;font-size:0.8rem;color:var(--slate-light);margin-bottom:0.9rem;}
-.vb-card-actions{display:flex;gap:0.5rem;}
-.vb-act-btn{flex:1;height:36px;border-radius:var(--radius-sm);background:var(--cream-dark);color:var(--charcoal);display:flex;align-items:center;justify-content:center;transition:all var(--transition);}
+.vb-card-body{padding:1rem;}
+.vb-card-category{font-size:0.7rem;font-weight:700;color:var(--saffron);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:0.3rem;}
+.vb-card-title-row{display:flex;align-items:center;justify-content:space-between;gap:0.5rem;margin-bottom:0.3rem;}
+.vb-card-title{font-weight:700;font-size:0.92rem;color:var(--charcoal);display:flex;align-items:center;gap:0.3rem;}
+.vb-rating-badge{display:flex;align-items:center;gap:0.25rem;background:var(--teal-light);color:var(--teal);font-size:0.72rem;font-weight:700;padding:0.12rem 0.5rem;border-radius:999px;flex-shrink:0;}
+.vb-card-address{display:flex;align-items:center;gap:0.35rem;font-size:0.76rem;color:var(--slate-light);margin-bottom:0.8rem;}
+.vb-card-actions{display:flex;gap:0.4rem;}
+.vb-act-btn{flex:1;height:32px;border-radius:var(--radius-sm);background:var(--cream-dark);color:var(--charcoal);display:flex;align-items:center;justify-content:center;gap:0.3rem;transition:all var(--transition);}
 .vb-act-btn:hover{background:var(--saffron);color:white;}
+.vb-act-btn-wide{flex:1.7;}
+@media(max-width:600px){
+  .vb-card-img{height:136px;}
+  .vb-card-body{padding:0.88rem;}
+  .vb-card-title{font-size:0.87rem;}
+  .vb-card-category{font-size:0.66rem;}
+  .vb-card-address{font-size:0.72rem;margin-bottom:0.65rem;}
+  .vb-act-btn{height:29px;}
+  .vb-save-btn{width:26px;height:26px;}
+}
 
 /* FOOTER */
 .vb-footer{background:var(--charcoal);color:rgba(255,255,255,0.7);padding:3.5rem 1.5rem 1.5rem;margin-top:2rem;}
@@ -137,7 +189,7 @@ html[data-theme="dark"] .vb-save-btn{background:#2E3131;}
 <body>
 <nav class="vb-nav">
   <div class="vb-nav-left">
-    <a href="/" class="vb-brand"><span class="vb-brand-icon" id="vb-brand-icon"></span> V-Bazaar</a>
+    <a href="/" class="vb-brand"><span class="vb-brand-icon" id="vb-brand-icon"></span><span class="vb-brand-text"> V-Bazaar</span></a>
     <a href="/search/" class="vb-explore-pill"><span id="ic-explore"></span> <span>Explore</span></a>
   </div>
   <div class="vb-nav-center">
@@ -156,7 +208,7 @@ html[data-theme="dark"] .vb-save-btn{background:#2E3131;}
       <a href="/register/" class="btn-nav">Sign up</a>
     </span>
     <span data-auth-required style="display:none;">
-      <a href="/dashboard/#profile" class="vb-profile-pill"><span class="vb-avatar" id="vb-avatar">U</span> My Profile</a>
+      <a href="/dashboard/#profile" class="vb-profile-pill"><span class="vb-avatar" id="vb-avatar">U</span><span class="vb-profile-text"> My Profile</span></a>
     </span>
   </div>
 </nav>
@@ -192,20 +244,36 @@ html[data-theme="dark"] .vb-save-btn{background:#2E3131;}
   </section>
 </div>
 
-<main class="container">
-  <div id="location-prompt" style="margin-bottom:1.5rem;padding:1.25rem 1.5rem;background:var(--saffron-light);border-radius:var(--radius-md);border:1.5px solid rgba(238,108,41,0.2);display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;">
-    <div><strong style="color:var(--saffron-dark);display:flex;align-items:center;gap:0.4rem;"><span id="ic-loc-prompt"></span> Enable Location</strong><p style="margin:0.25rem 0 0;font-size:0.875rem;color:var(--slate-mid);">See businesses near you with accurate distances.</p></div>
-    <button class="btn btn-primary btn-sm" onclick="detectLocation()">Enable</button>
+<div class="vb-modal-overlay" id="cat-modal-overlay" onclick="if(event.target===this)closeCatModal()">
+  <div class="vb-modal">
+    <div class="vb-modal-head">
+      <div class="vb-section-title" style="font-size:1.1rem;">All Categories</div>
+      <div class="vb-modal-close" onclick="closeCatModal()">✕</div>
+    </div>
+    <div class="vb-modal-cat-grid" id="cat-modal-grid"></div>
   </div>
+</div>
+
+<div class="vb-modal-overlay" id="location-modal-overlay" onclick="if(event.target===this)dismissLocationModal()">
+  <div class="vb-modal" style="max-width:380px;text-align:center;padding:2rem;">
+    <div style="width:56px;height:56px;border-radius:50%;background:var(--saffron-light);display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;" id="ic-loc-modal"></div>
+    <h3 style="font-family:var(--font-body);font-weight:700;font-size:1.1rem;margin-bottom:0.5rem;">Enable Location</h3>
+    <p style="color:var(--slate-mid);font-size:0.88rem;margin-bottom:1.5rem;">See businesses near you with accurate distances and better recommendations.</p>
+    <button class="btn btn-primary" style="width:100%;justify-content:center;margin-bottom:0.6rem;" onclick="detectLocation()">Enable Location</button>
+    <button class="btn btn-secondary" style="width:100%;justify-content:center;" onclick="dismissLocationModal()">Maybe Later</button>
+  </div>
+</div>
+
+<main class="container">
 
   <section class="vb-section">
     <div class="vb-section-head">
       <div class="vb-section-title"><span id="ic-crown"></span> Featured Business <span class="vb-premium-pill">Premium</span></div>
     </div>
-    <div class="vb-card-grid" id="featured-grid">
-      <div class="skeleton" style="height:260px;border-radius:18px;"></div>
-      <div class="skeleton" style="height:260px;border-radius:18px;"></div>
-      <div class="skeleton" style="height:260px;border-radius:18px;"></div>
+    <div class="vb-featured-scroll" id="featured-grid">
+      <div class="skeleton" style="height:260px;border-radius:18px;flex:0 0 30%;"></div>
+      <div class="skeleton" style="height:260px;border-radius:18px;flex:0 0 30%;"></div>
+      <div class="skeleton" style="height:260px;border-radius:18px;flex:0 0 30%;"></div>
     </div>
   </section>
 
@@ -268,8 +336,8 @@ document.getElementById('theme-light-btn').innerHTML = plainIcon('sun', 15);
 document.getElementById('theme-dark-btn').innerHTML = plainIcon('moon', 15);
 document.getElementById('ic-chev-left').innerHTML = plainIcon('chevronLeft', 16);
 document.getElementById('ic-chev-right').innerHTML = plainIcon('chevronRight', 16);
-document.getElementById('ic-loc-prompt').innerHTML = coloredIcon('location', 15, 'var(--saffron-dark)');
-document.getElementById('ic-crown').innerHTML = coloredIcon('crown', 20, 'var(--gold)');
+document.getElementById('ic-loc-modal').innerHTML = coloredIcon('location', 26, 'var(--saffron-dark)');
+document.getElementById('ic-crown').innerHTML = coloredIcon('crown', 20, 'var(--saffron)');
 
 // Theme toggle
 function setVbTheme(mode) {
@@ -293,7 +361,15 @@ async function init() {
   await loadFeatured();
   await loadBusinesses();
   const saved = Location.get();
-  if (saved) { userLoc = saved; document.getElementById('location-prompt').style.display = 'none'; await loadBusinesses(); }
+  if (saved) { userLoc = saved; await loadBusinesses(); }
+  else if (!localStorage.getItem('vb_location_dismissed')) {
+    document.getElementById('location-modal-overlay').classList.add('open');
+  }
+}
+
+function dismissLocationModal() {
+  document.getElementById('location-modal-overlay').classList.remove('open');
+  localStorage.setItem('vb_location_dismissed', '1');
 }
 
 const AD_INTERVAL_MS = 5000;
@@ -347,45 +423,56 @@ function startAdsTimer() {
   adsTimer = setInterval(nextAdSlide, AD_INTERVAL_MS);
 }
 
-const CATS_VISIBLE = 7;
+let allCats = [];
+
+function makeCatTile(c) {
+  const el = document.createElement('div');
+  el.className = 'vb-cat-tile';
+  el.innerHTML = `<div class="vb-cat-icon">${categoryIcon(c.slug)}</div><div class="vb-cat-label">${c.name}</div>`;
+  el.onclick = () => { window.location.href = `/search/?category=${encodeURIComponent(c.slug)}`; };
+  return el;
+}
 
 async function loadCategories() {
   const resp = await API.getCategories();
   if (!resp.ok) return;
-  const cats = resp.data.results || resp.data;
+  allCats = resp.data.results || resp.data;
+  renderCatRow();
+  let resizeTimer;
+  window.addEventListener('resize', () => { clearTimeout(resizeTimer); resizeTimer = setTimeout(renderCatRow, 150); });
+}
+
+// Fits as many category tiles as actually fit on one row (measured, not hardcoded),
+// with a "More" tile that opens the full list for anything that doesn't fit.
+function renderCatRow() {
   const grid = document.getElementById('cat-grid');
+  grid.innerHTML = '';
+  const containerWidth = grid.clientWidth || grid.parentElement.clientWidth;
+  const tileWidth = (window.innerWidth <= 480 ? 80 : 100) + 16; // tile width + gap
+  const available = containerWidth - tileWidth; // reserve room for the More tile
+  let maxTiles = Math.max(1, Math.floor(available / tileWidth));
+  maxTiles = Math.min(maxTiles, allCats.length);
 
-  function makeTile(c) {
-    const el = document.createElement('div');
-    el.className = 'vb-cat-tile';
-    el.innerHTML = `<div class="vb-cat-icon">${categoryIcon(c.slug)}</div><div class="vb-cat-label">${c.name}</div>`;
-    el.onclick = () => { window.location.href = `/search/?category=${encodeURIComponent(c.slug)}`; };
-    return el;
-  }
+  allCats.slice(0, maxTiles).forEach(c => grid.appendChild(makeCatTile(c)));
 
-  cats.slice(0, CATS_VISIBLE).forEach(c => grid.appendChild(makeTile(c)));
-
-  if (cats.length > CATS_VISIBLE) {
-    const extra = cats.slice(CATS_VISIBLE);
-    let expanded = false;
-    const toggleEl = document.createElement('div');
-    toggleEl.className = 'vb-cat-tile';
-    function setCollapsed() { toggleEl.innerHTML = `<div class="vb-cat-icon">${plainIcon('more',20)}</div><div class="vb-cat-label">More</div>`; }
-    setCollapsed();
-    toggleEl.onclick = () => {
-      if (!expanded) {
-        extra.forEach(c => { const el = makeTile(c); el.classList.add('cat-extra-item'); grid.insertBefore(el, toggleEl); });
-        toggleEl.innerHTML = `<div class="vb-cat-icon">${plainIcon('chevronLeft',20)}</div><div class="vb-cat-label">Less</div>`;
-        expanded = true;
-      } else {
-        grid.querySelectorAll('.cat-extra-item').forEach(el => el.remove());
-        setCollapsed();
-        expanded = false;
-      }
-    };
-    grid.appendChild(toggleEl);
+  if (allCats.length > maxTiles) {
+    const moreEl = document.createElement('div');
+    moreEl.className = 'vb-cat-tile';
+    moreEl.innerHTML = `<div class="vb-cat-icon">${plainIcon('more',20)}</div><div class="vb-cat-label">More</div>`;
+    moreEl.onclick = openCatModal;
+    grid.appendChild(moreEl);
   }
 }
+
+function openCatModal() {
+  const modalGrid = document.getElementById('cat-modal-grid');
+  modalGrid.innerHTML = '';
+  allCats.forEach(c => modalGrid.appendChild(makeCatTile(c)));
+  document.getElementById('cat-modal-overlay').classList.add('open');
+}
+function closeCatModal() { document.getElementById('cat-modal-overlay').classList.remove('open'); }
+
+let featuredAutoTimer = null;
 
 async function loadFeatured() {
   const resp = await API.getFeatured();
@@ -393,6 +480,24 @@ async function loadFeatured() {
   const list = resp.data?.results || resp.data || [];
   if (!resp.ok || !list.length) { grid.innerHTML = '<p style="color:var(--slate-light);">No featured businesses yet.</p>'; return; }
   grid.innerHTML = list.map(b => renderVbCard(b, true, userLoc?.lat, userLoc?.lon)).join('');
+  initFeaturedAutoScroll();
+}
+
+function initFeaturedAutoScroll() {
+  const track = document.getElementById('featured-grid');
+  clearInterval(featuredAutoTimer);
+  if (!track || track.children.length < 2) return;
+  const advance = () => {
+    const first = track.firstElementChild;
+    if (!first) return;
+    const cardWidth = first.getBoundingClientRect().width + 20;
+    const atEnd = track.scrollLeft + track.clientWidth >= track.scrollWidth - 10;
+    track.scrollTo({ left: atEnd ? 0 : track.scrollLeft + cardWidth, behavior: 'smooth' });
+  };
+  featuredAutoTimer = setInterval(advance, 1500);
+  track.addEventListener('mouseenter', () => clearInterval(featuredAutoTimer));
+  track.addEventListener('mouseleave', () => { clearInterval(featuredAutoTimer); featuredAutoTimer = setInterval(advance, 1500); });
+  track.addEventListener('touchstart', () => clearInterval(featuredAutoTimer), { passive: true });
 }
 
 let favOnly = false;
@@ -429,11 +534,11 @@ function renderVbCard(b, featured, lat, lon) {
         <span class="vb-card-title">${b.name}${b.is_verified ? coloredIcon('about',14,'var(--saffron)') : ''}</span>
         ${rating ? `<span class="vb-rating-badge">${plainIcon('starFilled',11)} ${rating}</span>` : ''}
       </div>
-      <div class="vb-card-address">${plainIcon('location',13)} ${b.city || ''}${distText ? ' · ' + distText : ''}</div>
+      <div class="vb-card-address">${plainIcon('location',13)} ${b.city || ''}</div>
       <div class="vb-card-actions">
-        <a href="tel:${b.phone || ''}" class="vb-act-btn" onclick="event.stopPropagation()" title="Call">${plainIcon('phone',15)}</a>
-        <a href="${b.phone ? 'https://wa.me/'+b.phone.replace(/\\D/g,'') : '#'}" target="_blank" class="vb-act-btn" onclick="event.stopPropagation()" title="Message">${plainIcon('message',15)}</a>
-        <a href="https://www.google.com/maps/dir/?api=1&destination=${b.latitude},${b.longitude}" target="_blank" class="vb-act-btn" onclick="event.stopPropagation()" title="Directions">${plainIcon('directions',15)}</a>
+        <a href="tel:${b.phone || ''}" class="vb-act-btn" onclick="event.stopPropagation()" title="Call">${plainIcon('phone',14)}</a>
+        <a href="${b.phone ? 'https://wa.me/'+b.phone.replace(/\\D/g,'') : '#'}" target="_blank" class="vb-act-btn" onclick="event.stopPropagation()" title="Message">${plainIcon('message',14)}</a>
+        <a href="https://www.google.com/maps/dir/?api=1&destination=${b.latitude},${b.longitude}" target="_blank" class="vb-act-btn ${distText ? 'vb-act-btn-wide' : ''}" onclick="event.stopPropagation()" title="Directions">${plainIcon('directions',14)}${distText ? ` <span style="font-size:0.72rem;font-weight:600;">${distText}</span>` : ''}</a>
       </div>
     </div>
   </div>`;
@@ -445,9 +550,10 @@ function filterFavOnly(v) { favOnly = v; loadBusinesses(); }
 async function detectLocation() {
   try {
     userLoc = await Location.detect();
-    document.getElementById('location-prompt').style.display = 'none';
+    document.getElementById('location-modal-overlay').classList.remove('open');
     UI.toast('Location detected!', 'success');
     await loadBusinesses();
+    await loadFeatured();
   } catch { UI.toast('Could not detect location.', 'error'); }
 }
 

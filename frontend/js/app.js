@@ -414,7 +414,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (!document.querySelector('meta[name="theme-color"]')) {
     const meta = document.createElement('meta');
     meta.name = 'theme-color';
-    meta.content = '#E8630A';
+    meta.content = '#EE6C29';
     document.head.appendChild(meta);
   }
   if (!document.querySelector('link[rel="apple-touch-icon"]')) {
@@ -434,4 +434,48 @@ document.addEventListener('DOMContentLoaded', () => {
       navigator.serviceWorker.register('/sw.js').catch(() => {});
     });
   }
+})();
+
+// ===== PWA install prompt — browsers don't reliably show their own banner,
+// so capture the event and surface our own "Install App" bar. =====
+(function setupInstallPrompt() {
+  let deferredPrompt = null;
+
+  function showInstallBar() {
+    if (localStorage.getItem('pwa_install_dismissed')) return;
+    if (document.getElementById('pwa-install-bar')) return;
+    const bar = document.createElement('div');
+    bar.id = 'pwa-install-bar';
+    bar.style.cssText = 'position:fixed;left:0;right:0;bottom:0;z-index:9998;background:var(--charcoal,#282B2B);color:white;display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:0.75rem 1.25rem;font-family:var(--font-body,sans-serif);box-shadow:0 -4px 16px rgba(0,0,0,0.2);';
+    bar.innerHTML = `
+      <span style="font-size:0.85rem;">📲 Install V-Bazaar for quick access from your home screen</span>
+      <span style="display:flex;gap:0.5rem;flex-shrink:0;">
+        <button id="pwa-install-btn" style="background:var(--saffron,#EE6C29);color:white;border:none;padding:0.45rem 1rem;border-radius:999px;font-size:0.82rem;font-weight:600;cursor:pointer;">Install</button>
+        <button id="pwa-install-dismiss" style="background:none;border:none;color:rgba(255,255,255,0.6);font-size:1.1rem;cursor:pointer;padding:0 0.4rem;">✕</button>
+      </span>`;
+    document.body.appendChild(bar);
+    document.getElementById('pwa-install-btn').onclick = async () => {
+      bar.remove();
+      if (!deferredPrompt) return;
+      deferredPrompt.prompt();
+      await deferredPrompt.userChoice;
+      deferredPrompt = null;
+    };
+    document.getElementById('pwa-install-dismiss').onclick = () => {
+      bar.remove();
+      localStorage.setItem('pwa_install_dismissed', '1');
+    };
+  }
+
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    showInstallBar();
+  });
+
+  window.addEventListener('appinstalled', () => {
+    const bar = document.getElementById('pwa-install-bar');
+    if (bar) bar.remove();
+    localStorage.setItem('pwa_install_dismissed', '1');
+  });
 })();
