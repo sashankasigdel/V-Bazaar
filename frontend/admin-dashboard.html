@@ -169,6 +169,10 @@ body { font-family: var(--font-body); background: #0F1623; color: white; margin:
   .admin-content { padding: 1rem; }
   .admin-header { padding: 0.85rem 1rem; }
   .stats-row { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
+  /* iOS auto-zoom fix + bigger tap targets */
+  .admin-input, .admin-search, select, input, textarea { font-size: 16px !important; }
+  .act-btn { min-height: 34px; padding: 0.4rem 0.75rem !important; }
+  .filter-tab { min-height: 38px; }
 }
 
 @media (max-width: 480px) {
@@ -429,7 +433,7 @@ body { font-family: var(--font-body); background: #0F1623; color: white; margin:
 
     <label style="font-size:0.82rem;color:rgba(255,255,255,0.5);display:block;margin-bottom:0.4rem;">Address</label>
     <textarea class="admin-input" id="nb2-addr" rows="2" style="resize:vertical;"></textarea>
-    <div><label style="font-size:0.82rem;color:rgba(255,255,255,0.5);display:block;margin-bottom:0.4rem;">City</label><input class="admin-input" type="text" id="nb2-city" value="Pokhara"></div>
+    <div><label style="font-size:0.82rem;color:rgba(255,255,255,0.5);display:block;margin-bottom:0.4rem;">City</label><select class="admin-input" id="nb2-city" onchange="onCitySelectChange('nb2')"></select><input class="admin-input" type="text" id="nb2-city-other" placeholder="Enter city" style="display:none;"></div>
 
     <label style="font-size:0.82rem;color:rgba(255,255,255,0.5);display:block;margin-bottom:0.4rem;">Location</label>
     <div style="display:flex;gap:0.75rem;margin-bottom:0.75rem;flex-wrap:wrap;">
@@ -1226,7 +1230,7 @@ document.getElementById('branches-modal').addEventListener('click', function(e) 
 
 function bizResetForm() {
   ['nb2-name','nb2-short','nb2-desc','nb2-phone','nb2-wa','nb2-email','nb2-web','nb2-fb','nb2-ig','nb2-addr','nb2-lat','nb2-lon','nb2-owner-email','nb2-maps-link'].forEach(id => document.getElementById(id).value = '');
-  document.getElementById('nb2-city').value = 'Pokhara';
+  setCityValue('nb2', 'Pokhara');
   document.getElementById('nb2-parent').value = '';
   document.getElementById('nb2-loc-status').textContent = '';
   ['nb2-logo-cam','nb2-logo-gal','nb2-banner-cam','nb2-banner-gal'].forEach(id => document.getElementById(id).value = '');
@@ -1277,7 +1281,7 @@ async function openBizModalForEdit(id) {
   document.getElementById('nb2-short').value = b.short_description || '';
   document.getElementById('nb2-desc').value = b.description || '';
   document.getElementById('nb2-addr').value = b.address || '';
-  document.getElementById('nb2-city').value = b.city || '';
+  setCityValue('nb2', b.city || '');
   document.getElementById('nb2-lat').value = b.latitude || '';
   document.getElementById('nb2-lon').value = b.longitude || '';
   document.getElementById('nb2-loc-status').textContent = (b.latitude && b.longitude) ? `📍 Location set (${parseFloat(b.latitude).toFixed(5)}, ${parseFloat(b.longitude).toFixed(5)})` : 'No location set yet.';
@@ -1323,7 +1327,7 @@ async function createBusinessAdmin() {
     website: document.getElementById('nb2-web').value,
     facebook: document.getElementById('nb2-fb').value,
     instagram: document.getElementById('nb2-ig').value,
-    city: document.getElementById('nb2-city').value,
+    city: getCityValue('nb2'),
     owner_email: document.getElementById('nb2-owner-email').value,
     payment_mode: document.getElementById('nb2-payment-mode').value,
     card_payment: document.getElementById('nb2-card-payment').value,
@@ -1421,6 +1425,7 @@ document.getElementById('bulk-modal').addEventListener('click', function(e) {
 });
 
 // Init
+document.getElementById('nb2-city').innerHTML = cityOptionsHTML();
 loadDashboard();
 loadCategories();
 </script>

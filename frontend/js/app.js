@@ -4,6 +4,54 @@ const API_BASE = ['localhost', '127.0.0.1'].includes(location.hostname)
   : 'https://v-bazaar.onrender.com/api';
 const GOOGLE_CLIENT_ID = '866560142277-0htji2mqlg4r18395oqga97pln33420a.apps.googleusercontent.com';
 
+// ===== Nepal city list (major + other), used everywhere a business's city is entered =====
+const NEPAL_CITIES = {
+  major: ['Kathmandu','Pokhara','Lalitpur','Bhaktapur','Biratnagar','Birgunj','Dharan','Bharatpur','Butwal','Hetauda','Nepalgunj','Dhangadhi','Itahari','Janakpur','Ghorahi','Tulsipur'],
+  other: ['Banepa','Panauti','Dhulikhel','Kirtipur','Madhyapur Thimi','Tokha','Budhanilkantha','Chandragiri','Tarakeshwor','Gokarneshwor','Suryabinayak','Changunarayan','Gorkha','Tansen','Baglung','Beni','Waling','Damauli','Kawasoti','Ratnanagar','Bidur','Trishuli','Ilam','Damak','Rajbiraj','Lahan','Siraha','Gaur','Kalaiya','Jaleshwor','Bhairahawa','Kapilvastu','Tikapur','Mahendranagar','Birendranagar','Musikot','Jumla','Charikot','Malekhu'],
+};
+
+function cityOptionsHTML(selected = '') {
+  const opt = c => `<option value="${c}"${c === selected ? ' selected' : ''}>${c}</option>`;
+  const known = [...NEPAL_CITIES.major, ...NEPAL_CITIES.other];
+  const otherSelected = selected && !known.includes(selected);
+  return `<option value="">Select city...</option>` +
+    `<optgroup label="Major Cities">${NEPAL_CITIES.major.map(opt).join('')}</optgroup>` +
+    `<optgroup label="Other Cities">${NEPAL_CITIES.other.map(opt).join('')}</optgroup>` +
+    `<option value="__other__"${otherSelected ? ' selected' : ''}>Other (type below)</option>`;
+}
+
+function onCitySelectChange(prefix) {
+  const sel = document.getElementById(`${prefix}-city`);
+  const other = document.getElementById(`${prefix}-city-other`);
+  if (!sel || !other) return;
+  other.style.display = sel.value === '__other__' ? '' : 'none';
+  if (sel.value === '__other__') other.focus();
+}
+
+function setCityValue(prefix, value) {
+  const sel = document.getElementById(`${prefix}-city`);
+  const other = document.getElementById(`${prefix}-city-other`);
+  if (!sel) return;
+  const known = [...NEPAL_CITIES.major, ...NEPAL_CITIES.other];
+  if (value && !known.includes(value)) {
+    sel.value = '__other__';
+    if (other) { other.style.display = ''; other.value = value; }
+  } else {
+    sel.value = value || '';
+    if (other) other.style.display = 'none';
+  }
+}
+
+function getCityValue(prefix) {
+  const sel = document.getElementById(`${prefix}-city`);
+  if (!sel) return '';
+  if (sel.value === '__other__') {
+    const other = document.getElementById(`${prefix}-city-other`);
+    return other ? other.value.trim() : '';
+  }
+  return sel.value;
+}
+
 // ===== Brand-colored category icons (replace multicolor emoji everywhere) =====
 const CATEGORY_ICON_PATHS = {
   restaurants: '<path d="M6 2v6c0 1.1.9 2 2 2s2-.9 2-2V2"/><path d="M8 10v12"/><path d="M17 2v20"/><path d="M14 2c0 3 1 5 3 5s3-2 3-5"/>',
@@ -55,6 +103,9 @@ const UI_ICON_PATHS = {
   mail: '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/>',
   cart: '<circle cx="9" cy="20" r="1.3"/><circle cx="18" cy="20" r="1.3"/><path d="M3 4h2l2.4 12.2a2 2 0 0 0 2 1.6h8.4a2 2 0 0 0 2-1.6L21 8H6"/>',
   directions: '<path d="M12 21s7-6.2 7-11.5A7 7 0 0 0 5 9.5C5 14.8 12 21 12 21z"/><path d="M9.5 9.5h5l-2-2m2 2-2 2"/>',
+  web: '<circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3a14 14 0 0 1 0 18"/><path d="M12 3a14 14 0 0 0 0 18"/>',
+  facebook: '<path d="M14 9h3V6h-3a4 4 0 0 0-4 4v2H7v3h3v6h3v-6h3l1-3h-4v-2a1 1 0 0 1 1-1z"/>',
+  instagram: '<rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.3" cy="6.7" r="1"/>',
 };
 
 function uiIcon(name, sizePx = 18) {

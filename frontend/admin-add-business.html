@@ -85,7 +85,7 @@ body{background:var(--cream);}
       <button type="button" class="btn btn-secondary btn-sm" style="margin-top:0.5rem;" onclick="parseMapsLink()">Parse Link</button>
     </div>
     <p class="hint" style="margin:0.75rem 0 0;">Location is optional — you can skip this step and add it later.</p>
-    <div class="form-group"><label class="form-label">City</label><input type="text" id="w-city" class="form-input" value="Pokhara"></div>
+    <div class="form-group"><label class="form-label">City</label><select id="w-city" class="form-input" onchange="onCitySelectChange('w')"></select><input type="text" id="w-city-other" class="form-input" placeholder="Enter your city" style="display:none;margin-top:0.5rem;"></div>
     <input type="hidden" id="w-lat">
     <input type="hidden" id="w-lon">
   </div>
@@ -231,7 +231,7 @@ function renderReview() {
     <div><strong>Profile Photo:</strong> ${wizardPhotos.logo ? wizardPhotos.logo.name : 'Not set'}</div>
     <div><strong>Cover Photo:</strong> ${wizardPhotos.banner ? wizardPhotos.banner.name : 'Not set'}</div>
     <div><strong>Phone:</strong> ${document.getElementById('w-phone').value || '—'}</div>
-    <div><strong>City:</strong> ${document.getElementById('w-city').value || 'Not set'}</div>
+    <div><strong>City:</strong> ${getCityValue('w') || 'Not set'}</div>
     <div><strong>Coordinates:</strong> ${document.getElementById('w-lat').value && document.getElementById('w-lon').value ? `${document.getElementById('w-lat').value}, ${document.getElementById('w-lon').value}` : 'Not set'}</div>`;
 }
 
@@ -242,7 +242,7 @@ async function submitBusiness() {
   fd.append('name', document.getElementById('w-name').value);
   fd.append('phone', document.getElementById('w-phone').value);
   fd.append('category', selectedCatId);
-  const city = document.getElementById('w-city').value;
+  const city = getCityValue('w');
   const lat = document.getElementById('w-lat').value;
   const lon = document.getElementById('w-lon').value;
   if (city) { fd.append('city', city); fd.append('address', city); }
@@ -262,6 +262,8 @@ async function submitBusiness() {
   }
 }
 
+document.getElementById('w-city').innerHTML = cityOptionsHTML();
+setCityValue('w', 'Pokhara');
 showStep(1);
 loadWizardCategories();
 </script>

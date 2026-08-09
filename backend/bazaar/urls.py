@@ -45,4 +45,6 @@ urlpatterns = [
     path('admin-dashboard/', serve, {'path': 'admin-dashboard.html', 'document_root': FRONTEND_DIR}),
     path('admin-login/', serve, {'path': 'admin-login.html', 'document_root': FRONTEND_DIR}),
     path('admin-add-business/', serve, {'path': 'admin-add-business.html', 'document_root': FRONTEND_DIR}),
+    path('about/', serve, {'path': 'about.html', 'document_root': FRONTEND_DIR}),
+    path('contact/', serve, {'path': 'contact.html', 'document_root': FRONTEND_DIR}),
 ]

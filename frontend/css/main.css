@@ -248,9 +248,21 @@ select.form-input{appearance:none;background-image:url("data:image/svg+xml,%3Csv
 
 /* MOBILE */
 @media(max-width:768px){
-  .navbar{padding:0 1rem}
+  .navbar{padding:0 0.75rem}
   .navbar-search{display:none}
-  .navbar-actions{gap:0.4rem}
+  .navbar-actions{gap:0.35rem;max-width:70vw;overflow-x:auto;-webkit-overflow-scrolling:touch;white-space:nowrap;scrollbar-width:none;}
+  .navbar-actions::-webkit-scrollbar{display:none}
+  .navbar-brand{font-size:1.2rem;flex-shrink:0;}
+  .nav-link{padding:0.35rem 0.7rem;font-size:0.82rem;}
+  .btn-nav{padding:0.4rem 0.9rem;font-size:0.82rem;}
+  /* Tap targets + iOS auto-zoom fix: inputs under 16px trigger a jarring
+     zoom-in on focus in Safari, and small buttons are hard to tap accurately. */
+  .form-input,select,textarea,input{font-size:16px;}
+  .btn{min-height:42px;}
+  .btn-sm{min-height:38px;padding:0.5rem 1rem;}
+  input[type=checkbox],input[type=radio]{width:18px;height:18px;}
+  .qty-btn{width:32px;height:32px;}
+  .add-to-cart-btn,.card-save-btn{width:38px;height:38px;}
   .hero{padding:3rem 1rem 2rem}
   .hero-search{flex-direction:column;border-radius:var(--radius-md);box-shadow:none;border:1.5px solid var(--border)}
   .hero-search button{padding:0.85rem;width:100%;justify-content:center}

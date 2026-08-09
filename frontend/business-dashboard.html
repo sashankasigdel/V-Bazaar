@@ -10,13 +10,27 @@
 .prod-row:last-child{border:none;}
 .prod-thumb{width:52px;height:52px;border-radius:var(--radius-sm);background:var(--cream);overflow:hidden;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:1.5rem;}
 .prod-thumb img{width:100%;height:100%;object-fit:cover;}
+.hours-row{display:flex;align-items:center;justify-content:space-between;gap:0.75rem;padding:0.75rem 0;border-bottom:1px solid var(--border-light);flex-wrap:wrap;}
+.hours-time-group{display:flex;align-items:center;gap:0.6rem;flex-wrap:nowrap;overflow-x:auto;}
+.hours-day{width:78px;flex-shrink:0;font-weight:600;font-size:0.875rem;}
+.hours-time-input{width:108px;flex-shrink:0;margin-bottom:0;}
+.hours-to{font-size:0.8rem;color:var(--slate-light);flex-shrink:0;}
+.hours-closed-label{display:flex;align-items:center;gap:0.4rem;font-size:0.8rem;cursor:pointer;flex-shrink:0;}
+@media(max-width:480px){
+  .hours-day{width:64px;font-size:0.8rem;}
+  .hours-time-input{width:92px;}
+}
 @media(max-width:768px){
-  .navbar{height:auto;flex-wrap:wrap;padding:0.6rem 1rem;gap:0.5rem;}
+  .navbar{padding:0.5rem 0.75rem;gap:0.4rem;}
   #view-btn,.navbar-actions a[href="/"]{display:none;}
+  #biz-sel{max-width:38vw;font-size:0.8rem !important;}
+  .navbar > div[style*="justify-content:center"] span{display:none;}
 }
 @media(max-width:480px){
   .navbar-actions{gap:0.25rem;}
-  .navbar-actions .nav-link{padding:0.35rem 0.6rem;font-size:0.8rem;}
+  .navbar-actions .nav-link{padding:0.35rem 0.6rem;font-size:0.78rem;}
+  .navbar-brand{font-size:1.1rem;}
+  #biz-sel{max-width:32vw;}
 }
 </style>
 </head>
@@ -86,17 +100,17 @@
 
       <div class="dash-card" style="max-width:640px;">
         <h3 style="font-family:var(--font-body);font-size:1rem;font-weight:700;margin-bottom:1.25rem;">Logo & Banner</h3>
-        <div class="form-grid-2" style="margin-bottom:1rem;">
-          <div>
-            <label class="form-label">Business Logo</label>
-            <div id="logo-preview" style="width:100px;height:100px;border-radius:var(--radius-md);background:var(--cream);border:1.5px dashed var(--border);display:flex;align-items:center;justify-content:center;overflow:hidden;margin-bottom:0.5rem;font-size:1.5rem;"></div>
-            <input type="file" id="logo-input" accept="image/*" onchange="previewImage('logo-input','logo-preview')" style="font-size:0.8rem;">
-          </div>
-          <div>
-            <label class="form-label">Business Banner</label>
-            <div id="banner-preview" style="width:100%;height:100px;border-radius:var(--radius-md);background:var(--cream);border:1.5px dashed var(--border);display:flex;align-items:center;justify-content:center;overflow:hidden;margin-bottom:0.5rem;font-size:1.5rem;"></div>
-            <input type="file" id="banner-input" accept="image/*" onchange="previewImage('banner-input','banner-preview')" style="font-size:0.8rem;">
-          </div>
+        <div style="margin-bottom:1.25rem;">
+          <label class="form-label">Business Banner</label>
+          <div id="banner-preview" style="width:100%;aspect-ratio:3/1;max-height:220px;border-radius:var(--radius-md);background:var(--cream);border:1.5px dashed var(--border);display:flex;align-items:center;justify-content:center;overflow:hidden;margin-bottom:0.5rem;font-size:1.5rem;"></div>
+          <p style="font-size:0.75rem;color:var(--slate-light);margin-bottom:0.5rem;">Wide image recommended (e.g. 1200×400px)</p>
+          <input type="file" id="banner-input" accept="image/*" onchange="previewImage('banner-input','banner-preview')" style="font-size:0.8rem;">
+        </div>
+        <div style="margin-bottom:1rem;">
+          <label class="form-label">Business Logo</label>
+          <div id="logo-preview" style="width:140px;height:140px;border-radius:var(--radius-md);background:var(--cream);border:1.5px dashed var(--border);display:flex;align-items:center;justify-content:center;overflow:hidden;margin-bottom:0.5rem;font-size:1.5rem;"></div>
+          <p style="font-size:0.75rem;color:var(--slate-light);margin-bottom:0.5rem;">Square image recommended (e.g. 500×500px)</p>
+          <input type="file" id="logo-input" accept="image/*" onchange="previewImage('logo-input','logo-preview')" style="font-size:0.8rem;">
         </div>
         <button onclick="uploadLogoBanner()" class="btn btn-primary btn-sm">Upload Photos</button>
       </div>
@@ -127,9 +141,11 @@
           <div class="form-group"><label class="form-label">WhatsApp</label><input type="tel" id="bp-wa" class="form-input"></div>
           <div class="form-group"><label class="form-label">Email</label><input type="email" id="bp-email" class="form-input"></div>
           <div class="form-group"><label class="form-label">Website</label><input type="url" id="bp-web" class="form-input"></div>
+          <div class="form-group"><label class="form-label">Facebook</label><input type="url" id="bp-fb" class="form-input" placeholder="https://facebook.com/yourpage"></div>
+          <div class="form-group"><label class="form-label">Instagram</label><input type="url" id="bp-ig" class="form-input" placeholder="https://instagram.com/yourpage"></div>
         </div>
         <div class="form-group"><label class="form-label">Address</label><textarea id="bp-addr" class="form-input" rows="2" style="resize:vertical;"></textarea></div>
-        <div class="form-group"><label class="form-label">City</label><input type="text" id="bp-city" class="form-input"></div>
+        <div class="form-group"><label class="form-label">City</label><select id="bp-city" class="form-input" onchange="onCitySelectChange('bp')"></select><input type="text" id="bp-city-other" class="form-input" placeholder="Enter your city" style="display:none;margin-top:0.5rem;"></div>
         <div class="form-group">
           <label class="form-label">Location</label>
           <div style="display:flex;gap:0.75rem;flex-wrap:wrap;margin-bottom:0.5rem;">
@@ -219,7 +235,7 @@
 
     <div id="sec-hours" style="display:none;">
       <h2 style="font-family:var(--font-body);font-weight:700;font-size:1.25rem;margin-bottom:1.5rem;">Opening Hours</h2>
-      <div class="dash-card" style="max-width:500px;" id="hours-form"></div>
+      <div class="dash-card" style="max-width:560px;" id="hours-form"></div>
     </div>
 
     <div id="sec-reviews" style="display:none;">
@@ -248,7 +264,7 @@
         <div class="form-group"><label class="form-label">Full Description *</label><textarea id="nb-desc" class="form-input" rows="3" style="resize:vertical;"></textarea></div>
         <div class="form-grid-2">
           <div class="form-group"><label class="form-label">Phone *</label><input type="tel" id="nb-phone" class="form-input"></div>
-          <div class="form-group"><label class="form-label">City *</label><input type="text" id="nb-city" class="form-input" value="Pokhara"></div>
+          <div class="form-group"><label class="form-label">City *</label><select id="nb-city" class="form-input" onchange="onCitySelectChange('nb')"></select><input type="text" id="nb-city-other" class="form-input" placeholder="Enter your city" style="display:none;margin-top:0.5rem;"></div>
         </div>
         <div class="form-group"><label class="form-label">Address *</label><textarea id="nb-addr" class="form-input" rows="2" style="resize:vertical;"></textarea></div>
         <div class="form-group">
@@ -512,8 +528,10 @@ async function loadProfile() {
   document.getElementById('bp-wa').value=b.whatsapp||'';
   document.getElementById('bp-email').value=b.email||'';
   document.getElementById('bp-web').value=b.website||'';
+  document.getElementById('bp-fb').value=b.facebook||'';
+  document.getElementById('bp-ig').value=b.instagram||'';
   document.getElementById('bp-addr').value=b.address||'';
-  document.getElementById('bp-city').value=b.city||'';
+  setCityValue('bp', b.city||'');
   document.getElementById('bp-lat').value=b.latitude||'';
   document.getElementById('bp-lon').value=b.longitude||'';
   document.getElementById('bp-loc-status').textContent = (b.latitude && b.longitude) ? `📍 Location set (${parseFloat(b.latitude).toFixed(5)}, ${parseFloat(b.longitude).toFixed(5)})` : 'No location set yet.';
@@ -595,7 +613,7 @@ async function deleteGalleryPhoto(id) {
 async function saveProfile() {
   const regSel = document.getElementById('bp-registered').value;
   const parkSel = document.getElementById('bp-parking').value;
-  const data = { name:document.getElementById('bp-name').value, category:document.getElementById('bp-cat').value, short_description:document.getElementById('bp-short').value, description:document.getElementById('bp-desc').value, phone:document.getElementById('bp-phone').value, whatsapp:document.getElementById('bp-wa').value, email:document.getElementById('bp-email').value, website:document.getElementById('bp-web').value, address:document.getElementById('bp-addr').value, city:document.getElementById('bp-city').value, state:'Gandaki Pradesh', latitude:document.getElementById('bp-lat').value, longitude:document.getElementById('bp-lon').value,
+  const data = { name:document.getElementById('bp-name').value, category:document.getElementById('bp-cat').value, short_description:document.getElementById('bp-short').value, description:document.getElementById('bp-desc').value, phone:document.getElementById('bp-phone').value, whatsapp:document.getElementById('bp-wa').value, email:document.getElementById('bp-email').value, website:document.getElementById('bp-web').value, facebook:document.getElementById('bp-fb').value, instagram:document.getElementById('bp-ig').value, address:document.getElementById('bp-addr').value, city:getCityValue('bp'), state:'Gandaki Pradesh', latitude:document.getElementById('bp-lat').value, longitude:document.getElementById('bp-lon').value,
     payment_mode:document.getElementById('bp-payment-mode').value, card_payment:document.getElementById('bp-card-payment').value, free_wifi:document.getElementById('bp-wifi').value, smoking:document.getElementById('bp-smoking').value, offer_package:document.getElementById('bp-offer-package').value,
     is_registered: regSel==='unspecified'?null:(regSel==='yes'), has_parking: parkSel==='unspecified'?null:(parkSel==='yes'),
     offer_delivery:document.getElementById('bp-delivery').checked };
@@ -606,7 +624,7 @@ async function saveProfile() {
 
 function loadHours() {
   const days=['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
-  document.getElementById('hours-form').innerHTML=`<h3 style="font-family:var(--font-body);font-size:1rem;font-weight:700;margin-bottom:1.25rem;">Set Opening Hours</h3>${days.map((d,i)=>`<div style="display:flex;align-items:center;gap:1rem;padding:0.75rem 0;border-bottom:1px solid var(--border-light);flex-wrap:wrap;"><div style="width:90px;font-weight:600;font-size:0.875rem;">${d}</div><label style="display:flex;align-items:center;gap:0.4rem;font-size:0.8rem;cursor:pointer;"><input type="checkbox" id="cl-${i}" onchange="tgDay(${i})"> Closed</label><input type="time" id="op-${i}" class="form-input" style="width:130px;" value="08:00"><span style="font-size:0.8rem;color:var(--slate-light);">to</span><input type="time" id="cl2-${i}" class="form-input" style="width:130px;" value="21:00"></div>`).join('')}<button onclick="saveHours()" class="btn btn-primary" style="margin-top:1.25rem;">Save Hours</button>`;
+  document.getElementById('hours-form').innerHTML=`<h3 style="font-family:var(--font-body);font-size:1rem;font-weight:700;margin-bottom:1.25rem;">Set Opening Hours</h3><div class="hours-rows">${days.map((d,i)=>`<div class="hours-row"><div class="hours-time-group"><div class="hours-day">${d}</div><input type="time" id="op-${i}" class="form-input hours-time-input" value="08:00"><span class="hours-to">to</span><input type="time" id="cl2-${i}" class="form-input hours-time-input" value="21:00"></div><label class="hours-closed-label"><input type="checkbox" id="cl-${i}" onchange="tgDay(${i})"> Closed</label></div>`).join('')}</div><button onclick="saveHours()" class="btn btn-primary" style="margin-top:1.25rem;">Save Hours</button>`;
 }
 
 function tgDay(i) { const c=document.getElementById(`cl-${i}`).checked; document.getElementById(`op-${i}`).disabled=c; document.getElementById(`cl2-${i}`).disabled=c; }
@@ -636,7 +654,7 @@ async function replyRev(id) {
 }
 
 async function createBiz(btn) {
-  const data = { name:document.getElementById('nb-name').value, category:document.getElementById('nb-cat').value, parent:document.getElementById('nb-parent').value || null, short_description:document.getElementById('nb-short').value, description:document.getElementById('nb-desc').value, phone:document.getElementById('nb-phone').value, city:document.getElementById('nb-city').value, state:'Gandaki Pradesh', address:document.getElementById('nb-addr').value, latitude:document.getElementById('nb-lat').value, longitude:document.getElementById('nb-lon').value };
+  const data = { name:document.getElementById('nb-name').value, category:document.getElementById('nb-cat').value, parent:document.getElementById('nb-parent').value || null, short_description:document.getElementById('nb-short').value, description:document.getElementById('nb-desc').value, phone:document.getElementById('nb-phone').value, city:getCityValue('nb'), state:'Gandaki Pradesh', address:document.getElementById('nb-addr').value, latitude:document.getElementById('nb-lat').value, longitude:document.getElementById('nb-lon').value };
   if (!data.name||!data.phone||!data.latitude||!data.longitude) { UI.toast('Please fill all required fields','error'); return; }
   const original = btn?.textContent;
   if (btn) { btn.disabled = true; btn.textContent = 'Registering...'; }
@@ -675,6 +693,9 @@ function renderStaticIcons() {
 }
 
 renderStaticIcons();
+document.getElementById('bp-city').innerHTML = cityOptionsHTML();
+document.getElementById('nb-city').innerHTML = cityOptionsHTML();
+setCityValue('nb', 'Pokhara');
 init();
 </script>
 </body>

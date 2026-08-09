@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>About Us — Bazaar</title>
+<link rel="stylesheet" href="/css/main.css">
+</head>
+<body>
+<nav class="navbar">
+  <a href="/" class="navbar-brand">Bazaar<span class="brand-dot">.</span></a>
+  <div class="navbar-actions">
+    <span data-guest-only>
+      <a href="/login/" class="nav-link">Log in</a>
+      <a href="/register/" class="btn-nav">Sign up</a>
+    </span>
+    <span data-auth-required style="display:none;">
+      <a href="/dashboard/#profile" class="nav-link"><span id="ic-profile"></span> My Profile</a>
+      <a href="/business-dashboard/" class="nav-link" data-owner-only style="display:none;"><span id="ic-mybiz"></span> My Business</a>
+    </span>
+  </div>
+</nav>
+
+<section class="hero" style="padding:3.5rem 1.5rem 2.5rem;">
+  <div class="hero-content">
+    <h1>About <em>Bazaar</em></h1>
+    <p>Your neighbourhood's digital marketplace.</p>
+  </div>
+</section>
+
+<main class="container" style="padding:3rem 1.5rem 4rem;max-width:800px;">
+  <div class="dash-card" style="margin-bottom:1.5rem;">
+    <h3 style="font-family:var(--font-body);font-size:1.1rem;font-weight:700;margin-bottom:0.75rem;">Our Mission</h3>
+    <p style="line-height:1.8;color:var(--slate-mid);">Bazaar exists to make it effortless for people to find, connect with, and support the local businesses around them — restaurants, cafes, salons, shops, and services — while giving those same businesses a simple, affordable way to reach customers online without needing their own website or app.</p>
+  </div>
+
+  <div class="dash-card" style="margin-bottom:1.5rem;">
+    <h3 style="font-family:var(--font-body);font-size:1.1rem;font-weight:700;margin-bottom:0.75rem;">What We Offer</h3>
+    <ul style="line-height:1.9;color:var(--slate-mid);padding-left:1.25rem;">
+      <li>A searchable directory of local businesses, organized by category and location</li>
+      <li>Business profiles with photos, hours, contact details, and customer reviews</li>
+      <li>Online ordering for businesses that opt in, with order management tools for owners</li>
+      <li>A free, simple way for any business — big or small — to get discovered locally</li>
+    </ul>
+  </div>
+
+  <div class="dash-card">
+    <h3 style="font-family:var(--font-body);font-size:1.1rem;font-weight:700;margin-bottom:0.75rem;">Get in Touch</h3>
+    <p style="line-height:1.8;color:var(--slate-mid);margin-bottom:1rem;">Have a question, feedback, or want to list your business? We'd love to hear from you.</p>
+    <a href="/contact/" class="btn btn-primary">Contact Us →</a>
+  </div>
+</main>
+
+<footer class="footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div><div class="footer-brand">Bazaar.</div><p style="font-size:0.875rem;max-width:260px;">Your neighbourhood's digital marketplace — connecting customers with local businesses.</p></div>
+      <div><h4>Explore</h4><ul><li><a href="/search/?category=restaurants">Restaurants</a></li><li><a href="/search/?category=grocery">Grocery</a></li><li><a href="/search/?category=salons">Salons</a></li><li><a href="/search/?category=pharmacies">Pharmacies</a></li></ul></div>
+      <div><h4>For Business</h4><ul><li><a href="/register/">List Your Business</a></li><li><a href="/business-dashboard/">Dashboard</a></li></ul></div>
+      <div><h4>Company</h4><ul><li><a href="/about/">About Us</a></li><li><a href="/contact/">Contact</a></li><li><a href="#">Privacy Policy</a></li></ul></div>
+    </div>
+    <div class="footer-bottom"><span>© 2025 Bazaar. All rights reserved.</span><span>🇳🇵 Nepal</span></div>
+  </div>
+</footer>
+
+<div class="toast-container"></div>
+<script src="/js/app.js"></script>
+<script>
+document.getElementById('ic-profile').innerHTML = uiIcon('user', 16);
+document.getElementById('ic-mybiz').innerHTML = uiIcon('shop', 16);
+</script>
+</body>
+</html>
