@@ -40,10 +40,10 @@
               <p id="biz-short" style="color:var(--slate-mid);font-size:0.9rem;"></p>
             </div>
             <div style="display:flex;gap:0.75rem;flex-wrap:wrap;">
-              <button id="save-btn" onclick="toggleSaveB()" class="btn btn-secondary btn-sm">♥ Save</button>
-              <a id="wa-btn" href="#" target="_blank" class="btn btn-success btn-sm" style="display:none;">💬 WhatsApp</a>
-              <a id="call-btn" href="#" class="btn btn-secondary btn-sm" style="display:none;">📞 Call</a>
-              <a id="maps-btn" href="#" target="_blank" class="btn btn-secondary btn-sm">🗺️ Directions</a>
+              <button id="save-btn" onclick="toggleSaveB()" class="btn btn-secondary btn-sm"><span id="ic-save"></span> Save</button>
+              <a id="wa-btn" href="#" target="_blank" class="btn btn-success btn-sm" style="display:none;"><span id="ic-wa"></span> WhatsApp</a>
+              <a id="call-btn" href="#" class="btn btn-secondary btn-sm" style="display:none;"><span id="ic-call"></span> Call</a>
+              <a id="maps-btn" href="#" target="_blank" class="btn btn-secondary btn-sm"><span id="ic-maps"></span> Directions</a>
             </div>
           </div>
         </div>
@@ -139,6 +139,10 @@ document.getElementById('tabbtn-about').innerHTML = uiIcon('about') + ' About';
 document.getElementById('tabbtn-gallery').innerHTML = uiIcon('gallery') + ' Gallery';
 document.getElementById('tabbtn-reviews').innerHTML = uiIcon('reviews') + ' Reviews';
 document.getElementById('tabbtn-location').innerHTML = uiIcon('location') + ' Location';
+document.getElementById('ic-save').innerHTML = uiIcon('heart', 16);
+document.getElementById('ic-wa').innerHTML = uiIcon('message', 16);
+document.getElementById('ic-call').innerHTML = uiIcon('phone', 16);
+document.getElementById('ic-maps').innerHTML = uiIcon('directions', 16);
 
 async function init() {
   const resp = await API.getBusiness(slug);
@@ -176,7 +180,7 @@ function render() {
   document.getElementById('gmaps-link').href = mapsUrl;
   if (b.whatsapp) { const wa = document.getElementById('wa-btn'); wa.href = `https://wa.me/${b.whatsapp.replace(/\D/g,'')}`; wa.style.display = 'inline-flex'; }
   if (b.phone) { const ca = document.getElementById('call-btn'); ca.href = `tel:${b.phone}`; ca.style.display = 'inline-flex'; }
-  if (b.is_saved) { document.getElementById('save-btn').textContent = '♥ Saved'; document.getElementById('save-btn').classList.add('btn-ghost'); document.getElementById('save-btn').classList.remove('btn-secondary'); }
+  if (b.is_saved) { document.getElementById('save-btn').innerHTML = `${uiIcon('heart',16)} Saved`; document.getElementById('save-btn').classList.add('btn-ghost'); document.getElementById('save-btn').classList.remove('btn-secondary'); }
 
   // Hours
   const days = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
@@ -218,11 +222,11 @@ function render() {
 
   // Sidebar
   document.getElementById('sidebar-info').innerHTML = [
-    b.phone ? `<div>📞 ${b.phone}</div>` : '',
-    b.address ? `<div>📍 ${b.address}, ${b.city}</div>` : '',
-    b.email ? `<div>✉️ ${b.email}</div>` : '',
-    `<div>🛒 ${b.total_orders || 0} orders completed</div>`,
-    `<div>👁️ ${b.total_views || 0} views</div>`,
+    b.phone ? `<div>${uiIcon('phone',16)} ${b.phone}</div>` : '',
+    b.address ? `<div>${uiIcon('location',16)} ${b.address}, ${b.city}</div>` : '',
+    b.email ? `<div>${uiIcon('mail',16)} ${b.email}</div>` : '',
+    `<div>${uiIcon('cart',16)} ${b.total_orders || 0} orders completed</div>`,
+    `<div>${uiIcon('eye',16)} ${b.total_views || 0} views</div>`,
   ].join('');
 
   // Gallery
@@ -270,8 +274,8 @@ async function toggleSaveB() {
   const resp = await API.toggleSave(biz.id);
   if (resp.ok) {
     const btn = document.getElementById('save-btn');
-    if (resp.data.saved) { btn.textContent = '♥ Saved'; btn.classList.add('btn-ghost'); btn.classList.remove('btn-secondary'); }
-    else { btn.textContent = '♥ Save'; btn.classList.remove('btn-ghost'); btn.classList.add('btn-secondary'); }
+    if (resp.data.saved) { btn.innerHTML = `${uiIcon('heart',16)} Saved`; btn.classList.add('btn-ghost'); btn.classList.remove('btn-secondary'); }
+    else { btn.innerHTML = `${uiIcon('heart',16)} Save`; btn.classList.remove('btn-ghost'); btn.classList.add('btn-secondary'); }
     UI.toast(resp.data.saved ? 'Business saved!' : 'Removed from saved');
   }
 }

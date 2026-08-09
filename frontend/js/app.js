@@ -51,6 +51,10 @@ const UI_ICON_PATHS = {
   pause: '<rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/>',
   play: '<path d="M6 4l14 8-14 8V4z"/>',
   arrow: '<path d="M5 12h14"/><path d="M13 6l6 6-6 6"/>',
+  phone: '<path d="M13.4 15.6 15 14a1 1 0 0 1 1.1-.2 12 12 0 0 0 3.4.9 1 1 0 0 1 .9 1V19a1 1 0 0 1-1 1A16 16 0 0 1 3 4a1 1 0 0 1 1-1h3.3a1 1 0 0 1 1 .9c.1 1.2.4 2.3.9 3.4a1 1 0 0 1-.2 1.1L7.6 10.6a10.6 10.6 0 0 0 5.8 5.8z"/>',
+  mail: '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/>',
+  cart: '<circle cx="9" cy="20" r="1.3"/><circle cx="18" cy="20" r="1.3"/><path d="M3 4h2l2.4 12.2a2 2 0 0 0 2 1.6h8.4a2 2 0 0 0 2-1.6L21 8H6"/>',
+  directions: '<path d="M12 21s7-6.2 7-11.5A7 7 0 0 0 5 9.5C5 14.8 12 21 12 21z"/><path d="M9.5 9.5h5l-2-2m2 2-2 2"/>',
 };
 
 function uiIcon(name, sizePx = 18) {
