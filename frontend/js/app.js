@@ -115,6 +115,7 @@ const UI_ICON_PATHS = {
   starFilled: '<path d="M12 2.5l3 6.6 7.2.9-5.3 4.9 1.4 7.1L12 18.2l-6.3 3.8 1.4-7.1-5.3-4.9 7.2-.9z" fill="currentColor" stroke="none"/>',
   more: '<circle cx="5" cy="12" r="1.8" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.8" fill="currentColor" stroke="none"/><circle cx="19" cy="12" r="1.8" fill="currentColor" stroke="none"/>',
   megaphone: '<path d="M3 10v4h3l6 4V6l-6 4H3z"/><path d="M15 9a3 3 0 0 1 0 6"/>',
+  filter: '<path d="M4 5h16l-6 7.5V19l-4 2v-8.5z"/>',
 };
 
 function uiIcon(name, sizePx = 18) {
