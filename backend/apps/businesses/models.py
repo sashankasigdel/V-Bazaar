@@ -137,7 +137,7 @@ class BusinessGallery(models.Model):
 
 class Advertisement(models.Model):
     business = models.ForeignKey(Business, on_delete=models.CASCADE, related_name='advertisements')
-    image = models.ImageField(upload_to='advertisements/')
+    image = models.ImageField(upload_to='advertisements/', blank=True, null=True)  # unused going forward — the business's own banner is shown instead
     is_active = models.BooleanField(default=True)
     order = models.PositiveIntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)

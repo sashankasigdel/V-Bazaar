@@ -210,6 +210,7 @@ class AdminBusinessCreateSerializer(serializers.ModelSerializer):
 
 
 class AdvertisementSerializer(serializers.ModelSerializer):
+    image = serializers.ImageField(source='business.banner', read_only=True)
     business_name = serializers.CharField(source='business.name', read_only=True)
     business_slug = serializers.CharField(source='business.slug', read_only=True)
     business_short_description = serializers.CharField(source='business.short_description', read_only=True)

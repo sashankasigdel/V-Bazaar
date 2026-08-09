@@ -94,6 +94,7 @@ def admin_businesses(request):
             'total_views': b.total_views,
             'city': b.city,
             'phone': b.phone,
+            'has_banner': bool(b.banner),
             'parent_id': b.parent_id,
             'parent_name': b.parent.name if b.parent else '',
             'created_at': b.created_at.isoformat(),
@@ -493,7 +494,7 @@ def admin_advertisements(request):
     ads = Advertisement.objects.select_related('business').all()
     data = [{
         'id': a.id,
-        'image': a.image.url if a.image else None,
+        'image': a.business.banner.url if a.business.banner else None,
         'business_id': a.business_id,
         'business_name': a.business.name,
         'is_active': a.is_active,
@@ -506,14 +507,15 @@ def admin_advertisements(request):
 @permission_classes([IsAdminUser])
 def admin_create_advertisement(request):
     business_id = request.data.get('business_id')
-    image = request.data.get('image')
-    if not business_id or not image:
-        return Response({'error': 'business_id and image are required.'}, status=400)
+    if not business_id:
+        return Response({'error': 'business_id is required.'}, status=400)
     try:
         business = Business.objects.get(pk=business_id)
     except Business.DoesNotExist:
         return Response({'error': 'Business not found.'}, status=404)
-    ad = Advertisement.objects.create(business=business, image=image)
+    if not business.banner:
+        return Response({'error': 'This business has no cover photo uploaded yet — ask them to add one in their profile before featuring them as an ad.'}, status=400)
+    ad = Advertisement.objects.create(business=business)
     return Response({'id': ad.id, 'business_name': business.name}, status=201)
 
 

@@ -154,7 +154,9 @@ def featured_businesses(request):
 @api_view(['GET'])
 @permission_classes([permissions.AllowAny])
 def active_advertisements(request):
-    ads = Advertisement.objects.filter(is_active=True, business__status='active').select_related('business')[:5]
+    ads = Advertisement.objects.filter(
+        is_active=True, business__status='active',
+    ).exclude(business__banner='').exclude(business__banner__isnull=True).select_related('business')[:5]
     serializer = AdvertisementSerializer(ads, many=True, context={'request': request})
     return Response(serializer.data)
 
