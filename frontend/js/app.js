@@ -106,7 +106,7 @@ const UI_ICON_PATHS = {
   web: '<circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3a14 14 0 0 1 0 18"/><path d="M12 3a14 14 0 0 0 0 18"/>',
   facebook: '<path d="M14 9h3V6h-3a4 4 0 0 0-4 4v2H7v3h3v6h3v-6h3l1-3h-4v-2a1 1 0 0 1 1-1z"/>',
   instagram: '<rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.3" cy="6.7" r="1"/>',
-  compass: '<circle cx="12" cy="12" r="9"/><path d="M15 9l-2 6-4-2 2-6z"/>',
+  compass: '<circle cx="12" cy="12" r="9"/><path d="M15.8 8.2L13.9 13.9L8.2 15.8L10.1 10.1Z"/>',
   crown: '<path d="M3 8l3 3 3-5 3 5 3-5 3 5 3-3v9H3V8z"/><path d="M4 20h16"/>',
   sun: '<circle cx="12" cy="12" r="4"/><path d="M12 3v2M12 19v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M3 12h2M19 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4"/>',
   moon: '<path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/>',
