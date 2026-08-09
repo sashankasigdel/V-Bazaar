@@ -106,6 +106,15 @@ const UI_ICON_PATHS = {
   web: '<circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3a14 14 0 0 1 0 18"/><path d="M12 3a14 14 0 0 0 0 18"/>',
   facebook: '<path d="M14 9h3V6h-3a4 4 0 0 0-4 4v2H7v3h3v6h3v-6h3l1-3h-4v-2a1 1 0 0 1 1-1z"/>',
   instagram: '<rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.3" cy="6.7" r="1"/>',
+  compass: '<circle cx="12" cy="12" r="9"/><path d="M15 9l-2 6-4-2 2-6z"/>',
+  crown: '<path d="M3 8l3 3 3-5 3 5 3-5 3 5 3-3v9H3V8z"/><path d="M4 20h16"/>',
+  sun: '<circle cx="12" cy="12" r="4"/><path d="M12 3v2M12 19v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M3 12h2M19 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4"/>',
+  moon: '<path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/>',
+  chevronLeft: '<path d="M15 5l-7 7 7 7"/>',
+  chevronRight: '<path d="M9 5l7 7-7 7"/>',
+  starFilled: '<path d="M12 2.5l3 6.6 7.2.9-5.3 4.9 1.4 7.1L12 18.2l-6.3 3.8 1.4-7.1-5.3-4.9 7.2-.9z" fill="currentColor" stroke="none"/>',
+  more: '<circle cx="5" cy="12" r="1.8" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.8" fill="currentColor" stroke="none"/><circle cx="19" cy="12" r="1.8" fill="currentColor" stroke="none"/>',
+  megaphone: '<path d="M3 10v4h3l6 4V6l-6 4H3z"/><path d="M15 9a3 3 0 0 1 0 6"/>',
 };
 
 function uiIcon(name, sizePx = 18) {
@@ -113,10 +122,23 @@ function uiIcon(name, sizePx = 18) {
   return `<svg width="${sizePx}" height="${sizePx}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="color:var(--saffron);vertical-align:middle;">${inner}</svg>`;
 }
 
+function coloredIcon(name, sizePx = 18, color = 'var(--saffron)') {
+  const inner = UI_ICON_PATHS[name] || '';
+  return `<svg width="${sizePx}" height="${sizePx}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="color:${color};vertical-align:middle;">${inner}</svg>`;
+}
+
+// Inherits color from parent (no inline color) — use when the icon's color must react to a CSS class toggle.
+function plainIcon(name, sizePx = 18) {
+  const inner = UI_ICON_PATHS[name] || '';
+  return `<svg width="${sizePx}" height="${sizePx}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;">${inner}</svg>`;
+}
+
 const Auth = {
   getToken: () => localStorage.getItem('access_token'),
   getRefresh: () => localStorage.getItem('refresh_token'),
   setTokens: (access, refresh) => {
+
+
     localStorage.setItem('access_token', access);
     if (refresh) localStorage.setItem('refresh_token', refresh);
   },

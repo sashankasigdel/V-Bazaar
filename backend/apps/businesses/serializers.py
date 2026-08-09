@@ -212,7 +212,10 @@ class AdminBusinessCreateSerializer(serializers.ModelSerializer):
 class AdvertisementSerializer(serializers.ModelSerializer):
     business_name = serializers.CharField(source='business.name', read_only=True)
     business_slug = serializers.CharField(source='business.slug', read_only=True)
+    business_short_description = serializers.CharField(source='business.short_description', read_only=True)
+    business_is_verified = serializers.BooleanField(source='business.is_verified', read_only=True)
 
     class Meta:
         model = Advertisement
-        fields = ['id', 'image', 'business_name', 'business_slug', 'is_active', 'order']
+        fields = ['id', 'image', 'business_name', 'business_slug', 'business_short_description',
+                  'business_is_verified', 'is_active', 'order']

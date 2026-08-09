@@ -1,7 +1,9 @@
 @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap');
 
 :root {
-  --saffron: #E8630A; --saffron-light: #FFF0E8; --saffron-dark: #C04F00;
+  --saffron: #EE6C29; --saffron-light: #FDECE0; --saffron-dark: #D2551A;
+  --charcoal: #282B2B; --teal: #7AA6B3; --teal-light: #EAF2F4;
+  --gold: #E8AC1E; --gold-light: #FFF6E0; --gold-dark: #C4900F;
   --emerald: #0B6E4F; --emerald-light: #E6F4EF;
   --slate: #1A2332; --slate-mid: #3D4F6B; --slate-light: #8896AB;
   --cream: #FDFAF6; --cream-dark: #F5EFE5; --white: #FFFFFF;
