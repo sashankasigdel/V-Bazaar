@@ -18,8 +18,8 @@ body{background:var(--cream);}
 .vb-hero-static h1{color:white;margin-bottom:0.75rem;}
 .vb-hero-static h1 em{color:var(--saffron);font-style:italic;}
 .vb-hero-static p{color:rgba(255,255,255,0.65);}
-.vb-slide{position:absolute;inset:0;opacity:0;transition:opacity 0.6s ease;cursor:pointer;}
-.vb-slide.active{opacity:1;}
+.vb-slide{position:absolute;inset:0;opacity:0;pointer-events:none;transition:opacity 0.6s ease;cursor:pointer;}
+.vb-slide.active{opacity:1;pointer-events:auto;z-index:1;}
 .vb-slide img{width:100%;height:100%;object-fit:cover;}
 .vb-slide-overlay{position:absolute;inset:0;background:linear-gradient(to top,rgba(20,22,22,0.88),rgba(20,22,22,0.25) 50%,transparent 75%);}
 .vb-slide-content{position:absolute;left:1.75rem;bottom:1.5rem;right:1.75rem;color:white;max-width:560px;}
