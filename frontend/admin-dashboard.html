@@ -25,6 +25,9 @@ body { font-family: var(--font-body); background: #0F1623; color: white; margin:
   font-family: var(--font-display);
   font-size: 1.4rem;
   color: var(--saffron);
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
 }
 .admin-logo span { color: rgba(255,255,255,0.4); font-size: 0.75rem; display: block; font-family: var(--font-body); margin-top: 0.25rem; }
 .admin-nav { padding: 1rem 0; flex: 1; }
@@ -187,7 +190,8 @@ body { font-family: var(--font-body); background: #0F1623; color: white; margin:
   <!-- SIDEBAR -->
   <aside class="admin-sidebar">
     <div class="admin-logo">
-      V-Bazaar<span>Admin Panel</span>
+      <img src="/images/icon-192.png" alt="V-Bazaar" style="width:36px;height:36px;border-radius:10px;object-fit:cover;flex-shrink:0;">
+      <div>V-Bazaar<span>Admin Panel</span></div>
     </div>
     <nav class="admin-nav">
       <div class="admin-nav-section">Overview</div>

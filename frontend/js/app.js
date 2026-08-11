@@ -345,7 +345,7 @@ function renderVbNavbar(mountId, opts = {}) {
   const initials = user ? (((user.first_name?.[0]||'')+(user.last_name?.[0]||'')).toUpperCase() || (user.email?.[0]||'U').toUpperCase()) : 'U';
   mount.innerHTML = `
     <div class="vb-nav-left">
-      <a href="/" class="vb-brand"><span class="vb-brand-icon">${coloredIcon('shop',18,'white')}</span><span class="vb-brand-text"> V-Bazaar</span></a>
+      <a href="/" class="vb-brand"><span class="vb-brand-icon"><img src="/images/icon-192.png" alt="V-Bazaar" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;"></span><span class="vb-brand-text"> V-Bazaar</span></a>
       <a href="/search/" class="vb-explore-pill${exploreActive ? ' active' : ''}">${plainIcon('compass',15)} <span>Explore</span></a>
     </div>
     <div class="vb-nav-center">
