@@ -88,9 +88,18 @@
     </div>
 
     <div id="sec-products" style="display:none;">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem;">
         <h2 style="font-family:var(--font-body);font-weight:700;font-size:1.25rem;">Products & Services</h2>
         <button onclick="openProdModal()" class="btn btn-primary">+ Add Product</button>
+      </div>
+      <div class="dash-card" style="margin-bottom:1.25rem;">
+        <h3 style="font-family:var(--font-body);font-size:0.95rem;font-weight:700;margin-bottom:0.9rem;">Product Categories</h3>
+        <p style="font-size:0.8rem;color:var(--slate-light);margin-bottom:0.9rem;">Group your products/services into categories — they'll show as sections on your public page.</p>
+        <div id="prod-cats-list" style="display:flex;flex-wrap:wrap;gap:0.5rem;margin-bottom:1rem;"></div>
+        <div style="display:flex;gap:0.5rem;flex-wrap:wrap;">
+          <input type="text" id="new-cat-name" class="form-input" placeholder="e.g. Starters, Haircuts..." style="max-width:280px;" onkeydown="if(event.key==='Enter')addProdCategory()">
+          <button onclick="addProdCategory()" class="btn btn-secondary btn-sm">+ Add Category</button>
+        </div>
       </div>
       <div id="prods-list"></div>
     </div>
@@ -299,6 +308,7 @@
     </div>
     <div class="form-group"><label class="form-label">Name *</label><input type="text" id="p-name" class="form-input"></div>
     <div class="form-group"><label class="form-label">Description</label><textarea id="p-desc" class="form-input" rows="2" style="resize:vertical;"></textarea></div>
+    <div class="form-group"><label class="form-label">Category</label><select id="p-category" class="form-input"><option value="">No category</option></select></div>
     <div class="form-grid-2">
       <div class="form-group"><label class="form-label">Type</label><select id="p-type" class="form-input"><option value="product">Product</option><option value="service">Service</option></select></div>
       <div class="form-group"><label class="form-label">Price (Rs.) *</label><input type="number" id="p-price" class="form-input" step="0.01"></div>
@@ -387,7 +397,7 @@ function show(name) {
   });
   if (name==='analytics') loadAnalytics();
   if (name==='orders') loadOrders();
-  if (name==='products') loadProds();
+  if (name==='products') { loadProdCategories(); loadProds(); }
   if (name==='profile') loadProfile();
   if (name==='hours') loadHours();
   if (name==='reviews') loadReviews();
@@ -460,13 +470,54 @@ async function updOrder(id, status) {
   else UI.toast('Update failed','error');
 }
 
+let prodCats = [];
+
+async function loadProdCategories() {
+  if (!curBiz) return;
+  const resp = await API.getProductCategories(curBiz.slug);
+  prodCats = resp.data?.results || resp.data || [];
+  document.getElementById('prod-cats-list').innerHTML = prodCats.length
+    ? prodCats.map(c => `<span class="vb-filter-check" style="cursor:default;">${c.name} <button onclick="delProdCategory(${c.id})" style="margin-left:0.4rem;color:var(--danger);font-weight:700;" title="Delete category">✕</button></span>`).join('')
+    : '<p style="font-size:0.82rem;color:var(--slate-light);">No categories yet — add one below, then assign products to it.</p>';
+  const sel = document.getElementById('p-category');
+  if (sel) sel.innerHTML = '<option value="">No category</option>' + prodCats.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+}
+
+async function addProdCategory() {
+  const input = document.getElementById('new-cat-name');
+  const name = input.value.trim();
+  if (!name) return;
+  const resp = await API.createProductCategory(curBiz.slug, { name, order: prodCats.length });
+  if (resp.ok) { input.value = ''; UI.toast('Category added!', 'success'); loadProdCategories(); }
+  else UI.toast('Failed to add category', 'error');
+}
+
+async function delProdCategory(id) {
+  if (!confirm('Delete this category? Its products will become uncategorized, not deleted.')) return;
+  const resp = await API.deleteProductCategory(id);
+  if (resp.ok || resp.status === 204) { UI.toast('Deleted', 'success'); loadProdCategories(); loadProds(); }
+  else UI.toast('Delete failed', 'error');
+}
+
 async function loadProds() {
   if (!curBiz) return;
   const resp = await API.getMyProducts(curBiz.slug);
   const prods = resp.data?.results||resp.data||[];
   const list = document.getElementById('prods-list');
   if (!prods.length) { list.innerHTML = `<div class="empty-state"><div class="empty-icon">${uiIcon('menu',40)}</div><h3>No products yet</h3><button onclick="openProdModal()" class="btn btn-primary" style="margin-top:1rem;">+ Add Product</button></div>`; return; }
-  list.innerHTML = `<div class="dash-card">${prods.map(p=>`<div class="prod-row"><div class="prod-thumb">${p.image?`<img src="${p.image}">`:categoryIcon(curBiz?.category_slug,28)}</div><div style="flex:1;min-width:0;"><div style="font-weight:600;font-size:0.9rem;">${p.name}</div><div style="font-size:0.8rem;color:var(--slate-light);">${p.type==='service'?'🔧 Service':'📦 Product'}</div></div><div style="font-weight:700;color:var(--saffron);font-size:0.9rem;flex-shrink:0;">${UI.formatPrice(p.effective_price)}</div><label class="toggle-switch" title="Available"><input type="checkbox" ${p.is_available?'checked':''} onchange="API.updateProduct(${p.id},{is_available:this.checked})"><span class="toggle-slider"></span></label><button onclick='openProdModal(${JSON.stringify(p).replace(/'/g,"&#39;")})' class="btn btn-secondary btn-sm">Edit</button><button onclick="delProd(${p.id})" class="btn btn-sm" style="color:var(--danger);">✕</button></div>`).join('')}</div>`;
+  const row = p => `<div class="prod-row"><div class="prod-thumb">${p.image?`<img src="${p.image}">`:categoryIcon(curBiz?.category_slug,28)}</div><div style="flex:1;min-width:0;"><div style="font-weight:600;font-size:0.9rem;">${p.name}</div><div style="font-size:0.8rem;color:var(--slate-light);">${p.type==='service'?'🔧 Service':'📦 Product'}</div></div><div style="font-weight:700;color:var(--saffron);font-size:0.9rem;flex-shrink:0;">${UI.formatPrice(p.effective_price)}</div><label class="toggle-switch" title="Available"><input type="checkbox" ${p.is_available?'checked':''} onchange="API.updateProduct(${p.id},{is_available:this.checked})"><span class="toggle-slider"></span></label><button onclick='openProdModal(${JSON.stringify(p).replace(/'/g,"&#39;")})' class="btn btn-secondary btn-sm">Edit</button><button onclick="delProd(${p.id})" class="btn btn-sm" style="color:var(--danger);">✕</button></div>`;
+
+  const catMap = new Map();
+  prods.forEach(p => {
+    const key = p.category || 'none';
+    if (!catMap.has(key)) catMap.set(key, { name: p.category_name || 'Uncategorized', order: p.category_name ? (p.category_order || 0) : 999999, items: [] });
+    catMap.get(key).items.push(p);
+  });
+  const groups = [...catMap.values()].sort((a, b) => a.order - b.order || a.name.localeCompare(b.name));
+
+  list.innerHTML = groups.length > 1
+    ? groups.map(g => `<div class="dash-card" style="margin-bottom:1rem;"><h4 style="font-family:var(--font-body);font-size:0.9rem;font-weight:700;margin-bottom:0.75rem;">${g.name}</h4>${g.items.map(row).join('')}</div>`).join('')
+    : `<div class="dash-card">${prods.map(row).join('')}</div>`;
 }
 
 function openProdModal(p=null) {
@@ -476,6 +527,7 @@ function openProdModal(p=null) {
   document.getElementById('edit-id').value=p?.id||'';
   document.getElementById('p-name').value=p?.name||'';
   document.getElementById('p-desc').value=p?.description||'';
+  document.getElementById('p-category').value=p?.category||'';
   document.getElementById('p-type').value=p?.type||'product';
   document.getElementById('p-price').value=p?.price||'';
   document.getElementById('p-disc').value=p?.discount_price||'';
@@ -496,6 +548,8 @@ async function saveProd() {
   fd.append('name', document.getElementById('p-name').value);
   fd.append('description', document.getElementById('p-desc').value);
   fd.append('type', document.getElementById('p-type').value);
+  const cat = document.getElementById('p-category').value;
+  if (cat) fd.append('category', cat);
   fd.append('price', document.getElementById('p-price').value);
   const disc = document.getElementById('p-disc').value;
   if (disc) fd.append('discount_price', disc);

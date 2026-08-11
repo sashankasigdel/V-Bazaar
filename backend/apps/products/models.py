@@ -2,12 +2,27 @@ from django.db import models
 from apps.businesses.models import Business
 
 
+class ProductCategory(models.Model):
+    business = models.ForeignKey(Business, on_delete=models.CASCADE, related_name='product_categories')
+    name = models.CharField(max_length=100)
+    order = models.PositiveIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'product_categories'
+        ordering = ['order', 'id']
+
+    def __str__(self):
+        return f"{self.business.name} - {self.name}"
+
+
 class Product(models.Model):
     class Type(models.TextChoices):
         PRODUCT = 'product', 'Product'
         SERVICE = 'service', 'Service'
 
     business = models.ForeignKey(Business, on_delete=models.CASCADE, related_name='products')
+    category = models.ForeignKey(ProductCategory, on_delete=models.SET_NULL, null=True, blank=True, related_name='products')
     name = models.CharField(max_length=200)
     description = models.TextField(blank=True)
     type = models.CharField(max_length=10, choices=Type.choices, default=Type.PRODUCT)

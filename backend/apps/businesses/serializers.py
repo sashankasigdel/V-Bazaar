@@ -83,7 +83,7 @@ class BusinessListSerializer(serializers.ModelSerializer):
 class BranchSummarySerializer(serializers.ModelSerializer):
     class Meta:
         model = Business
-        fields = ['id', 'name', 'slug', 'city', 'status']
+        fields = ['id', 'name', 'slug', 'city', 'status', 'logo']
 
 
 class BusinessDetailSerializer(serializers.ModelSerializer):

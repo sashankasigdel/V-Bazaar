@@ -17,15 +17,22 @@ body{background:var(--cream);}
 }
 .vb-prod-group-title{font-family:var(--font-body);font-weight:700;font-size:1rem;color:var(--charcoal);margin:1.5rem 0 0.9rem;}
 .vb-prod-group-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:1rem;margin-bottom:0.5rem;}
-.vb-branch-card{display:flex;justify-content:space-between;align-items:center;padding:0.9rem 1.1rem;border-radius:var(--radius-md);background:var(--cream-dark);color:inherit;transition:all var(--transition);}
-.vb-branch-card:hover{background:var(--saffron-light);}
+.vb-branch-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:1.1rem;}
+.vb-branch-card{display:flex;flex-direction:column;align-items:center;text-align:center;gap:0.6rem;padding:1.1rem 0.75rem;border-radius:var(--radius-md);border:1.5px solid var(--border);background:white;color:inherit;transition:all var(--transition);}
+.vb-branch-card:hover{border-color:var(--saffron);background:var(--saffron-light);}
+.vb-branch-photo{width:72px;height:72px;border-radius:50%;background:var(--saffron-light);color:var(--saffron-dark);overflow:hidden;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.vb-branch-photo img{width:100%;height:100%;object-fit:cover;}
+.vb-branch-name{font-weight:700;font-size:0.88rem;color:var(--charcoal);}
+.vb-branch-loc{font-size:0.76rem;color:var(--slate-light);}
 .vb-review-reply-toggle{display:inline-flex;align-items:center;gap:0.3rem;margin-top:0.6rem;font-size:0.8rem;font-weight:600;color:var(--saffron);cursor:pointer;}
 .vb-review-reply-toggle .chev{display:inline-block;transition:transform 0.2s;}
 .vb-outlet-badges{display:flex;flex-wrap:wrap;gap:0.4rem;margin-top:0.4rem;}
 .vb-outlet-badge{font-size:0.72rem;padding:0.25rem 0.6rem;border-radius:999px;background:var(--cream-dark);color:var(--charcoal);}
 html[data-theme="dark"] body{background:#1F2222;}
 html[data-theme="dark"] #content > div,html[data-theme="dark"] .dash-card{background:#242727;border-color:#3A3D3D;}
-html[data-theme="dark"] .vb-outlet-badge,html[data-theme="dark"] .vb-branch-card{background:#2E3131;color:#D0D0D0;}
+html[data-theme="dark"] .vb-outlet-badge{background:#2E3131;color:#D0D0D0;}
+html[data-theme="dark"] .vb-branch-card{background:#242727;border-color:#3A3D3D;}
+html[data-theme="dark"] .vb-branch-name{color:#F0F0F0;}
 </style>
 </head>
 <body>
@@ -88,7 +95,7 @@ html[data-theme="dark"] .vb-outlet-badge,html[data-theme="dark"] .vb-branch-card
         <div id="tab-branches" class="tab-content">
           <div class="dash-card">
             <h3 style="margin-bottom:1rem;font-family:var(--font-body);">Branches</h3>
-            <div id="branches-list" style="display:flex;flex-direction:column;gap:0.5rem;"></div>
+            <div id="branches-list" class="vb-branch-grid"></div>
             <div id="branches-empty" style="display:none;padding:2rem;" class="empty-state"><div class="empty-icon">🏢</div><h3>No other branches</h3></div>
           </div>
         </div>
@@ -230,7 +237,11 @@ function render() {
     parentNote.style.display = 'block';
   }
   if (b.branches?.length) {
-    document.getElementById('branches-list').innerHTML = b.branches.map(br => `<a href="/business/?slug=${br.slug}" class="vb-branch-card"><span style="font-weight:600;">${br.name}</span><span style="color:var(--slate-light);font-size:0.8rem;">${br.city||''}</span></a>`).join('');
+    document.getElementById('branches-list').innerHTML = b.branches.map(br => `<a href="/business/?slug=${br.slug}" class="vb-branch-card">
+      <div class="vb-branch-photo">${br.logo ? `<img src="${br.logo}" alt="${br.name}">` : categoryIcon(b.category?.slug, 28)}</div>
+      <div class="vb-branch-name">${br.name}</div>
+      <div class="vb-branch-loc">${br.city || ''}</div>
+    </a>`).join('');
   } else {
     document.getElementById('branches-empty').style.display = 'block';
   }
@@ -255,12 +266,17 @@ async function loadProducts() {
   const prods = resp.data?.results || resp.data || [];
   if (!prods.length) { grid.innerHTML = `<div class="empty-state" style="padding:2rem;"><div class="empty-icon">${categoryIcon(biz.category?.slug, 40)}</div><h3>No products listed</h3></div>`; return; }
   const card = p => renderProductCard(p, biz.id, biz.name, biz.category?.slug, biz.accepts_orders);
-  const groups = [
-    { label: 'Products', items: prods.filter(p => p.type !== 'service') },
-    { label: 'Services', items: prods.filter(p => p.type === 'service') },
-  ].filter(g => g.items.length);
+
+  const catMap = new Map();
+  prods.forEach(p => {
+    const key = p.category || 'none';
+    if (!catMap.has(key)) catMap.set(key, { name: p.category_name || 'Other', order: p.category_name ? (p.category_order || 0) : 999999, items: [] });
+    catMap.get(key).items.push(p);
+  });
+  const groups = [...catMap.values()].sort((a, b) => a.order - b.order || a.name.localeCompare(b.name));
+
   grid.innerHTML = groups.length > 1
-    ? groups.map(g => `<div class="vb-prod-group-title">${g.label}</div><div class="vb-prod-group-grid">${g.items.map(card).join('')}</div>`).join('')
+    ? groups.map(g => `<div class="vb-prod-group-title">${g.name}</div><div class="vb-prod-group-grid">${g.items.map(card).join('')}</div>`).join('')
     : `<div class="vb-prod-group-grid">${prods.map(card).join('')}</div>`;
 }
 

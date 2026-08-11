@@ -10,6 +10,14 @@ body{background:var(--cream);}
 .filter-section{margin-bottom:1.25rem;padding-bottom:1.25rem;border-bottom:1px solid var(--border-light);}
 .filter-section:last-child{margin-bottom:0;padding-bottom:0;border-bottom:none;}
 .filter-label{font-weight:700;font-size:0.85rem;color:var(--charcoal);margin-bottom:0.65rem;display:block;}
+/* Desktop: filter sidebar sits on the left, collapsible via the same toggle bar used on mobile.
+   Mobile/PWA: single column, toggle bar + panel stacked above results (unchanged). */
+.vb-search-layout{display:block;}
+.vb-search-sidebar{margin-bottom:0;}
+@media(min-width:901px){
+  .vb-search-layout{display:grid;grid-template-columns:280px 1fr;gap:2rem;align-items:start;}
+  .vb-search-sidebar{position:sticky;top:80px;}
+}
 html[data-theme="dark"] body{background:#1F2222;}
 html[data-theme="dark"] .filter-label{color:#F0F0F0;}
 </style>
@@ -18,56 +26,62 @@ html[data-theme="dark"] .filter-label{color:#F0F0F0;}
 <nav class="vb-nav" id="vb-nav"></nav>
 
 <div class="container" style="padding-top:1.5rem;padding-bottom:4rem;">
-  <div class="vb-filter-toggle-bar" id="filter-toggle" onclick="toggleFilterPanel()">
-    <div class="vb-filter-toggle-left"><span id="ic-filter-toggle"></span> Filters <span class="vb-filter-toggle-count" id="filter-count" style="display:none;"></span></div>
-    <span class="vb-filter-chevron" id="ic-filter-chevron"></span>
-  </div>
-  <div class="vb-filter-panel" id="filter-panel">
-    <div class="vb-filter-panel-inner">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.1rem;">
-        <h3 style="font-family:var(--font-body);font-size:1rem;font-weight:700;color:var(--charcoal);">Filters</h3>
-        <button onclick="clearFilters()" style="font-size:0.8rem;color:var(--saffron);font-weight:600;">Clear all</button>
+  <div class="vb-search-layout">
+    <div class="vb-search-sidebar">
+      <div class="vb-filter-toggle-bar" id="filter-toggle" onclick="toggleFilterPanel()">
+        <div class="vb-filter-toggle-left"><span id="ic-filter-toggle"></span> Filters <span class="vb-filter-toggle-count" id="filter-count" style="display:none;"></span></div>
+        <span class="vb-filter-chevron" id="ic-filter-chevron"></span>
       </div>
-      <div class="filter-section">
-        <span class="filter-label">Category</span>
-        <div id="cat-filters" style="display:flex;flex-wrap:wrap;gap:0.5rem;"></div>
-      </div>
-      <div class="filter-section">
-        <span class="filter-label">Minimum Rating</span>
-        <div style="display:flex;flex-wrap:wrap;gap:0.5rem;">
-          <label class="vb-filter-check"><input type="radio" name="rating" value="" onchange="doSearch()" checked> Any rating</label>
-          <label class="vb-filter-check"><input type="radio" name="rating" value="4" onchange="doSearch()"> ⭐ 4+ stars</label>
-          <label class="vb-filter-check"><input type="radio" name="rating" value="3" onchange="doSearch()"> ⭐ 3+ stars</label>
+      <div class="vb-filter-panel" id="filter-panel">
+        <div class="vb-filter-panel-inner">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.1rem;">
+            <h3 style="font-family:var(--font-body);font-size:1rem;font-weight:700;color:var(--charcoal);">Filters</h3>
+            <button onclick="clearFilters()" style="font-size:0.8rem;color:var(--saffron);font-weight:600;">Clear all</button>
+          </div>
+          <div class="filter-section">
+            <span class="filter-label">Category</span>
+            <div id="cat-filters" style="display:flex;flex-wrap:wrap;gap:0.5rem;"></div>
+          </div>
+          <div class="filter-section">
+            <span class="filter-label">Minimum Rating</span>
+            <div style="display:flex;flex-wrap:wrap;gap:0.5rem;">
+              <label class="vb-filter-check"><input type="radio" name="rating" value="" onchange="doSearch()" checked> Any rating</label>
+              <label class="vb-filter-check"><input type="radio" name="rating" value="4" onchange="doSearch()"> ⭐ 4+ stars</label>
+              <label class="vb-filter-check"><input type="radio" name="rating" value="3" onchange="doSearch()"> ⭐ 3+ stars</label>
+            </div>
+          </div>
+          <div class="filter-section">
+            <span class="filter-label">Status</span>
+            <div style="display:flex;flex-wrap:wrap;gap:0.5rem;">
+              <label class="vb-filter-check"><input type="checkbox" id="open-now" onchange="doSearch()"> Open right now</label>
+              <label class="vb-filter-check"><input type="checkbox" id="featured-only" onchange="doSearch()"> Featured only</label>
+            </div>
+          </div>
+          <button onclick="doSearch();closeFilterPanelMobile();" class="btn btn-primary" style="width:100%;justify-content:center;">Show Results</button>
         </div>
       </div>
-      <div class="filter-section">
-        <span class="filter-label">Status</span>
-        <div style="display:flex;flex-wrap:wrap;gap:0.5rem;">
-          <label class="vb-filter-check"><input type="checkbox" id="open-now" onchange="doSearch()"> Open right now</label>
-          <label class="vb-filter-check"><input type="checkbox" id="featured-only" onchange="doSearch()"> Featured only</label>
-        </div>
-      </div>
-      <button onclick="doSearch();closeFilterPanelMobile();" class="btn btn-primary" style="width:100%;justify-content:center;">Show Results</button>
     </div>
-  </div>
 
-  <div style="display:flex;justify-content:space-between;align-items:center;margin:1.25rem 0 1.5rem;flex-wrap:wrap;gap:1rem;">
     <div>
-      <h2 id="heading" style="font-family:var(--font-body);font-weight:700;font-size:1.25rem;color:var(--charcoal);"></h2>
-      <p id="count" style="font-size:0.875rem;color:var(--slate-light);margin:0;"></p>
-    </div>
-    <div class="vb-filter-select-wrap">
-      <span id="ic-sort"></span>
-      <select class="vb-filter-select" onchange="ordering=this.value;doSearch()">
-        <option value="-average_rating">Top Rated</option>
-        <option value="-total_orders">Most Popular</option>
-        <option value="-created_at">Newest</option>
-      </select>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;flex-wrap:wrap;gap:1rem;">
+        <div>
+          <h2 id="heading" style="font-family:var(--font-body);font-weight:700;font-size:1.25rem;color:var(--charcoal);"></h2>
+          <p id="count" style="font-size:0.875rem;color:var(--slate-light);margin:0;"></p>
+        </div>
+        <div class="vb-filter-select-wrap">
+          <span id="ic-sort"></span>
+          <select class="vb-filter-select" onchange="ordering=this.value;doSearch()">
+            <option value="-average_rating">Top Rated</option>
+            <option value="-total_orders">Most Popular</option>
+            <option value="-created_at">Newest</option>
+          </select>
+        </div>
+      </div>
+      <div id="results" class="vb-card-grid"></div>
+      <div id="no-results" style="display:none;" class="empty-state"><div class="empty-icon">🔍</div><h3>No results found</h3><p>Try different keywords or remove some filters.</p><a href="/" class="btn btn-primary" style="margin-top:1rem;">Browse All</a></div>
+      <div style="text-align:center;margin-top:2rem;" id="load-more"></div>
     </div>
   </div>
-  <div id="results" class="vb-card-grid"></div>
-  <div id="no-results" style="display:none;" class="empty-state"><div class="empty-icon">🔍</div><h3>No results found</h3><p>Try different keywords or remove some filters.</p><a href="/" class="btn btn-primary" style="margin-top:1rem;">Browse All</a></div>
-  <div style="text-align:center;margin-top:2rem;" id="load-more"></div>
 </div>
 
 <div class="toast-container"></div>
@@ -87,15 +101,19 @@ function toggleFilterPanel() {
   document.getElementById('filter-panel').classList.toggle('open');
 }
 function closeFilterPanelMobile() {
+  if (window.innerWidth >= 901) return;
   document.getElementById('filter-toggle').classList.remove('open');
   document.getElementById('filter-panel').classList.remove('open');
 }
 
 async function init() {
   renderVbNavbar('vb-nav', { exploreActive: true, searchValue: query });
+  // Desktop has room for the sidebar, so it starts open; mobile/PWA starts collapsed
+  // so arriving via a category click shows already-filtered results, not a wall of filters.
+  const startOpen = window.innerWidth >= 901;
+  document.getElementById('filter-toggle').classList.toggle('open', startOpen);
+  document.getElementById('filter-panel').classList.toggle('open', startOpen);
   await loadCats();
-  // Pre-select category from URL — filter panel stays collapsed (mobile) so the
-  // user lands directly on the already-filtered results, not a wall of filters.
   const cat = new URLSearchParams(window.location.search).get('category');
   if (cat) { const inp = document.querySelector(`input[value="${cat}"]`); if (inp) inp.checked = true; }
   doSearch();

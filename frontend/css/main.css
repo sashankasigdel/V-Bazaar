@@ -363,11 +363,6 @@ html[data-theme="dark"] body{background:#1F2222;}
 .vb-filter-panel{max-height:0;overflow:hidden;transition:max-height 0.3s ease;}
 .vb-filter-panel.open{max-height:1200px;}
 .vb-filter-panel-inner{background:white;border:1.5px solid var(--border);border-top:none;border-radius:0 0 var(--radius-md) var(--radius-md);margin-top:-1rem;padding:1.25rem 1.1rem 1.1rem;margin-bottom:1rem;}
-@media(min-width:901px){
-  .vb-filter-toggle-bar{display:none;}
-  .vb-filter-panel{max-height:none!important;overflow:visible;}
-  .vb-filter-panel-inner{margin-top:0;border-radius:var(--radius-md);}
-}
 
 /* CARDS */
 .vb-featured-scroll{display:flex;gap:1.25rem;overflow-x:auto;scroll-snap-type:x mandatory;scroll-behavior:smooth;padding-bottom:0.5rem;-webkit-overflow-scrolling:touch;scrollbar-width:thin;}
