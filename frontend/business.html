@@ -268,14 +268,19 @@ async function loadProducts() {
   const card = p => renderProductCard(p, biz.id, biz.name, biz.category?.slug, biz.accepts_orders);
 
   const catMap = new Map();
+  let anyCategorized = false;
   prods.forEach(p => {
+    if (p.category) anyCategorized = true;
     const key = p.category || 'none';
-    if (!catMap.has(key)) catMap.set(key, { name: p.category_name || 'Other', order: p.category_name ? (p.category_order || 0) : 999999, items: [] });
+    if (!catMap.has(key)) catMap.set(key, { name: p.category_name || 'Uncategorized', order: p.category_name ? (p.category_order || 0) : 999999, items: [] });
     catMap.get(key).items.push(p);
   });
   const groups = [...catMap.values()].sort((a, b) => a.order - b.order || a.name.localeCompare(b.name));
 
-  grid.innerHTML = groups.length > 1
+  // Show category headers as soon as ANY product has a category — even just one —
+  // since that category name is exactly what the business owner set up to show.
+  // Only fall back to a flat ungrouped grid when the business hasn't used categories at all.
+  grid.innerHTML = anyCategorized
     ? groups.map(g => `<div class="vb-prod-group-title">${g.name}</div><div class="vb-prod-group-grid">${g.items.map(card).join('')}</div>`).join('')
     : `<div class="vb-prod-group-grid">${prods.map(card).join('')}</div>`;
 }
