@@ -15,6 +15,33 @@ body{background:var(--cream);}
   #logo{width:64px;height:64px;margin-top:-32px;font-size:1.6rem;}
   #biz-name{font-size:1.35rem;}
 }
+.vb-name-row{display:flex;align-items:center;gap:0.6rem;flex-wrap:wrap;margin-bottom:0.4rem;}
+.vb-name-row h1{margin-bottom:0;}
+.vb-pills-row{display:flex;gap:0.6rem;flex-wrap:wrap;margin-bottom:0.5rem;}
+
+/* Action icons (Call/WhatsApp/Directions/Save) + Outlet Info sit side by side,
+   right below the description — a 2x2 icon grid next to a compact info card,
+   matching the wireframe. Same layout at every screen width. */
+.vb-action-outlet-row{display:flex;gap:0.9rem;align-items:stretch;margin-top:1.1rem;flex-wrap:wrap;}
+.vb-action-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:0.6rem;flex-shrink:0;}
+.vb-action-btn{width:50px;height:50px;border-radius:var(--radius-md);border:1.5px solid var(--border);background:white;display:flex;align-items:center;justify-content:center;color:var(--charcoal);transition:all var(--transition);}
+.vb-action-btn:hover{border-color:var(--saffron);background:var(--saffron-light);color:var(--saffron-dark);}
+.vb-action-btn.saved{color:var(--saffron);border-color:var(--saffron);background:var(--saffron-light);}
+.vb-outlet-box{flex:1;min-width:180px;}
+.vb-outlet-box h4{font-family:var(--font-body);margin-bottom:0.6rem;}
+
+/* Orders / Appointment / Booking — a fixed, collapsible bottom bar that only
+   appears once there's something in the cart for this business (per the
+   "expandable/collapsible/fixed if there is any order placed" spec). */
+.vb-order-bar{position:fixed;left:0;right:0;bottom:0;z-index:90;background:white;border-top:1px solid var(--border);border-radius:var(--radius-lg) var(--radius-lg) 0 0;box-shadow:0 -6px 20px rgba(26,35,50,0.12);max-width:640px;margin:0 auto;max-height:75vh;display:flex;flex-direction:column;}
+.vb-order-bar-header{display:flex;align-items:center;justify-content:space-between;gap:0.75rem;padding:0.9rem 1.25rem;cursor:pointer;}
+.vb-order-bar-header h4{font-family:var(--font-body);font-size:0.95rem;}
+.vb-order-bar-summary{font-size:0.8rem;color:var(--saffron-dark);font-weight:700;white-space:nowrap;}
+.vb-order-bar-chev{transition:transform var(--transition);color:var(--slate-light);flex-shrink:0;}
+.vb-order-bar.open .vb-order-bar-chev{transform:rotate(180deg);}
+.vb-order-bar-body{display:none;overflow-y:auto;padding:0 1.25rem 1.25rem;border-top:1px solid var(--border-light);}
+.vb-order-bar.open .vb-order-bar-body{display:block;padding-top:1rem;}
+
 .vb-prod-group-title{font-family:var(--font-body);font-weight:700;font-size:1rem;color:var(--charcoal);margin:1.5rem 0 0.9rem;}
 .vb-prod-group-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:1rem;margin-bottom:0.5rem;}
 .vb-branch-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:1.1rem;}
@@ -29,45 +56,12 @@ body{background:var(--cream);}
 .vb-outlet-badges{display:flex;flex-wrap:wrap;gap:0.4rem;margin-top:0.4rem;}
 .vb-outlet-badge{font-size:0.72rem;padding:0.25rem 0.6rem;border-radius:999px;background:var(--cream-dark);color:var(--charcoal);}
 
-/* Mobile keeps the two-column layout (content + Outlet Info sidebar) instead of
-   stacking to one column — the sidebar just gets much narrower, matching the
-   wireframe where Orders/Booking + Outlet Info persist alongside the tab content.
-   Placed after the base component rules above so these overrides actually win
-   (a later unqualified rule would otherwise beat an earlier media-query rule
-   of equal specificity). */
-@media(max-width:768px){
-  .split-layout{grid-template-columns:1fr 108px;gap:0.6rem;align-items:start;}
-  .vb-biz-sidebar{position:static;}
-  .vb-biz-sidebar .dash-card{padding:0.6rem;margin-bottom:0.6rem;}
-  .vb-biz-sidebar h4{font-size:0.7rem;line-height:1.25;margin-bottom:0.4rem;}
-  .vb-biz-sidebar #order-subtitle,.vb-biz-sidebar #cart-hint{font-size:0.62rem;}
-  .vb-biz-sidebar #sidebar-info{font-size:0.62rem;gap:0.4rem;}
-  .vb-biz-sidebar #sidebar-info svg{width:11px;height:11px;}
-  .vb-outlet-badge{font-size:0.58rem;padding:0.15rem 0.4rem;}
-  .vb-biz-sidebar .btn{font-size:0.65rem;padding:0.4rem 0.3rem;}
-  .vb-biz-sidebar #mini-cart{max-height:140px !important;}
-
-  /* Denser grids so tiles stay legible inside the narrower content column. */
+/* Mobile: denser product/gallery/branch grids so tiles stay legible at full width,
+   and a tighter 2x2 action-icon grid. */
+@media(max-width:600px){
   .vb-prod-group-grid,#gallery-grid,.vb-branch-grid{grid-template-columns:repeat(2,1fr);gap:0.6rem;}
-  .product-img{height:90px;font-size:1.5rem;}
-  .product-body{padding:0.6rem;}
-  .product-name{font-size:0.74rem;}
-  .product-desc{display:none;}
-  .product-price{font-size:0.78rem;}
-  .add-to-cart-btn{width:24px;height:24px;font-size:1rem;}
-
-  /* Compact header: icon-only Call/WhatsApp/Directions (Save keeps its label). */
-  .vb-icon-btn{width:38px;height:38px;padding:0;border-radius:50%;justify-content:center;}
-  .vb-icon-btn .btn-label{display:none;}
-  .tab-btn{padding:0.55rem 0.75rem;font-size:0.8rem;}
-}
-@media(max-width:480px){
-  .split-layout{grid-template-columns:1fr 92px;gap:0.5rem;}
-  .vb-prod-group-grid,#gallery-grid,.vb-branch-grid{gap:0.5rem;}
-  .vb-branch-photo{width:52px;height:52px;}
-  .vb-branch-card{padding:0.7rem 0.4rem;gap:0.35rem;}
-  .vb-branch-name{font-size:0.72rem;}
-  .vb-branch-loc{font-size:0.64rem;}
+  .vb-action-btn{width:44px;height:44px;}
+  .vb-outlet-box{font-size:0.85rem;}
 }
 
 html[data-theme="dark"] body{background:#1F2222;}
@@ -75,6 +69,9 @@ html[data-theme="dark"] #content > div,html[data-theme="dark"] .dash-card{backgr
 html[data-theme="dark"] .vb-outlet-badge{background:#2E3131;color:#D0D0D0;}
 html[data-theme="dark"] .vb-branch-card{background:#242727;border-color:#3A3D3D;}
 html[data-theme="dark"] .vb-branch-name{color:#F0F0F0;}
+html[data-theme="dark"] .vb-action-btn{background:#242727;border-color:#3A3D3D;color:#D0D0D0;}
+html[data-theme="dark"] .vb-order-bar{background:#242727;border-color:#3A3D3D;}
+html[data-theme="dark"] .vb-order-bar-body{border-color:#3A3D3D;}
 </style>
 </head>
 <body>
@@ -87,101 +84,101 @@ html[data-theme="dark"] .vb-branch-name{color:#F0F0F0;}
     <div id="banner-placeholder" style="width:100%;height:100%;background:linear-gradient(135deg,var(--charcoal),#3D4141);"></div>
   </div>
   <div style="background:white;border-bottom:1px solid var(--border);">
-    <div class="container" style="padding-top:1rem;padding-bottom:1rem;">
+    <div class="container" style="padding-top:1rem;padding-bottom:1.25rem;">
       <div style="display:flex;gap:1.5rem;align-items:flex-start;flex-wrap:wrap;">
         <div id="logo" style="border-radius:12px;background:var(--saffron-light);display:flex;align-items:center;justify-content:center;border:3px solid white;box-shadow:var(--shadow-md);flex-shrink:0;position:relative;overflow:hidden;"></div>
-        <div style="flex:1;">
-          <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:1rem;">
-            <div>
-              <h1 id="biz-name" style="font-family:var(--font-body);font-weight:700;margin-bottom:0.5rem;"></h1>
-              <div style="display:flex;gap:0.75rem;flex-wrap:wrap;margin-bottom:0.5rem;">
-                <span id="biz-cat" style="display:inline-flex;align-items:center;gap:0.4rem;padding:0.35rem 0.875rem;border-radius:999px;background:var(--cream-dark);font-size:0.82rem;"></span>
-                <span id="biz-status" style="display:inline-flex;align-items:center;gap:0.4rem;padding:0.35rem 0.875rem;border-radius:999px;background:var(--cream-dark);font-size:0.82rem;"></span>
-                <span id="biz-rating" style="display:inline-flex;align-items:center;gap:0.4rem;padding:0.35rem 0.875rem;border-radius:999px;background:var(--cream-dark);font-size:0.82rem;"></span>
-              </div>
-              <div id="biz-location" style="display:flex;align-items:center;gap:0.35rem;font-size:0.8rem;color:var(--slate-light);margin-bottom:0.4rem;"></div>
-              <p id="biz-short" style="color:var(--slate-mid);font-size:0.9rem;"></p>
-            </div>
-            <div style="display:flex;gap:0.75rem;flex-wrap:wrap;">
-              <button id="save-btn" onclick="toggleSaveB()" class="btn btn-secondary btn-sm"></button>
-              <a id="wa-btn" href="#" target="_blank" class="btn btn-success btn-sm vb-icon-btn" style="display:none;"><span id="ic-wa"></span><span class="btn-label"> WhatsApp</span></a>
-              <a id="call-btn" href="#" class="btn btn-secondary btn-sm vb-icon-btn" style="display:none;"><span id="ic-call"></span><span class="btn-label"> Call</span></a>
-              <a id="maps-btn" href="#" target="_blank" class="btn btn-secondary btn-sm vb-icon-btn"><span id="ic-maps"></span><span class="btn-label"> Directions</span></a>
-            </div>
+        <div style="flex:1;min-width:200px;">
+          <div class="vb-name-row">
+            <h1 id="biz-name" style="font-family:var(--font-body);font-weight:700;"></h1>
+            <span id="biz-rating" style="display:inline-flex;align-items:center;gap:0.3rem;padding:0.3rem 0.7rem;border-radius:999px;background:var(--teal-light);color:var(--teal);font-size:0.78rem;font-weight:700;"></span>
           </div>
+          <div class="vb-pills-row">
+            <span id="biz-cat" style="display:inline-flex;align-items:center;gap:0.4rem;padding:0.3rem 0.8rem;border-radius:999px;border:1.5px solid var(--border);font-size:0.78rem;"></span>
+            <span id="biz-status" style="display:inline-flex;align-items:center;gap:0.4rem;padding:0.3rem 0.8rem;border-radius:999px;border:1.5px solid var(--border);font-size:0.78rem;"></span>
+          </div>
+          <div id="biz-location" style="display:flex;align-items:center;gap:0.35rem;font-size:0.8rem;color:var(--slate-light);margin-bottom:0.4rem;"></div>
+          <p id="biz-short" style="color:var(--slate-mid);font-size:0.9rem;"></p>
+        </div>
+      </div>
+
+      <div class="vb-action-outlet-row">
+        <div class="vb-action-grid">
+          <a id="call-btn" href="#" class="vb-action-btn" style="display:none;" title="Call"><span id="ic-call"></span></a>
+          <a id="wa-btn" href="#" target="_blank" class="vb-action-btn" style="display:none;" title="WhatsApp"><span id="ic-wa"></span></a>
+          <a id="maps-btn" href="#" target="_blank" class="vb-action-btn" title="Directions"><span id="ic-maps"></span></a>
+          <button id="save-btn" onclick="toggleSaveB()" class="vb-action-btn" title="Save"><span id="ic-save"></span></button>
+        </div>
+        <div class="vb-outlet-box dash-card">
+          <h4>Outlet Info</h4>
+          <div id="sidebar-info" style="display:flex;flex-direction:column;gap:0.6rem;font-size:0.85rem;"></div>
+          <div id="sidebar-today-hours" style="margin-top:0.6rem;font-size:0.82rem;font-weight:600;"></div>
+          <div class="vb-outlet-badges" id="sidebar-badges"></div>
         </div>
       </div>
     </div>
   </div>
 
-  <div class="container" style="padding-top:2rem;padding-bottom:4rem;">
-    <div class="split-layout">
-      <div>
-        <div class="tab-bar">
-          <button class="tab-btn active" id="tabbtn-products" onclick="showTab('products',this)"> Product</button>
-          <button class="tab-btn" id="tabbtn-about" onclick="showTab('about',this)"> About</button>
-          <button class="tab-btn" id="tabbtn-gallery" onclick="showTab('gallery',this)"> Gallery</button>
-          <button class="tab-btn" id="tabbtn-branches" onclick="showTab('branches',this)"> Branches</button>
-          <button class="tab-btn" id="tabbtn-reviews" onclick="showTab('reviews',this)"> Review</button>
-        </div>
-        <div id="tab-products" class="tab-content active">
-          <div id="products-grid"></div>
-        </div>
-        <div id="tab-about" class="tab-content">
-          <div class="dash-card"><h3 style="margin-bottom:1rem;font-family:var(--font-body);">About</h3><p id="biz-desc" style="line-height:1.8;"></p><div id="contacts" style="margin-top:1rem;display:flex;flex-wrap:wrap;gap:0.5rem;"></div><div id="biz-badges" style="margin-top:0.75rem;display:flex;flex-wrap:wrap;gap:0.5rem;"></div><div id="biz-parent-note" style="display:none;margin-top:0.75rem;font-size:0.85rem;color:var(--slate-light);"></div></div>
-          <div class="dash-card"><h3 style="margin-bottom:1rem;font-family:var(--font-body);">Opening Hours</h3><div id="hours-list"></div></div>
-        </div>
-        <div id="tab-gallery" class="tab-content">
-          <div id="gallery-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:0.75rem;"></div>
-          <div id="gallery-empty" style="display:none;" class="empty-state"><div class="empty-icon">🖼️</div><h3>No photos yet</h3></div>
-        </div>
-        <div id="tab-branches" class="tab-content">
-          <div class="dash-card">
-            <h3 style="margin-bottom:1rem;font-family:var(--font-body);">Branches</h3>
-            <div id="branches-list" class="vb-branch-grid"></div>
-            <div id="branches-empty" style="display:none;padding:2rem;" class="empty-state"><div class="empty-icon">🏢</div><h3>No other branches</h3></div>
-          </div>
-        </div>
-        <div id="tab-reviews" class="tab-content">
-          <div style="background:white;border-radius:var(--radius-lg);border:1px solid var(--border);padding:1.5rem;margin-bottom:1.5rem;display:flex;gap:2rem;align-items:center;">
-            <div style="text-align:center;"><div id="avg-big" style="font-size:3.5rem;font-weight:700;font-family:var(--font-display);">—</div><div id="avg-stars" style="color:#F59E0B;font-size:1.2rem;">☆☆☆☆☆</div><div id="rev-count" style="font-size:0.8rem;color:var(--slate-light);">No reviews</div></div>
-          </div>
-          <div id="review-form" style="display:none;background:white;border-radius:var(--radius-lg);border:1px solid var(--border);padding:1.5rem;margin-bottom:1.5rem;">
-            <h4 style="font-family:var(--font-body);margin-bottom:1rem;">Write a Review</h4>
-            <div style="display:flex;gap:0.5rem;margin-bottom:1rem;" id="star-pick">
-              <span style="font-size:1.5rem;cursor:pointer;" onclick="setRating(1)">☆</span>
-              <span style="font-size:1.5rem;cursor:pointer;" onclick="setRating(2)">☆</span>
-              <span style="font-size:1.5rem;cursor:pointer;" onclick="setRating(3)">☆</span>
-              <span style="font-size:1.5rem;cursor:pointer;" onclick="setRating(4)">☆</span>
-              <span style="font-size:1.5rem;cursor:pointer;" onclick="setRating(5)">☆</span>
-            </div>
-            <input type="text" id="rev-title" class="form-input" placeholder="Summary (optional)" style="margin-bottom:0.75rem;">
-            <textarea id="rev-content" class="form-input" rows="3" placeholder="Share your experience..." style="resize:vertical;"></textarea>
-            <button onclick="submitReview()" class="btn btn-primary btn-sm" style="margin-top:0.75rem;">Submit Review</button>
-          </div>
-          <div id="reviews-list"></div>
-        </div>
-      </div>
-
-      <div class="vb-biz-sidebar" style="position:sticky;top:80px;">
-        <div class="dash-card">
-          <h4 style="font-family:var(--font-body);margin-bottom:0.25rem;">Orders / Appointment / Booking</h4>
-          <p id="order-subtitle" style="font-size:0.82rem;color:var(--slate-light);margin-bottom:1rem;">Add items from the Product tab</p>
-          <div id="mini-cart" style="max-height:220px;overflow-y:auto;margin-bottom:1rem;"></div>
-          <div id="mini-total" style="display:none;border-top:1px solid var(--border);padding-top:0.75rem;margin-bottom:0.75rem;">
-            <div style="display:flex;justify-content:space-between;font-size:0.875rem;"><span>Subtotal</span><span id="mini-sub" style="font-weight:700;color:var(--saffron);"></span></div>
-          </div>
-          <button onclick="goCheckout()" id="checkout-btn" class="btn btn-primary" style="width:100%;justify-content:center;display:none;">Proceed to Checkout →</button>
-          <p id="cart-hint" style="font-size:0.78rem;color:var(--slate-light);text-align:center;">Browse the Product tab and add items above</p>
-        </div>
-        <div class="dash-card">
-          <h4 style="font-family:var(--font-body);margin-bottom:1rem;">Outlet Info</h4>
-          <div id="sidebar-info" style="display:flex;flex-direction:column;gap:0.75rem;font-size:0.875rem;"></div>
-          <div id="sidebar-today-hours" style="margin-top:0.75rem;font-size:0.85rem;font-weight:600;"></div>
-          <div class="vb-outlet-badges" id="sidebar-badges"></div>
-        </div>
+  <div class="container" style="padding-top:2rem;padding-bottom:6rem;">
+    <div class="tab-bar">
+      <button class="tab-btn active" id="tabbtn-products" onclick="showTab('products',this)"> Product</button>
+      <button class="tab-btn" id="tabbtn-about" onclick="showTab('about',this)"> About</button>
+      <button class="tab-btn" id="tabbtn-gallery" onclick="showTab('gallery',this)"> Gallery</button>
+      <button class="tab-btn" id="tabbtn-branches" onclick="showTab('branches',this)"> Branches</button>
+      <button class="tab-btn" id="tabbtn-reviews" onclick="showTab('reviews',this)"> Review</button>
+    </div>
+    <div id="tab-products" class="tab-content active">
+      <div id="products-grid"></div>
+    </div>
+    <div id="tab-about" class="tab-content">
+      <div class="dash-card"><h3 style="margin-bottom:1rem;font-family:var(--font-body);">About</h3><p id="biz-desc" style="line-height:1.8;"></p><div id="contacts" style="margin-top:1rem;display:flex;flex-wrap:wrap;gap:0.5rem;"></div><div id="biz-badges" style="margin-top:0.75rem;display:flex;flex-wrap:wrap;gap:0.5rem;"></div><div id="biz-parent-note" style="display:none;margin-top:0.75rem;font-size:0.85rem;color:var(--slate-light);"></div></div>
+      <div class="dash-card"><h3 style="margin-bottom:1rem;font-family:var(--font-body);">Opening Hours</h3><div id="hours-list"></div></div>
+    </div>
+    <div id="tab-gallery" class="tab-content">
+      <div id="gallery-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:0.75rem;"></div>
+      <div id="gallery-empty" style="display:none;" class="empty-state"><div class="empty-icon">🖼️</div><h3>No photos yet</h3></div>
+    </div>
+    <div id="tab-branches" class="tab-content">
+      <div class="dash-card">
+        <h3 style="margin-bottom:1rem;font-family:var(--font-body);">Branches</h3>
+        <div id="branches-list" class="vb-branch-grid"></div>
+        <div id="branches-empty" style="display:none;padding:2rem;" class="empty-state"><div class="empty-icon">🏢</div><h3>No other branches</h3></div>
       </div>
     </div>
+    <div id="tab-reviews" class="tab-content">
+      <div style="background:white;border-radius:var(--radius-lg);border:1px solid var(--border);padding:1.5rem;margin-bottom:1.5rem;display:flex;gap:2rem;align-items:center;">
+        <div style="text-align:center;"><div id="avg-big" style="font-size:3.5rem;font-weight:700;font-family:var(--font-display);">—</div><div id="avg-stars" style="color:#F59E0B;font-size:1.2rem;">☆☆☆☆☆</div><div id="rev-count" style="font-size:0.8rem;color:var(--slate-light);">No reviews</div></div>
+      </div>
+      <div id="review-form" style="display:none;background:white;border-radius:var(--radius-lg);border:1px solid var(--border);padding:1.5rem;margin-bottom:1.5rem;">
+        <h4 style="font-family:var(--font-body);margin-bottom:1rem;">Write a Review</h4>
+        <div style="display:flex;gap:0.5rem;margin-bottom:1rem;" id="star-pick">
+          <span style="font-size:1.5rem;cursor:pointer;" onclick="setRating(1)">☆</span>
+          <span style="font-size:1.5rem;cursor:pointer;" onclick="setRating(2)">☆</span>
+          <span style="font-size:1.5rem;cursor:pointer;" onclick="setRating(3)">☆</span>
+          <span style="font-size:1.5rem;cursor:pointer;" onclick="setRating(4)">☆</span>
+          <span style="font-size:1.5rem;cursor:pointer;" onclick="setRating(5)">☆</span>
+        </div>
+        <input type="text" id="rev-title" class="form-input" placeholder="Summary (optional)" style="margin-bottom:0.75rem;">
+        <textarea id="rev-content" class="form-input" rows="3" placeholder="Share your experience..." style="resize:vertical;"></textarea>
+        <button onclick="submitReview()" class="btn btn-primary btn-sm" style="margin-top:0.75rem;">Submit Review</button>
+      </div>
+      <div id="reviews-list"></div>
+    </div>
+  </div>
+</div>
+
+<div class="vb-order-bar" id="order-bar" style="display:none;">
+  <div class="vb-order-bar-header" onclick="toggleOrderBar()">
+    <h4>Orders / Appointment / Booking</h4>
+    <span class="vb-order-bar-summary" id="order-bar-summary"></span>
+    <span class="vb-order-bar-chev" id="order-bar-chev"></span>
+  </div>
+  <div class="vb-order-bar-body" id="order-bar-body">
+    <p id="order-subtitle" style="font-size:0.82rem;color:var(--slate-light);margin-bottom:0.75rem;">Add items from the Product tab</p>
+    <div id="mini-cart" style="max-height:220px;overflow-y:auto;margin-bottom:1rem;"></div>
+    <div id="mini-total" style="display:none;border-top:1px solid var(--border);padding-top:0.75rem;margin-bottom:0.75rem;">
+      <div style="display:flex;justify-content:space-between;font-size:0.875rem;"><span>Subtotal</span><span id="mini-sub" style="font-weight:700;color:var(--saffron);"></span></div>
+    </div>
+    <button onclick="goCheckout()" id="checkout-btn" class="btn btn-primary" style="width:100%;justify-content:center;display:none;">Proceed to Checkout →</button>
   </div>
 </div>
 
@@ -198,10 +195,11 @@ document.getElementById('tabbtn-about').innerHTML = uiIcon('about') + ' About';
 document.getElementById('tabbtn-gallery').innerHTML = uiIcon('gallery') + ' Gallery';
 document.getElementById('tabbtn-branches').innerHTML = uiIcon('branch') + ' Branches';
 document.getElementById('tabbtn-reviews').innerHTML = uiIcon('reviews') + ' Review';
-document.getElementById('save-btn').innerHTML = `${uiIcon('heart', 16)} Save`;
-document.getElementById('ic-wa').innerHTML = uiIcon('message', 16);
-document.getElementById('ic-call').innerHTML = uiIcon('phone', 16);
-document.getElementById('ic-maps').innerHTML = uiIcon('directions', 16);
+document.getElementById('ic-save').innerHTML = plainIcon('heart', 18);
+document.getElementById('ic-wa').innerHTML = plainIcon('message', 18);
+document.getElementById('ic-call').innerHTML = plainIcon('phone', 18);
+document.getElementById('ic-maps').innerHTML = plainIcon('directions', 18);
+document.getElementById('order-bar-chev').innerHTML = plainIcon('chevronDown', 16);
 
 async function init() {
   renderVbNavbar('vb-nav');
@@ -227,19 +225,19 @@ function render() {
   document.getElementById('biz-name').innerHTML = `${b.name}${b.is_verified ? ' ' + coloredIcon('about',18,'var(--saffron)') : ''}`;
   document.getElementById('biz-short').textContent = b.short_description || '';
   document.getElementById('biz-desc').textContent = b.description || '';
-  document.getElementById('biz-cat').innerHTML = `${categoryIcon(b.category?.slug, 16)} ${b.category?.name || 'Business'}`;
+  document.getElementById('biz-cat').innerHTML = `${categoryIcon(b.category?.slug, 15)} ${b.category?.name || 'Business'}`;
   document.getElementById('biz-location').innerHTML = b.city ? `${uiIcon('location',13)} ${b.address ? b.address + ', ' : ''}${b.city}` : '';
-  if (b.is_open !== null) document.getElementById('biz-status').innerHTML = b.is_open ? '<span style="color:var(--success);">● Open Now</span>' : '<span style="color:var(--danger);">● Closed</span>';
+  if (b.is_open !== null) document.getElementById('biz-status').innerHTML = b.is_open ? '<span style="color:var(--success);">● Open</span>' : '<span style="color:var(--danger);">● Closed</span>';
   if (b.accepts_orders === false) document.getElementById('order-subtitle').innerHTML = '<span style="color:var(--danger);font-weight:600;">Not accepting orders right now</span>';
-  document.getElementById('biz-rating').textContent = b.average_rating > 0 ? `⭐ ${parseFloat(b.average_rating).toFixed(1)} (${b.total_reviews})` : '☆ No reviews';
+  document.getElementById('biz-rating').innerHTML = b.average_rating > 0 ? `${plainIcon('starFilled',12)} ${parseFloat(b.average_rating).toFixed(1)} Rate` : `${plainIcon('starFilled',12)} No reviews`;
   document.getElementById('avg-big').textContent = b.average_rating > 0 ? parseFloat(b.average_rating).toFixed(1) : '—';
   document.getElementById('avg-stars').textContent = b.average_rating > 0 ? UI.stars(b.average_rating) : '☆☆☆☆☆';
   document.getElementById('rev-count').textContent = `${b.total_reviews} reviews`;
   const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${b.latitude},${b.longitude}`;
   document.getElementById('maps-btn').href = mapsUrl;
-  if (b.whatsapp) { const wa = document.getElementById('wa-btn'); wa.href = `https://wa.me/${b.whatsapp.replace(/\D/g,'')}`; wa.style.display = 'inline-flex'; }
-  if (b.phone) { const ca = document.getElementById('call-btn'); ca.href = `tel:${b.phone}`; ca.style.display = 'inline-flex'; }
-  if (b.is_saved) { document.getElementById('save-btn').innerHTML = `${uiIcon('heart',16)} Saved`; document.getElementById('save-btn').classList.add('btn-ghost'); document.getElementById('save-btn').classList.remove('btn-secondary'); }
+  if (b.whatsapp) { const wa = document.getElementById('wa-btn'); wa.href = `https://wa.me/${b.whatsapp.replace(/\D/g,'')}`; wa.style.display = 'flex'; }
+  if (b.phone) { const ca = document.getElementById('call-btn'); ca.href = `tel:${b.phone}`; ca.style.display = 'flex'; }
+  if (b.is_saved) document.getElementById('save-btn').classList.add('saved');
 
   // Hours
   const days = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
@@ -290,13 +288,11 @@ function render() {
     document.getElementById('branches-empty').style.display = 'block';
   }
 
-  // Sidebar
+  // Outlet Info
   document.getElementById('sidebar-info').innerHTML = [
-    b.phone ? `<div>${uiIcon('phone',16)} ${b.phone}</div>` : '',
-    b.address ? `<div>${uiIcon('location',16)} ${b.address}, ${b.city}</div>` : '',
-    b.email ? `<div>${uiIcon('mail',16)} ${b.email}</div>` : '',
-    `<div>${uiIcon('cart',16)} ${b.total_orders || 0} orders completed</div>`,
-    `<div>${uiIcon('eye',16)} ${b.total_views || 0} views</div>`,
+    b.phone ? `<div>${uiIcon('phone',15)} ${b.phone}</div>` : '',
+    `<div>${uiIcon('cart',15)} ${b.total_orders || 0} orders completed</div>`,
+    `<div>${uiIcon('eye',15)} ${b.total_views || 0} views</div>`,
   ].join('');
 
   // Gallery
@@ -362,9 +358,7 @@ async function toggleSaveB() {
   if (!Auth.isLoggedIn()) { window.location.href = '/login/'; return; }
   const resp = await API.toggleSave(biz.id);
   if (resp.ok) {
-    const btn = document.getElementById('save-btn');
-    if (resp.data.saved) { btn.innerHTML = `${uiIcon('heart',16)} Saved`; btn.classList.add('btn-ghost'); btn.classList.remove('btn-secondary'); }
-    else { btn.innerHTML = `${uiIcon('heart',16)} Save`; btn.classList.remove('btn-ghost'); btn.classList.add('btn-secondary'); }
+    document.getElementById('save-btn').classList.toggle('saved', resp.data.saved);
     UI.toast(resp.data.saved ? 'Business saved!' : 'Removed from saved');
   }
 }
@@ -376,17 +370,24 @@ function showTab(name, btn) {
   btn.classList.add('active');
 }
 
+function toggleOrderBar() {
+  document.getElementById('order-bar').classList.toggle('open');
+}
+
 function renderMiniCart() {
   const cart = Cart.get();
+  const bar = document.getElementById('order-bar');
   const mini = document.getElementById('mini-cart');
   const totalDiv = document.getElementById('mini-total');
   const btn = document.getElementById('checkout-btn');
-  const hint = document.getElementById('cart-hint');
-  if (!cart.items.length || cart.businessId !== biz?.id) { mini.innerHTML = ''; totalDiv.style.display = 'none'; btn.style.display = 'none'; hint.style.display = 'block'; return; }
+  if (!cart.items.length || cart.businessId !== biz?.id) { bar.style.display = 'none'; bar.classList.remove('open'); return; }
+  bar.style.display = 'flex';
+  const count = cart.items.reduce((s,i) => s+i.qty, 0);
+  const sub = cart.items.reduce((s,i) => s+i.price*i.qty, 0);
+  document.getElementById('order-bar-summary').textContent = `${count} item${count!==1?'s':''} · ${UI.formatPrice(sub)}`;
   mini.innerHTML = cart.items.map(i => `<div style="display:flex;justify-content:space-between;align-items:center;padding:0.4rem 0;font-size:0.82rem;border-bottom:1px solid var(--border-light);"><span style="font-weight:600;">${i.name}</span><div style="display:flex;align-items:center;gap:0.3rem;flex-shrink:0;"><button class="qty-btn" onclick="mQty(${i.id},${i.qty-1})">−</button><span>${i.qty}</span><button class="qty-btn" onclick="mQty(${i.id},${i.qty+1})">+</button><span style="color:var(--saffron);font-weight:700;min-width:60px;text-align:right;">${UI.formatPrice(i.price*i.qty)}</span></div></div>`).join('');
-  const sub = cart.items.reduce((s,i)=>s+i.price*i.qty,0);
   document.getElementById('mini-sub').textContent = UI.formatPrice(sub);
-  totalDiv.style.display = 'block'; btn.style.display = 'flex'; hint.style.display = 'none';
+  totalDiv.style.display = 'block'; btn.style.display = 'flex';
 }
 
 function mQty(id, qty) { Cart.updateQty(id, qty); renderMiniCart(); updateCartBadge(); }
@@ -396,7 +397,7 @@ function goCheckout() { if (!Auth.isLoggedIn()) { window.location.href = '/login
 const _orig = window.addToCart;
 window.addToCart = function(p, bizId, bizName) {
   const ok = Cart.add(p, bizId, bizName);
-  if (ok) { UI.toast(`${p.name} added!`, 'success'); updateCartBadge(); renderMiniCart(); }
+  if (ok) { UI.toast(`${p.name} added!`, 'success'); updateCartBadge(); document.getElementById('order-bar').classList.add('open'); renderMiniCart(); }
 };
 
 init();
