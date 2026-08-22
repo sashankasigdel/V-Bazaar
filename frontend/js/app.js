@@ -332,9 +332,13 @@ const UI = {
 function setVbTheme(mode) {
   document.documentElement.setAttribute('data-theme', mode);
   localStorage.setItem('vb_theme', mode);
-  const l = document.getElementById('theme-light-btn'), d = document.getElementById('theme-dark-btn');
-  if (l) l.classList.toggle('active', mode === 'light');
-  if (d) d.classList.toggle('active', mode === 'dark');
+  const btn = document.getElementById('vb-theme-btn');
+  if (btn) btn.innerHTML = mode === 'light' ? plainIcon('moon', 15) : plainIcon('sun', 15);
+}
+
+function toggleVbTheme() {
+  const current = document.documentElement.getAttribute('data-theme') || 'light';
+  setVbTheme(current === 'light' ? 'dark' : 'light');
 }
 
 function renderVbNavbar(mountId, opts = {}) {
@@ -355,13 +359,10 @@ function renderVbNavbar(mountId, opts = {}) {
       </div>
     </div>
     <div class="vb-nav-right">
-      <div class="vb-theme-toggle">
-        <button class="vb-theme-btn" id="theme-light-btn" onclick="setVbTheme('light')" title="Light">${plainIcon('sun',15)}</button>
-        <button class="vb-theme-btn" id="theme-dark-btn" onclick="setVbTheme('dark')" title="Dark">${plainIcon('moon',15)}</button>
-      </div>
-      <span data-guest-only style="display:flex;gap:0.5rem;">
+      <button class="vb-theme-btn" id="vb-theme-btn" onclick="toggleVbTheme()" title="Toggle theme"></button>
+      <span data-guest-only class="vb-guest-actions" style="display:flex;gap:0.5rem;">
         <a href="/login/" class="nav-link">Log in</a>
-        <a href="/register/" class="btn-nav">Sign up</a>
+        <a href="/register/" class="btn-nav vb-signup-btn">Sign up</a>
       </span>
       <span data-auth-required style="display:none;">
         <a href="/dashboard/#profile" class="vb-profile-pill"><span class="vb-avatar">${initials}</span><span class="vb-profile-text"> My Profile</span></a>
