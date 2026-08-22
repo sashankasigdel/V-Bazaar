@@ -20,14 +20,13 @@ body{background:var(--cream);}
 .vb-pills-row{display:flex;gap:0.6rem;flex-wrap:wrap;margin-bottom:0.5rem;}
 
 /* Action icons (Call/WhatsApp/Directions/Save) + Outlet Info sit side by side,
-   right below the description — a 2x2 icon grid next to a compact info card,
-   matching the wireframe. Same layout at every screen width. */
-.vb-action-outlet-row{display:flex;gap:0.9rem;align-items:flex-start;margin-top:1.1rem;flex-wrap:wrap;}
-.vb-action-grid{display:grid;grid-template-columns:repeat(2,1fr);grid-auto-rows:min-content;align-content:start;gap:0.6rem;flex-shrink:0;}
-.vb-action-btn{width:50px;height:50px;border-radius:var(--radius-md);border:1.5px solid var(--border);background:white;display:flex;align-items:center;justify-content:center;color:var(--charcoal);transition:all var(--transition);}
+   right below the description, as a strict 50/50 split (grid, not flex, so
+   neither side can grow/shrink relative to the other regardless of content). */
+.vb-action-outlet-row{display:grid;grid-template-columns:1fr 1fr;gap:0.9rem;align-items:start;margin-top:1.1rem;}
+.vb-action-grid{display:grid;grid-template-columns:repeat(2,1fr);grid-auto-rows:min-content;align-content:start;gap:0.7rem;}
+.vb-action-btn{width:100%;aspect-ratio:1;border-radius:var(--radius-md);border:1.5px solid var(--border);background:white;display:flex;align-items:center;justify-content:center;color:var(--charcoal);transition:all var(--transition);}
 .vb-action-btn:hover{border-color:var(--saffron);background:var(--saffron-light);color:var(--saffron-dark);}
 .vb-action-btn.saved{color:var(--saffron);border-color:var(--saffron);background:var(--saffron-light);}
-.vb-outlet-box{flex:1;min-width:180px;}
 .vb-outlet-box h4{font-family:var(--font-body);margin-bottom:0.6rem;}
 
 /* Orders / Appointment / Booking — a fixed, collapsible bottom bar that only
@@ -56,11 +55,13 @@ body{background:var(--cream);}
 .vb-outlet-badges{display:flex;flex-wrap:wrap;gap:0.4rem;margin-top:0.4rem;}
 .vb-outlet-badge{font-size:0.72rem;padding:0.25rem 0.6rem;border-radius:999px;background:var(--cream-dark);color:var(--charcoal);}
 
-/* Tab bar: bordered pill buttons instead of the site-wide underline-tab style,
-   matching the wireframe. Overrides main.css's shared .tab-bar/.tab-btn, scoped
-   to this page only. */
-.tab-bar{display:flex;gap:0.6rem;border-bottom:none;margin-bottom:1.5rem;flex-wrap:wrap;}
-.tab-btn{padding:0.6rem 1.15rem;border:1.5px solid var(--border);border-radius:999px;background:white;color:var(--charcoal);font-weight:600;font-size:0.85rem;margin-bottom:0;white-space:nowrap;transition:all var(--transition);}
+/* Tab bar: bordered pill buttons instead of the site-wide underline-tab style
+   (overrides main.css's shared .tab-bar/.tab-btn, scoped to this page only),
+   and sticks to the top of the viewport — right below the main nav — once
+   scrolling would otherwise carry it out of view, instead of just scrolling
+   away with the rest of the page. */
+.tab-bar{position:sticky;top:var(--vb-nav-height,64px);z-index:50;background:var(--cream);display:flex;gap:0.6rem;border-bottom:1px solid var(--border-light);margin-bottom:1.5rem;padding:0.75rem 0;flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;}
+.tab-btn{padding:0.6rem 1.15rem;border:1.5px solid var(--border);border-radius:999px;background:white;color:var(--charcoal);font-weight:600;font-size:0.85rem;margin-bottom:0;white-space:nowrap;flex-shrink:0;transition:all var(--transition);}
 .tab-btn:hover{border-color:var(--saffron);}
 .tab-btn.active{background:var(--saffron);border-color:var(--saffron);color:white;}
 
@@ -68,8 +69,8 @@ body{background:var(--cream);}
    and a tighter 2x2 action-icon grid. */
 @media(max-width:600px){
   .vb-prod-group-grid,#gallery-grid,.vb-branch-grid{grid-template-columns:repeat(2,1fr);gap:0.6rem;}
-  .vb-action-btn{width:44px;height:44px;}
-  .vb-outlet-box{font-size:0.85rem;}
+  .vb-outlet-box{font-size:0.78rem;}
+  .vb-outlet-box h4{font-size:0.9rem;}
   .product-img{height:90px;font-size:1.5rem;}
   .product-body{padding:0.6rem;}
   .product-name{font-size:0.74rem;}
@@ -81,6 +82,7 @@ body{background:var(--cream);}
 
 html[data-theme="dark"] body{background:#1F2222;}
 html[data-theme="dark"] #content > div,html[data-theme="dark"] .dash-card{background:#242727;border-color:#3A3D3D;}
+html[data-theme="dark"] .tab-bar{background:#1F2222;border-color:#3A3D3D;}
 html[data-theme="dark"] .tab-btn{background:#242727;border-color:#3A3D3D;color:#D0D0D0;}
 html[data-theme="dark"] .tab-btn.active{background:var(--saffron);border-color:var(--saffron);color:white;}
 html[data-theme="dark"] .vb-outlet-badge{background:#2E3131;color:#D0D0D0;}
@@ -127,9 +129,9 @@ html[data-theme="dark"] .vb-order-bar-body{border-color:#3A3D3D;}
         </div>
         <div class="vb-outlet-box dash-card">
           <h4>Outlet Info</h4>
-          <div id="sidebar-info" style="display:flex;flex-direction:column;gap:0.6rem;font-size:0.85rem;"></div>
-          <div id="sidebar-today-hours" style="margin-top:0.6rem;font-size:0.82rem;font-weight:600;"></div>
-          <div class="vb-outlet-badges" id="sidebar-badges"></div>
+          <div id="sidebar-today-hours" style="font-size:0.82rem;font-weight:600;margin-bottom:0.6rem;"></div>
+          <div class="vb-outlet-badges" id="sidebar-badges" style="margin-bottom:0.6rem;"></div>
+          <div id="sidebar-info" style="display:flex;flex-direction:column;gap:0.5rem;font-size:0.85rem;"></div>
         </div>
       </div>
     </div>
@@ -212,14 +214,21 @@ document.getElementById('tabbtn-about').innerHTML = uiIcon('about') + ' About';
 document.getElementById('tabbtn-gallery').innerHTML = uiIcon('gallery') + ' Gallery';
 document.getElementById('tabbtn-branches').innerHTML = uiIcon('branch') + ' Branches';
 document.getElementById('tabbtn-reviews').innerHTML = uiIcon('reviews') + ' Review';
-document.getElementById('ic-save').innerHTML = plainIcon('heart', 18);
-document.getElementById('ic-wa').innerHTML = plainIcon('message', 18);
-document.getElementById('ic-call').innerHTML = plainIcon('phone', 18);
-document.getElementById('ic-maps').innerHTML = plainIcon('directions', 18);
+document.getElementById('ic-save').innerHTML = plainIcon('heart', 22);
+document.getElementById('ic-wa').innerHTML = plainIcon('message', 22);
+document.getElementById('ic-call').innerHTML = plainIcon('phone', 22);
+document.getElementById('ic-maps').innerHTML = plainIcon('directions', 22);
 document.getElementById('order-bar-chev').innerHTML = plainIcon('chevronDown', 16);
+
+function syncNavHeight() {
+  const nav = document.getElementById('vb-nav');
+  if (nav) document.documentElement.style.setProperty('--vb-nav-height', nav.offsetHeight + 'px');
+}
 
 async function init() {
   renderVbNavbar('vb-nav');
+  syncNavHeight();
+  window.addEventListener('resize', syncNavHeight);
   const resp = await API.getBusiness(slug);
   if (!resp.ok) { document.getElementById('loading').innerHTML = '<div class="empty-state"><div class="empty-icon">😕</div><h3>Not found</h3><a href="/" class="btn btn-primary" style="margin-top:1rem;">Go Home</a></div>'; return; }
   biz = resp.data;
@@ -305,11 +314,11 @@ function render() {
     document.getElementById('branches-empty').style.display = 'block';
   }
 
-  // Outlet Info
+  // Outlet Info — Opening Hour (sidebar-today-hours, set above) + amenities
+  // (sidebar-badges, set above) + Total Views + Total Order Completed only.
   document.getElementById('sidebar-info').innerHTML = [
-    b.phone ? `<div>${uiIcon('phone',15)} ${b.phone}</div>` : '',
-    `<div>${uiIcon('cart',15)} ${b.total_orders || 0} orders completed</div>`,
-    `<div>${uiIcon('eye',15)} ${b.total_views || 0} views</div>`,
+    `<div>${uiIcon('eye',15)} ${b.total_views || 0} Total Views</div>`,
+    `<div>${uiIcon('cart',15)} ${b.total_orders || 0} Total Order Completed</div>`,
   ].join('');
 
   // Gallery
