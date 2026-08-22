@@ -349,7 +349,7 @@ html[data-theme="dark"] body{background:#1F2222;}
 .vb-section-title{display:flex;align-items:center;gap:0.6rem;font-family:var(--font-body);font-weight:700;font-size:1.3rem;color:var(--charcoal);}
 .vb-premium-pill{background:linear-gradient(135deg,var(--saffron),var(--teal));color:white;font-size:0.7rem;font-weight:700;padding:0.2rem 0.7rem;border-radius:999px;text-transform:uppercase;letter-spacing:0.04em;box-shadow:0 2px 8px rgba(238,108,41,0.35);}
 @media(max-width:600px){
-  .vb-section{padding:1.25rem 0;}
+  .vb-section{padding:0rem 0;}
   .vb-section-head{margin-bottom:1rem;}
 }
 
