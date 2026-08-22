@@ -22,8 +22,8 @@ body{background:var(--cream);}
 /* Action icons (Call/WhatsApp/Directions/Save) + Outlet Info sit side by side,
    right below the description — a 2x2 icon grid next to a compact info card,
    matching the wireframe. Same layout at every screen width. */
-.vb-action-outlet-row{display:flex;gap:0.9rem;align-items:stretch;margin-top:1.1rem;flex-wrap:wrap;}
-.vb-action-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:0.6rem;flex-shrink:0;}
+.vb-action-outlet-row{display:flex;gap:0.9rem;align-items:flex-start;margin-top:1.1rem;flex-wrap:wrap;}
+.vb-action-grid{display:grid;grid-template-columns:repeat(2,1fr);grid-auto-rows:min-content;align-content:start;gap:0.6rem;flex-shrink:0;}
 .vb-action-btn{width:50px;height:50px;border-radius:var(--radius-md);border:1.5px solid var(--border);background:white;display:flex;align-items:center;justify-content:center;color:var(--charcoal);transition:all var(--transition);}
 .vb-action-btn:hover{border-color:var(--saffron);background:var(--saffron-light);color:var(--saffron-dark);}
 .vb-action-btn.saved{color:var(--saffron);border-color:var(--saffron);background:var(--saffron-light);}
@@ -56,16 +56,33 @@ body{background:var(--cream);}
 .vb-outlet-badges{display:flex;flex-wrap:wrap;gap:0.4rem;margin-top:0.4rem;}
 .vb-outlet-badge{font-size:0.72rem;padding:0.25rem 0.6rem;border-radius:999px;background:var(--cream-dark);color:var(--charcoal);}
 
+/* Tab bar: bordered pill buttons instead of the site-wide underline-tab style,
+   matching the wireframe. Overrides main.css's shared .tab-bar/.tab-btn, scoped
+   to this page only. */
+.tab-bar{display:flex;gap:0.6rem;border-bottom:none;margin-bottom:1.5rem;flex-wrap:wrap;}
+.tab-btn{padding:0.6rem 1.15rem;border:1.5px solid var(--border);border-radius:999px;background:white;color:var(--charcoal);font-weight:600;font-size:0.85rem;margin-bottom:0;white-space:nowrap;transition:all var(--transition);}
+.tab-btn:hover{border-color:var(--saffron);}
+.tab-btn.active{background:var(--saffron);border-color:var(--saffron);color:white;}
+
 /* Mobile: denser product/gallery/branch grids so tiles stay legible at full width,
    and a tighter 2x2 action-icon grid. */
 @media(max-width:600px){
   .vb-prod-group-grid,#gallery-grid,.vb-branch-grid{grid-template-columns:repeat(2,1fr);gap:0.6rem;}
   .vb-action-btn{width:44px;height:44px;}
   .vb-outlet-box{font-size:0.85rem;}
+  .product-img{height:90px;font-size:1.5rem;}
+  .product-body{padding:0.6rem;}
+  .product-name{font-size:0.74rem;}
+  .product-desc{display:none;}
+  .product-price{font-size:0.78rem;}
+  .add-to-cart-btn{width:24px;height:24px;font-size:1rem;}
+  .tab-btn{padding:0.5rem 0.85rem;font-size:0.78rem;}
 }
 
 html[data-theme="dark"] body{background:#1F2222;}
 html[data-theme="dark"] #content > div,html[data-theme="dark"] .dash-card{background:#242727;border-color:#3A3D3D;}
+html[data-theme="dark"] .tab-btn{background:#242727;border-color:#3A3D3D;color:#D0D0D0;}
+html[data-theme="dark"] .tab-btn.active{background:var(--saffron);border-color:var(--saffron);color:white;}
 html[data-theme="dark"] .vb-outlet-badge{background:#2E3131;color:#D0D0D0;}
 html[data-theme="dark"] .vb-branch-card{background:#242727;border-color:#3A3D3D;}
 html[data-theme="dark"] .vb-branch-name{color:#F0F0F0;}
