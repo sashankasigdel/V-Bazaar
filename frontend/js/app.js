@@ -69,9 +69,9 @@ const CATEGORY_ICON_PATHS = {
   default: '<path d="M3 9l1-5h16l1 5"/><path d="M3 9v10a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1V9"/><path d="M3 9h18"/><path d="M9 20v-6h6v6"/>',
 };
 
-function categoryIcon(slug, sizePx = 24) {
+function categoryIcon(slug, sizePx = 24, color = 'var(--saffron)') {
   const inner = CATEGORY_ICON_PATHS[slug] || CATEGORY_ICON_PATHS.default;
-  return `<svg width="${sizePx}" height="${sizePx}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="color:var(--saffron);vertical-align:middle;">${inner}</svg>`;
+  return `<svg width="${sizePx}" height="${sizePx}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="color:${color};vertical-align:middle;">${inner}</svg>`;
 }
 
 // ===== Brand-colored UI icons (replace multicolor emoji in nav/tabs) =====
