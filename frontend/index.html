@@ -56,7 +56,14 @@ body{background:var(--cream);}
 .vb-cat-tile:hover .vb-cat-icon{background:var(--saffron);color:white;box-shadow:0 6px 16px rgba(238,108,41,0.35);}
 .vb-cat-label{font-size:0.78rem;font-weight:500;text-align:center;color:var(--slate-light);line-height:1.25;transition:color var(--transition);}
 .vb-cat-tile:hover .vb-cat-label{color:var(--charcoal);font-weight:700;}
-@media(max-width:480px){ .vb-cat-tile{width:80px;padding:0.4rem;} .vb-cat-icon{width:52px;height:52px;border-radius:var(--radius-md);} }
+@media(max-width:600px){
+  /* Mobile always shows exactly 3 categories + "More" as 4 equal-width tiles
+     that fill the row edge-to-edge, instead of a variable count that can
+     leave an odd gap depending on exact screen width. */
+  .vb-cat-grid{gap:0.5rem;}
+  .vb-cat-tile{flex:1 1 0;width:auto;}
+}
+@media(max-width:480px){ .vb-cat-tile{padding:0.4rem;} .vb-cat-icon{width:52px;height:52px;border-radius:var(--radius-md);} }
 
 /* FOOTER */
 .vb-footer{background:var(--charcoal);color:rgba(255,255,255,0.7);padding:3.5rem 1.5rem 1.5rem;margin-top:2rem;}
@@ -339,22 +346,38 @@ async function loadCategories() {
 // devices to under- or over-fit by a tile), this adds every real tile, then trims
 // from the end based on the grid's actual measured scrollWidth vs. its visible
 // width — a direct measurement that can't be wrong regardless of device quirks.
+function makeMoreTile() {
+  const moreEl = document.createElement('div');
+  moreEl.className = 'vb-cat-tile';
+  moreEl.innerHTML = `<div class="vb-cat-icon">${plainIcon('more',20)}</div><div class="vb-cat-label">More</div>`;
+  moreEl.onclick = openCatModal;
+  return moreEl;
+}
+
 function renderCatRow() {
   const grid = document.getElementById('cat-grid');
   grid.innerHTML = '';
   if (!allCats.length) return;
-  const containerWidth = grid.clientWidth || grid.parentElement.clientWidth || (window.innerWidth - 48);
 
+  if (window.innerWidth <= 600) {
+    // Mobile: always a clean, fixed 3 categories + "More" (4 equal-width tiles,
+    // filled via flex:1 in CSS) instead of a variable measured count that can
+    // leave an odd gap depending on exact screen width.
+    const shown = allCats.slice(0, Math.min(3, allCats.length));
+    shown.forEach(c => grid.appendChild(makeCatTile(c)));
+    if (allCats.length > shown.length) grid.appendChild(makeMoreTile());
+    grid.style.justifyContent = '';
+    return;
+  }
+
+  // Desktop: fit as many real tiles as actually measure to fit, trimming from
+  // the end (making room for "More") based on the grid's real scrollWidth —
+  // a direct measurement that can't drift from what actually renders.
+  const containerWidth = grid.clientWidth || grid.parentElement.clientWidth || (window.innerWidth - 48);
   allCats.forEach(c => grid.appendChild(makeCatTile(c)));
 
-  let hasMore = false;
   if (grid.scrollWidth > containerWidth) {
-    hasMore = true;
-    const moreEl = document.createElement('div');
-    moreEl.className = 'vb-cat-tile';
-    moreEl.innerHTML = `<div class="vb-cat-icon">${plainIcon('more',20)}</div><div class="vb-cat-label">More</div>`;
-    moreEl.onclick = openCatModal;
-    grid.appendChild(moreEl);
+    grid.appendChild(makeMoreTile());
     while (grid.scrollWidth > containerWidth && grid.children.length > 1) {
       grid.removeChild(grid.children[grid.children.length - 2]);
     }
