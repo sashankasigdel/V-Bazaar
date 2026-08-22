@@ -360,10 +360,11 @@ function renderVbNavbar(mountId, opts = {}) {
     </div>
     <div class="vb-nav-right">
       <button class="vb-theme-btn" id="vb-theme-btn" onclick="toggleVbTheme()" title="Toggle theme"></button>
-      <span data-guest-only class="vb-guest-actions" style="display:flex;gap:0.5rem;">
+      <span data-guest-only class="vb-guest-actions">
         <a href="/login/" class="nav-link">Log in</a>
-        <a href="/register/" class="btn-nav vb-signup-btn">Sign up</a>
+        <a href="/register/" class="btn-nav">Sign up</a>
       </span>
+      <a data-guest-only href="/login/" class="vb-avatar-link" title="Log in"><span class="vb-avatar">${plainIcon('user',14)}</span></a>
       <span data-auth-required style="display:none;">
         <a href="/dashboard/#profile" class="vb-profile-pill"><span class="vb-avatar">${initials}</span><span class="vb-profile-text"> My Profile</span></a>
       </span>

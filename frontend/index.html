@@ -70,10 +70,31 @@ body{background:var(--cream);}
 @media(max-width:700px){ .vb-footer-grid{grid-template-columns:1fr 1fr;} }
 @media(max-width:420px){ .vb-footer-grid{grid-template-columns:1fr;} }
 
+/* NEARBY BUSINESSES — mobile-only funnel button replacing the desktop sort/filter row
+   with a compact dropdown menu (Distance / Top Rated / Favourite), matching a native
+   mobile app's single filter-icon pattern instead of a row of controls. */
+.vb-filter-funnel-wrap{display:none;position:relative;}
+.vb-filter-funnel-btn{width:38px;height:38px;border-radius:50%;background:white;border:1.5px solid var(--border);display:flex;align-items:center;justify-content:center;color:var(--charcoal);cursor:pointer;transition:all var(--transition);}
+.vb-filter-funnel-btn:hover,.vb-filter-funnel-btn.active{border-color:var(--saffron);background:var(--saffron-light);color:var(--saffron-dark);}
+.vb-filter-funnel-menu{display:none;position:absolute;top:calc(100% + 0.5rem);right:0;background:white;border:1.5px solid var(--border);border-radius:var(--radius-md);box-shadow:var(--shadow-lg);min-width:170px;z-index:60;overflow:hidden;}
+.vb-filter-funnel-menu.open{display:block;}
+.vb-filter-funnel-menu button{display:flex;align-items:center;gap:0.6rem;width:100%;padding:0.75rem 1rem;text-align:left;font-size:0.85rem;font-weight:600;color:var(--charcoal);border-bottom:1px solid var(--border-light);transition:all var(--transition);}
+.vb-filter-funnel-menu button:last-child{border-bottom:none;}
+.vb-filter-funnel-menu button:hover{background:var(--saffron-light);}
+.vb-filter-funnel-menu button.active{background:var(--saffron-light);color:var(--saffron-dark);}
+@media(max-width:640px){
+  .vb-filter-row{display:none;}
+  .vb-filter-funnel-wrap{display:block;}
+}
+
 /* DARK THEME (scoped to this page's own components only — shared vb- component dark rules live in main.css) */
 html[data-theme="dark"] .vb-cat-tile{background:#242727;border-color:#3A3D3D;}
 html[data-theme="dark"] .vb-cat-icon{background:#2E3131;color:#E0E0E0;}
 html[data-theme="dark"] .vb-cat-label{color:#D0D0D0;}
+html[data-theme="dark"] .vb-filter-funnel-btn{background:#242727;border-color:#3A3D3D;color:#D0D0D0;}
+html[data-theme="dark"] .vb-filter-funnel-menu{background:#242727;border-color:#3A3D3D;}
+html[data-theme="dark"] .vb-filter-funnel-menu button{color:#E0E0E0;border-color:#3A3D3D;}
+html[data-theme="dark"] .vb-filter-funnel-menu button:hover,html[data-theme="dark"] .vb-filter-funnel-menu button.active{background:#3A3226;}
 </style>
 </head>
 <body>
@@ -161,6 +182,14 @@ html[data-theme="dark"] .vb-cat-label{color:#D0D0D0;}
         <label class="vb-filter-check"><input type="checkbox" id="open-now" onchange="filterOpenNow(this.checked)"><span id="ic-open-now"></span> Open Now</label>
         <label class="vb-filter-check"><input type="checkbox" id="fav-only" onchange="filterFavOnly(this.checked)"><span id="ic-fav"></span> Favourite</label>
       </div>
+      <div class="vb-filter-funnel-wrap" id="funnel-wrap">
+        <button class="vb-filter-funnel-btn" id="funnel-btn" onclick="toggleFunnelMenu(event)"></button>
+        <div class="vb-filter-funnel-menu" id="funnel-menu">
+          <button id="funnel-distance" onclick="applyMobileSort('distance')"></button>
+          <button id="funnel-toprated" onclick="applyMobileSort('rating')"></button>
+          <button id="funnel-favourite" onclick="toggleMobileFavourite()"></button>
+        </div>
+      </div>
     </div>
     <div class="vb-card-grid" id="biz-grid">
       <div class="skeleton" style="height:260px;border-radius:18px;"></div>
@@ -205,9 +234,14 @@ document.getElementById('ic-crown').innerHTML = coloredIcon('crown', 20, 'var(--
 document.getElementById('ic-sort').innerHTML = plainIcon('filter', 14);
 document.getElementById('ic-open-now').innerHTML = plainIcon('clock', 14);
 document.getElementById('ic-fav').innerHTML = plainIcon('heart', 14);
+document.getElementById('funnel-btn').innerHTML = plainIcon('filter', 16);
+document.getElementById('funnel-distance').innerHTML = plainIcon('location', 14) + ' Distance';
+document.getElementById('funnel-toprated').innerHTML = plainIcon('starFilled', 14) + ' Top Rated';
+document.getElementById('funnel-favourite').innerHTML = plainIcon('heart', 14) + ' Favourite';
 
 async function init() {
   renderVbNavbar('vb-nav');
+  updateFunnelActiveStates();
   await loadAds();
   await loadCategories();
   await loadFeatured();
@@ -373,6 +407,7 @@ function initFeaturedAutoScroll() {
 }
 
 let favOnly = false;
+let sortMode = 'rating'; // 'rating' | 'distance' — mobile funnel menu's Distance option is client-side, since the API can't order by a computed field.
 
 async function loadBusinesses(append = false) {
   const grid = document.getElementById('biz-grid');
@@ -383,6 +418,7 @@ async function loadBusinesses(append = false) {
   const resp = await API.getBusinesses(p);
   let bizs = resp.data?.results || resp.data || [];
   if (favOnly) bizs = bizs.filter(b => b.is_saved);
+  if (sortMode === 'distance' && userLoc) bizs = [...bizs].sort((a, b) => (a.distance ?? Infinity) - (b.distance ?? Infinity));
   const html = bizs.map(b => renderVbCard(b, false, userLoc?.lat, userLoc?.lon)).join('');
   if (append) grid.innerHTML += html;
   else grid.innerHTML = html || '<div class="empty-state"><div class="empty-icon">🔍</div><h3>No businesses found</h3><p>Try adjusting filters.</p></div>';
@@ -390,14 +426,60 @@ async function loadBusinesses(append = false) {
   wrap.innerHTML = (!favOnly && resp.data?.next) ? `<button class="btn btn-secondary" onclick="page++;loadBusinesses(true)">Load More</button>` : '';
 }
 
-function sortBiz(v) { params.ordering = v; page = 1; loadBusinesses(); }
+function sortBiz(v) { sortMode = 'rating'; params.ordering = v; page = 1; loadBusinesses(); updateFunnelActiveStates(); }
 function filterOpenNow(v) { if (v) params.open_now = 'true'; else delete params.open_now; loadBusinesses(); }
-function filterFavOnly(v) { favOnly = v; loadBusinesses(); }
+function filterFavOnly(v) { favOnly = v; loadBusinesses(); updateFunnelActiveStates(); }
+
+// Mobile "Nearby Businesses" funnel menu — compact alternative to the desktop filter row.
+function toggleFunnelMenu(e) {
+  e.stopPropagation();
+  document.getElementById('funnel-btn').classList.toggle('active');
+  document.getElementById('funnel-menu').classList.toggle('open');
+}
+function closeFunnelMenu() {
+  document.getElementById('funnel-btn').classList.remove('active');
+  document.getElementById('funnel-menu').classList.remove('open');
+}
+document.addEventListener('click', (e) => {
+  const wrap = document.getElementById('funnel-wrap');
+  if (wrap && !wrap.contains(e.target)) closeFunnelMenu();
+});
+
+function updateFunnelActiveStates() {
+  document.getElementById('funnel-distance')?.classList.toggle('active', sortMode === 'distance');
+  document.getElementById('funnel-toprated')?.classList.toggle('active', sortMode !== 'distance');
+  document.getElementById('funnel-favourite')?.classList.toggle('active', favOnly);
+}
+
+let pendingDistanceSort = false;
+
+function applyMobileSort(mode) {
+  if (mode === 'distance' && !userLoc) {
+    closeFunnelMenu();
+    pendingDistanceSort = true;
+    document.getElementById('location-modal-overlay').classList.add('open');
+    return;
+  }
+  sortMode = mode;
+  params.ordering = '-average_rating';
+  page = 1;
+  closeFunnelMenu();
+  updateFunnelActiveStates();
+  loadBusinesses();
+}
+function toggleMobileFavourite() {
+  favOnly = !favOnly;
+  document.getElementById('fav-only').checked = favOnly;
+  closeFunnelMenu();
+  updateFunnelActiveStates();
+  loadBusinesses();
+}
 async function detectLocation() {
   try {
     userLoc = await Location.detect();
     document.getElementById('location-modal-overlay').classList.remove('open');
     UI.toast('Location detected!', 'success');
+    if (pendingDistanceSort) { sortMode = 'distance'; pendingDistanceSort = false; updateFunnelActiveStates(); }
     await loadBusinesses();
     await loadFeatured();
   } catch { UI.toast('Could not detect location.', 'error'); }
