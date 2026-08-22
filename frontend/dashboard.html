@@ -15,6 +15,10 @@
 .t-label{font-size:0.65rem;color:var(--slate-light);margin-top:0.3rem;text-align:center;}
 .t-line{flex:1;height:2px;background:var(--border);margin-top:-22px;}
 .t-line.done{background:var(--saffron);}
+.timeline-scroll-hint{display:none;font-size:0.7rem;color:var(--slate-light);margin-top:0.75rem;}
+@media(max-width:480px){
+  .timeline-scroll-hint{display:block;}
+}
 </style>
 </head>
 <body>
@@ -137,7 +141,7 @@ async function loadOrders() {
   list.innerHTML = orders.map(o => {
     const si = STEPS.indexOf(o.status);
     const isCan = o.status==='cancelled';
-    const timeline = isCan ? '' : `<div class="timeline">${STEPS.map((s,i)=>`${i>0?`<div class="t-line ${i<=si?'done':''}"></div>`:''}<div class="t-step"><div class="t-dot ${i<si?'done':i===si?'cur':''}">${i<si?'✓':i+1}</div><div class="t-label">${LABELS[s]}</div></div>`).join('')}</div>`;
+    const timeline = isCan ? '' : `<div class="timeline">${STEPS.map((s,i)=>`${i>0?`<div class="t-line ${i<=si?'done':''}"></div>`:''}<div class="t-step"><div class="t-dot ${i<si?'done':i===si?'cur':''}">${i<si?'✓':i+1}</div><div class="t-label">${LABELS[s]}</div></div>`).join('')}</div><p class="timeline-scroll-hint">↔ Swipe to see all steps</p>`;
     return `<div class="order-card"><div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:0.75rem;flex-wrap:wrap;gap:0.5rem;"><div><div style="font-weight:700;font-size:0.95rem;">Order #${o.id} — ${o.business_name||''}</div><div style="font-size:0.78rem;color:var(--slate-light);">${UI.formatDate(o.created_at)} · ${o.item_count} item${o.item_count!==1?'s':''}</div></div><div style="display:flex;align-items:center;gap:0.75rem;"><span class="status-pill ${SCLS[o.status]||'status-pending'}">${LABELS[o.status]||o.status}</span><span style="font-weight:700;color:var(--saffron);">${UI.formatPrice(o.total)}</span></div></div>${timeline}<div style="font-size:0.8rem;color:var(--slate-light);margin-top:0.5rem;">${o.is_paid?'✅ Paid':'⏳ '+(o.payment_method==='cash'?'Pay on delivery':'Payment pending')}</div></div>`;
   }).join('');
 }

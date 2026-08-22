@@ -15,6 +15,12 @@ body{background:var(--cream);}
   #logo{width:64px;height:64px;margin-top:-32px;font-size:1.6rem;}
   #biz-name{font-size:1.35rem;}
 }
+/* On mobile the split-layout stacks into one column (main.css, ≤768px) — move the
+   Orders/Booking + Outlet Info sidebar above the tabs so the primary action isn't
+   buried at the bottom of a long page, and drop sticky since it's a no-op stacked. */
+@media(max-width:768px){
+  .vb-biz-sidebar{order:-1;position:static !important;margin-bottom:1.25rem;}
+}
 .vb-prod-group-title{font-family:var(--font-body);font-weight:700;font-size:1rem;color:var(--charcoal);margin:1.5rem 0 0.9rem;}
 .vb-prod-group-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:1rem;margin-bottom:0.5rem;}
 .vb-branch-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:1.1rem;}
@@ -120,7 +126,7 @@ html[data-theme="dark"] .vb-branch-name{color:#F0F0F0;}
         </div>
       </div>
 
-      <div style="position:sticky;top:80px;">
+      <div class="vb-biz-sidebar" style="position:sticky;top:80px;">
         <div class="dash-card">
           <h4 style="font-family:var(--font-body);margin-bottom:0.25rem;">Orders / Appointment / Booking</h4>
           <p id="order-subtitle" style="font-size:0.82rem;color:var(--slate-light);margin-bottom:1rem;">Add items from the Product tab</p>
