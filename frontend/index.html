@@ -334,50 +334,36 @@ async function loadCategories() {
     : '<li><a href="/search/">All Categories</a></li>';
 }
 
-// Fits as many category tiles as actually fit on one row (measured, not hardcoded),
-// with a "More" tile that opens the full list for anything that doesn't fit.
+// Fits as many category tiles as actually fit on one row. Rather than estimating
+// tile/gap sizes and computing a count (which drifts from reality enough on real
+// devices to under- or over-fit by a tile), this adds every real tile, then trims
+// from the end based on the grid's actual measured scrollWidth vs. its visible
+// width — a direct measurement that can't be wrong regardless of device quirks.
 function renderCatRow() {
   const grid = document.getElementById('cat-grid');
   grid.innerHTML = '';
   if (!allCats.length) return;
   const containerWidth = grid.clientWidth || grid.parentElement.clientWidth || (window.innerWidth - 48);
 
-  // Measure the real rendered tile width instead of assuming 80/100px — an estimate
-  // can be off by enough (font metrics, borders, sub-pixel rounding) to under-fit a
-  // tile that would otherwise comfortably fit on a given phone.
-  const probe = makeCatTile(allCats[0]);
-  probe.style.visibility = 'hidden';
-  grid.appendChild(probe);
-  const tile = probe.getBoundingClientRect().width || (window.innerWidth <= 480 ? 80 : 100);
-  const gap = parseFloat(getComputedStyle(grid).columnGap) || 16;
-  grid.removeChild(probe);
+  allCats.forEach(c => grid.appendChild(makeCatTile(c)));
 
-  // How many tiles (min tile+gap each) actually fit on this row?
-  const fitCount = Math.max(1, Math.floor((containerWidth + gap) / (tile + gap)));
-
-  let shown;
-  if (allCats.length <= fitCount) {
-    shown = allCats.slice();
-  } else {
-    // Reserve exactly one slot for the "More" tile at the end.
-    shown = allCats.slice(0, Math.max(1, fitCount - 1));
-  }
-  shown.forEach(c => grid.appendChild(makeCatTile(c)));
-
-  const hasMore = allCats.length > shown.length;
-  if (hasMore) {
+  let hasMore = false;
+  if (grid.scrollWidth > containerWidth) {
+    hasMore = true;
     const moreEl = document.createElement('div');
     moreEl.className = 'vb-cat-tile';
     moreEl.innerHTML = `<div class="vb-cat-icon">${plainIcon('more',20)}</div><div class="vb-cat-label">More</div>`;
     moreEl.onclick = openCatModal;
     grid.appendChild(moreEl);
+    while (grid.scrollWidth > containerWidth && grid.children.length > 1) {
+      grid.removeChild(grid.children[grid.children.length - 2]);
+    }
   }
 
   // Instead of packing tiles tight from the left (which leaves an awkward dead
   // zone on the right when the row isn't perfectly full), spread them evenly
   // across the whole row so the row always looks filled edge-to-edge.
-  const totalShown = shown.length + (hasMore ? 1 : 0);
-  grid.style.justifyContent = totalShown > 1 ? 'space-between' : 'flex-start';
+  grid.style.justifyContent = grid.children.length > 1 ? 'space-between' : 'flex-start';
 }
 
 function openCatModal() {
