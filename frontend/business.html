@@ -15,12 +15,6 @@ body{background:var(--cream);}
   #logo{width:64px;height:64px;margin-top:-32px;font-size:1.6rem;}
   #biz-name{font-size:1.35rem;}
 }
-/* On mobile the split-layout stacks into one column (main.css, ≤768px) — move the
-   Orders/Booking + Outlet Info sidebar above the tabs so the primary action isn't
-   buried at the bottom of a long page, and drop sticky since it's a no-op stacked. */
-@media(max-width:768px){
-  .vb-biz-sidebar{order:-1;position:static !important;margin-bottom:1.25rem;}
-}
 .vb-prod-group-title{font-family:var(--font-body);font-weight:700;font-size:1rem;color:var(--charcoal);margin:1.5rem 0 0.9rem;}
 .vb-prod-group-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:1rem;margin-bottom:0.5rem;}
 .vb-branch-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:1.1rem;}
@@ -34,6 +28,48 @@ body{background:var(--cream);}
 .vb-review-reply-toggle .chev{display:inline-block;transition:transform 0.2s;}
 .vb-outlet-badges{display:flex;flex-wrap:wrap;gap:0.4rem;margin-top:0.4rem;}
 .vb-outlet-badge{font-size:0.72rem;padding:0.25rem 0.6rem;border-radius:999px;background:var(--cream-dark);color:var(--charcoal);}
+
+/* Mobile keeps the two-column layout (content + Outlet Info sidebar) instead of
+   stacking to one column — the sidebar just gets much narrower, matching the
+   wireframe where Orders/Booking + Outlet Info persist alongside the tab content.
+   Placed after the base component rules above so these overrides actually win
+   (a later unqualified rule would otherwise beat an earlier media-query rule
+   of equal specificity). */
+@media(max-width:768px){
+  .split-layout{grid-template-columns:1fr 108px;gap:0.6rem;align-items:start;}
+  .vb-biz-sidebar{position:static;}
+  .vb-biz-sidebar .dash-card{padding:0.6rem;margin-bottom:0.6rem;}
+  .vb-biz-sidebar h4{font-size:0.7rem;line-height:1.25;margin-bottom:0.4rem;}
+  .vb-biz-sidebar #order-subtitle,.vb-biz-sidebar #cart-hint{font-size:0.62rem;}
+  .vb-biz-sidebar #sidebar-info{font-size:0.62rem;gap:0.4rem;}
+  .vb-biz-sidebar #sidebar-info svg{width:11px;height:11px;}
+  .vb-outlet-badge{font-size:0.58rem;padding:0.15rem 0.4rem;}
+  .vb-biz-sidebar .btn{font-size:0.65rem;padding:0.4rem 0.3rem;}
+  .vb-biz-sidebar #mini-cart{max-height:140px !important;}
+
+  /* Denser grids so tiles stay legible inside the narrower content column. */
+  .vb-prod-group-grid,#gallery-grid,.vb-branch-grid{grid-template-columns:repeat(2,1fr);gap:0.6rem;}
+  .product-img{height:90px;font-size:1.5rem;}
+  .product-body{padding:0.6rem;}
+  .product-name{font-size:0.74rem;}
+  .product-desc{display:none;}
+  .product-price{font-size:0.78rem;}
+  .add-to-cart-btn{width:24px;height:24px;font-size:1rem;}
+
+  /* Compact header: icon-only Call/WhatsApp/Directions (Save keeps its label). */
+  .vb-icon-btn{width:38px;height:38px;padding:0;border-radius:50%;justify-content:center;}
+  .vb-icon-btn .btn-label{display:none;}
+  .tab-btn{padding:0.55rem 0.75rem;font-size:0.8rem;}
+}
+@media(max-width:480px){
+  .split-layout{grid-template-columns:1fr 92px;gap:0.5rem;}
+  .vb-prod-group-grid,#gallery-grid,.vb-branch-grid{gap:0.5rem;}
+  .vb-branch-photo{width:52px;height:52px;}
+  .vb-branch-card{padding:0.7rem 0.4rem;gap:0.35rem;}
+  .vb-branch-name{font-size:0.72rem;}
+  .vb-branch-loc{font-size:0.64rem;}
+}
+
 html[data-theme="dark"] body{background:#1F2222;}
 html[data-theme="dark"] #content > div,html[data-theme="dark"] .dash-card{background:#242727;border-color:#3A3D3D;}
 html[data-theme="dark"] .vb-outlet-badge{background:#2E3131;color:#D0D0D0;}
@@ -63,13 +99,14 @@ html[data-theme="dark"] .vb-branch-name{color:#F0F0F0;}
                 <span id="biz-status" style="display:inline-flex;align-items:center;gap:0.4rem;padding:0.35rem 0.875rem;border-radius:999px;background:var(--cream-dark);font-size:0.82rem;"></span>
                 <span id="biz-rating" style="display:inline-flex;align-items:center;gap:0.4rem;padding:0.35rem 0.875rem;border-radius:999px;background:var(--cream-dark);font-size:0.82rem;"></span>
               </div>
+              <div id="biz-location" style="display:flex;align-items:center;gap:0.35rem;font-size:0.8rem;color:var(--slate-light);margin-bottom:0.4rem;"></div>
               <p id="biz-short" style="color:var(--slate-mid);font-size:0.9rem;"></p>
             </div>
             <div style="display:flex;gap:0.75rem;flex-wrap:wrap;">
               <button id="save-btn" onclick="toggleSaveB()" class="btn btn-secondary btn-sm"></button>
-              <a id="wa-btn" href="#" target="_blank" class="btn btn-success btn-sm" style="display:none;"><span id="ic-wa"></span> WhatsApp</a>
-              <a id="call-btn" href="#" class="btn btn-secondary btn-sm" style="display:none;"><span id="ic-call"></span> Call</a>
-              <a id="maps-btn" href="#" target="_blank" class="btn btn-secondary btn-sm"><span id="ic-maps"></span> Directions</a>
+              <a id="wa-btn" href="#" target="_blank" class="btn btn-success btn-sm vb-icon-btn" style="display:none;"><span id="ic-wa"></span><span class="btn-label"> WhatsApp</span></a>
+              <a id="call-btn" href="#" class="btn btn-secondary btn-sm vb-icon-btn" style="display:none;"><span id="ic-call"></span><span class="btn-label"> Call</span></a>
+              <a id="maps-btn" href="#" target="_blank" class="btn btn-secondary btn-sm vb-icon-btn"><span id="ic-maps"></span><span class="btn-label"> Directions</span></a>
             </div>
           </div>
         </div>
@@ -191,6 +228,7 @@ function render() {
   document.getElementById('biz-short').textContent = b.short_description || '';
   document.getElementById('biz-desc').textContent = b.description || '';
   document.getElementById('biz-cat').innerHTML = `${categoryIcon(b.category?.slug, 16)} ${b.category?.name || 'Business'}`;
+  document.getElementById('biz-location').innerHTML = b.city ? `${uiIcon('location',13)} ${b.address ? b.address + ', ' : ''}${b.city}` : '';
   if (b.is_open !== null) document.getElementById('biz-status').innerHTML = b.is_open ? '<span style="color:var(--success);">● Open Now</span>' : '<span style="color:var(--danger);">● Closed</span>';
   if (b.accepts_orders === false) document.getElementById('order-subtitle').innerHTML = '<span style="color:var(--danger);font-weight:600;">Not accepting orders right now</span>';
   document.getElementById('biz-rating').textContent = b.average_rating > 0 ? `⭐ ${parseFloat(b.average_rating).toFixed(1)} (${b.total_reviews})` : '☆ No reviews';
