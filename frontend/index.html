@@ -338,9 +338,18 @@ async function loadCategories() {
 function renderCatRow() {
   const grid = document.getElementById('cat-grid');
   grid.innerHTML = '';
+  if (!allCats.length) return;
   const containerWidth = grid.clientWidth || grid.parentElement.clientWidth || (window.innerWidth - 48);
-  const tile = window.innerWidth <= 480 ? 80 : 100;
-  const gap = 16;
+
+  // Measure the real rendered tile width instead of assuming 80/100px — an estimate
+  // can be off by enough (font metrics, borders, sub-pixel rounding) to under-fit a
+  // tile that would otherwise comfortably fit on a given phone.
+  const probe = makeCatTile(allCats[0]);
+  probe.style.visibility = 'hidden';
+  grid.appendChild(probe);
+  const tile = probe.getBoundingClientRect().width || (window.innerWidth <= 480 ? 80 : 100);
+  const gap = parseFloat(getComputedStyle(grid).columnGap) || 16;
+  grid.removeChild(probe);
 
   // How many tiles (min tile+gap each) actually fit on this row?
   const fitCount = Math.max(1, Math.floor((containerWidth + gap) / (tile + gap)));
