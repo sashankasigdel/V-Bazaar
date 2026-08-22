@@ -1,0 +1,18 @@
+{
+  "trailingSlash": true,
+  "rewrites": [
+    { "source": "/login/", "destination": "/login.html" },
+    { "source": "/register/", "destination": "/register.html" },
+    { "source": "/business/", "destination": "/business.html" },
+    { "source": "/search/", "destination": "/search.html" },
+    { "source": "/checkout/", "destination": "/checkout.html" },
+    { "source": "/dashboard/", "destination": "/dashboard.html" },
+    { "source": "/business-dashboard/", "destination": "/business-dashboard.html" },
+    { "source": "/payment-success/", "destination": "/payment-success.html" },
+    { "source": "/admin-dashboard/", "destination": "/admin-dashboard.html" },
+    { "source": "/admin-login/", "destination": "/admin-login.html" },
+    { "source": "/admin-add-business/", "destination": "/admin-add-business.html" },
+    { "source": "/about/", "destination": "/about.html" },
+    { "source": "/contact/", "destination": "/contact.html" }
+  ]
+}
