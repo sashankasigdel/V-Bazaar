@@ -11,6 +11,8 @@ class BusinessCategorySerializer(serializers.ModelSerializer):
         fields = ['id', 'name', 'slug', 'icon', 'description', 'business_count']
 
     def get_business_count(self, obj):
+        if hasattr(obj, 'active_business_count'):
+            return obj.active_business_count
         return obj.businesses.filter(status='active').count()
 
 

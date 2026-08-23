@@ -2,6 +2,7 @@ from rest_framework import generics, permissions, status, filters
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
+from django.db.models import Count, Q
 from .models import Business, BusinessCategory, BusinessHours, BusinessGallery, Advertisement
 from .serializers import (
     BusinessListSerializer, BusinessDetailSerializer,
@@ -12,9 +13,14 @@ import math
 
 
 class BusinessCategoryListView(generics.ListAPIView):
-    queryset = BusinessCategory.objects.all()
     serializer_class = BusinessCategorySerializer
     permission_classes = [permissions.AllowAny]
+    pagination_class = None
+
+    def get_queryset(self):
+        return BusinessCategory.objects.annotate(
+            active_business_count=Count('businesses', filter=Q(businesses__status='active'))
+        ).order_by('-active_business_count', 'name')
 
 
 class BusinessListView(generics.ListAPIView):
