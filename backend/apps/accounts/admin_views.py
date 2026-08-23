@@ -81,6 +81,7 @@ def admin_businesses(request):
             'id': b.id,
             'name': b.name,
             'slug': b.slug,
+            'owner_id': b.owner_id,
             'owner_email': b.owner.email,
             'owner_name': b.owner.get_full_name(),
             'category': b.category.name if b.category else '',
@@ -97,6 +98,8 @@ def admin_businesses(request):
             'has_banner': bool(b.banner),
             'parent_id': b.parent_id,
             'parent_name': b.parent.name if b.parent else '',
+            'business_code': b.business_code,
+            'branch_code': b.branch_code,
             'created_at': b.created_at.isoformat(),
         })
     return Response(data)
@@ -332,6 +335,32 @@ def admin_delete_business(request, pk):
         return Response({'error': 'Not found.'}, status=404)
 
 
+@api_view(['POST'])
+@permission_classes([IsAdminUser])
+def admin_archive_business(request, pk):
+    try:
+        business = Business.objects.get(pk=pk)
+    except Business.DoesNotExist:
+        return Response({'error': 'Not found.'}, status=404)
+    business.status = Business.Status.ARCHIVED
+    business.save(update_fields=['status'])
+    if request.data.get('archive_branches'):
+        business.branches.exclude(status=Business.Status.ARCHIVED).update(status=Business.Status.ARCHIVED)
+    return Response({'id': business.id, 'status': business.status, 'branch_count': business.branches.count()})
+
+
+@api_view(['POST'])
+@permission_classes([IsAdminUser])
+def admin_restore_business(request, pk):
+    try:
+        business = Business.objects.get(pk=pk)
+    except Business.DoesNotExist:
+        return Response({'error': 'Not found.'}, status=404)
+    business.status = Business.Status.ACTIVE
+    business.save(update_fields=['status'])
+    return Response({'id': business.id, 'status': business.status})
+
+
 @api_view(['GET'])
 @permission_classes([IsAdminUser])
 def admin_users(request):
@@ -373,6 +402,22 @@ def admin_update_user(request, pk):
         return Response({'id': user.id, 'is_active': user.is_active})
     except User.DoesNotExist:
         return Response({'error': 'Not found.'}, status=404)
+
+
+@api_view(['POST'])
+@permission_classes([IsAdminUser])
+def admin_reset_user_password(request, pk):
+    """Super Admin resets any Business/Branch Admin's password. Returns the new
+    password once — it is never stored or displayable again."""
+    import secrets
+    try:
+        user = User.objects.get(pk=pk)
+    except User.DoesNotExist:
+        return Response({'error': 'Not found.'}, status=404)
+    new_password = secrets.token_urlsafe(9)
+    user.set_password(new_password)
+    user.save(update_fields=['password'])
+    return Response({'email': user.email, 'new_password': new_password})
 
 
 @api_view(['DELETE'])
@@ -460,7 +505,8 @@ def admin_delete_review(request, pk):
 @permission_classes([IsAdminUser])
 def admin_categories(request):
     cats = BusinessCategory.objects.all()
-    data = [{'id': c.id, 'name': c.name, 'slug': c.slug, 'icon': c.icon, 'order': c.order, 'business_count': c.businesses.count()} for c in cats]
+    data = [{'id': c.id, 'name': c.name, 'slug': c.slug, 'icon': c.icon, 'order': c.order,
+             'category_code': c.category_code, 'business_count': c.businesses.count()} for c in cats]
     return Response(data)
 
 

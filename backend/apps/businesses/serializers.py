@@ -8,7 +8,7 @@ class BusinessCategorySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = BusinessCategory
-        fields = ['id', 'name', 'slug', 'icon', 'description', 'business_count']
+        fields = ['id', 'name', 'slug', 'icon', 'description', 'business_count', 'category_code']
 
     def get_business_count(self, obj):
         if hasattr(obj, 'active_business_count'):
@@ -45,7 +45,8 @@ class BusinessListSerializer(serializers.ModelSerializer):
                   'short_description', 'address', 'city', 'latitude', 'longitude',
                   'average_rating', 'total_reviews', 'is_featured',
                   'distance', 'is_open', 'is_saved', 'status', 'phone',
-                  'accepts_orders', 'is_verified', 'parent', 'parent_name']
+                  'accepts_orders', 'is_verified', 'parent', 'parent_name',
+                  'business_code', 'branch_code']
 
     def get_distance(self, obj):
         request = self.context.get('request')
@@ -85,7 +86,7 @@ class BusinessListSerializer(serializers.ModelSerializer):
 class BranchSummarySerializer(serializers.ModelSerializer):
     class Meta:
         model = Business
-        fields = ['id', 'name', 'slug', 'city', 'status', 'logo']
+        fields = ['id', 'name', 'slug', 'city', 'status', 'logo', 'branch_code']
 
 
 class BusinessDetailSerializer(serializers.ModelSerializer):
@@ -109,6 +110,7 @@ class BusinessDetailSerializer(serializers.ModelSerializer):
                   'is_registered', 'has_parking', 'offer_delivery',
                   'average_rating', 'total_reviews', 'total_orders', 'total_views',
                   'parent', 'parent_name', 'parent_slug', 'branches',
+                  'business_code', 'branch_code',
                   'hours', 'gallery', 'is_open', 'is_saved', 'distance', 'created_at']
 
     def get_is_open(self, obj):
@@ -158,6 +160,7 @@ def _unique_slug(name):
 
 class BusinessCreateUpdateSerializer(serializers.ModelSerializer):
     category = serializers.PrimaryKeyRelatedField(queryset=BusinessCategory.objects.all(), required=True)
+    owner_email = serializers.EmailField(required=False, allow_blank=True, write_only=True)
 
     class Meta:
         model = Business
@@ -165,7 +168,7 @@ class BusinessCreateUpdateSerializer(serializers.ModelSerializer):
                   'address', 'city', 'state', 'latitude', 'longitude',
                   'phone', 'whatsapp', 'email', 'website', 'facebook', 'instagram',
                   'payment_mode', 'card_payment', 'free_wifi', 'smoking', 'offer_package',
-                  'is_registered', 'has_parking', 'offer_delivery']
+                  'is_registered', 'has_parking', 'offer_delivery', 'owner_email']
 
     def validate_parent(self, value):
         if value is not None and value.owner_id != self.context['request'].user.id:
@@ -173,9 +176,32 @@ class BusinessCreateUpdateSerializer(serializers.ModelSerializer):
         return value
 
     def create(self, validated_data):
+        # owner_email lets a Business Admin assign a Branch Admin (a different
+        # login) to a new branch. Only honored for branches — validate_parent
+        # above already confirmed the requesting user owns the parent business.
+        from apps.accounts.services import get_or_create_dummy_business_owner
+        request = self.context['request']
+        owner_email = validated_data.pop('owner_email', '') or None
         validated_data['slug'] = _unique_slug(validated_data.get('name', ''))
-        validated_data['owner'] = self.context['request'].user
+        if validated_data.get('parent') is not None and owner_email:
+            owner, _created = get_or_create_dummy_business_owner(email=owner_email)
+            validated_data['owner'] = owner
+        else:
+            validated_data['owner'] = request.user
         return super().create(validated_data)
+
+    def update(self, instance, validated_data):
+        # Reassigning a branch's Branch Admin is only allowed for the Business
+        # Admin who owns the branch's parent business — never the branch's own
+        # current owner, and never for a top-level business (no parent).
+        owner_email = validated_data.pop('owner_email', '') or None
+        request = self.context['request']
+        if owner_email and instance.parent_id and instance.parent.owner_id == request.user.id:
+            from apps.accounts.services import get_or_create_dummy_business_owner
+            owner, _created = get_or_create_dummy_business_owner(email=owner_email)
+            instance.owner = owner
+            instance.save(update_fields=['owner'])
+        return super().update(instance, validated_data)
 
 
 class AdminBusinessCreateSerializer(serializers.ModelSerializer):

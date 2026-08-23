@@ -1,6 +1,7 @@
 from rest_framework import serializers, generics, permissions, status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
+from django.db.models import Q
 from .models import Review
 
 
@@ -53,7 +54,10 @@ class BusinessReviewListView(generics.ListCreateAPIView):
 @permission_classes([permissions.IsAuthenticated])
 def owner_reply(request, pk):
     try:
-        review = Review.objects.get(pk=pk, business__owner=request.user)
+        review = Review.objects.get(
+            Q(business__owner=request.user) | Q(business__parent__owner=request.user),
+            pk=pk,
+        )
         review.owner_reply = request.data.get('reply', '')
         review.save(update_fields=['owner_reply'])
         return Response({'reply': review.owner_reply})

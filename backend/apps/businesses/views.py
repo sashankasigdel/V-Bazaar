@@ -84,6 +84,14 @@ class BusinessDetailView(generics.RetrieveAPIView):
         return Response(self.get_serializer(instance).data)
 
 
+def _owned_businesses(user):
+    """A Business Admin (owner of a parent business) manages that business AND all
+    of its branches, even branches reassigned to a different Branch Admin login.
+    A Branch Admin manages only the branch(es) they directly own.
+    """
+    return Business.objects.filter(Q(owner=user) | Q(parent__owner=user)).distinct()
+
+
 class MyBusinessListView(generics.ListCreateAPIView):
     permission_classes = [permissions.IsAuthenticated]
 
@@ -93,7 +101,7 @@ class MyBusinessListView(generics.ListCreateAPIView):
         return BusinessListSerializer
 
     def get_queryset(self):
-        return Business.objects.filter(owner=self.request.user)
+        return _owned_businesses(self.request.user)
 
 
 class MyBusinessDetailView(generics.RetrieveUpdateDestroyAPIView):
@@ -106,7 +114,7 @@ class MyBusinessDetailView(generics.RetrieveUpdateDestroyAPIView):
         return BusinessDetailSerializer
 
     def get_queryset(self):
-        return Business.objects.filter(owner=self.request.user)
+        return _owned_businesses(self.request.user)
 
 
 class BusinessHoursView(generics.ListCreateAPIView):
@@ -114,10 +122,10 @@ class BusinessHoursView(generics.ListCreateAPIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        return BusinessHours.objects.filter(business__owner=self.request.user, business__slug=self.kwargs['slug'])
+        return BusinessHours.objects.filter(business__in=_owned_businesses(self.request.user), business__slug=self.kwargs['slug'])
 
     def perform_create(self, serializer):
-        business = Business.objects.get(slug=self.kwargs['slug'], owner=self.request.user)
+        business = _owned_businesses(self.request.user).get(slug=self.kwargs['slug'])
         # Update or create
         BusinessHours.objects.update_or_create(
             business=business,
@@ -135,10 +143,10 @@ class BusinessGalleryListView(generics.ListCreateAPIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        return BusinessGallery.objects.filter(business__owner=self.request.user, business__slug=self.kwargs['slug'])
+        return BusinessGallery.objects.filter(business__in=_owned_businesses(self.request.user), business__slug=self.kwargs['slug'])
 
     def perform_create(self, serializer):
-        business = Business.objects.get(slug=self.kwargs['slug'], owner=self.request.user)
+        business = _owned_businesses(self.request.user).get(slug=self.kwargs['slug'])
         serializer.save(business=business)
 
 
@@ -146,7 +154,7 @@ class BusinessGalleryDeleteView(generics.DestroyAPIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        return BusinessGallery.objects.filter(business__owner=self.request.user)
+        return BusinessGallery.objects.filter(business__in=_owned_businesses(self.request.user))
 
 
 @api_view(['GET'])
@@ -195,7 +203,7 @@ def nearby_businesses(request):
 @permission_classes([permissions.IsAuthenticated])
 def business_analytics(request, slug):
     try:
-        business = Business.objects.get(slug=slug, owner=request.user)
+        business = _owned_businesses(request.user).get(slug=slug)
         return Response({
             'total_views': business.total_views,
             'total_orders': business.total_orders,
@@ -204,3 +212,46 @@ def business_analytics(request, slug):
         })
     except Business.DoesNotExist:
         return Response({'error': 'Not found.'}, status=404)
+
+
+@api_view(['POST'])
+@permission_classes([permissions.IsAuthenticated])
+def archive_branch(request, slug):
+    """Business Admin archives one of their own branches. Only the parent business's
+    owner may do this — not the branch's own (possibly reassigned) Branch Admin,
+    and not for a top-level business (only Super Admin archives those)."""
+    try:
+        business = Business.objects.get(slug=slug, parent__owner=request.user)
+    except Business.DoesNotExist:
+        return Response({'error': 'Branch not found or you do not manage it.'}, status=404)
+    business.status = Business.Status.ARCHIVED
+    business.save(update_fields=['status'])
+    return Response({'slug': business.slug, 'status': business.status})
+
+
+@api_view(['POST'])
+@permission_classes([permissions.IsAuthenticated])
+def restore_branch(request, slug):
+    try:
+        business = Business.objects.get(slug=slug, parent__owner=request.user)
+    except Business.DoesNotExist:
+        return Response({'error': 'Branch not found or you do not manage it.'}, status=404)
+    business.status = Business.Status.ACTIVE
+    business.save(update_fields=['status'])
+    return Response({'slug': business.slug, 'status': business.status})
+
+
+@api_view(['POST'])
+@permission_classes([permissions.IsAuthenticated])
+def reset_branch_admin_password(request, slug):
+    """Business Admin resets the password of the Branch Admin assigned to one of
+    their branches. Returns the new password once — it is never stored or shown again."""
+    import secrets
+    try:
+        business = Business.objects.get(slug=slug, parent__owner=request.user)
+    except Business.DoesNotExist:
+        return Response({'error': 'Branch not found or you do not manage it.'}, status=404)
+    new_password = secrets.token_urlsafe(9)
+    business.owner.set_password(new_password)
+    business.owner.save(update_fields=['password'])
+    return Response({'owner_email': business.owner.email, 'new_password': new_password})

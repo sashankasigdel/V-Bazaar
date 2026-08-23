@@ -222,6 +222,13 @@
         <button onclick="saveProfile()" class="btn btn-primary">Save Profile</button>
       </div>
 
+      <div class="dash-card" id="branch-admin-card" style="max-width:640px;display:none;">
+        <h3 style="font-family:var(--font-body);font-size:1rem;font-weight:700;margin-bottom:0.4rem;">Branch Admin</h3>
+        <p style="font-size:0.8rem;color:var(--slate-light);margin-bottom:1rem;" id="branch-admin-current"></p>
+        <div class="form-group"><label class="form-label">Reassign to (email)</label><input type="email" id="bp-owner-email" class="form-input" placeholder="branchadmin@example.com"></div>
+        <button onclick="reassignBranchAdmin()" class="btn btn-secondary btn-sm">Reassign</button>
+      </div>
+
       <div class="dash-card" style="max-width:640px;border:1px solid rgba(232,184,10,0.4);background:linear-gradient(180deg,rgba(232,184,10,0.06),transparent);">
         <h3 style="font-family:var(--font-body);font-size:1rem;font-weight:700;margin-bottom:0.4rem;display:flex;align-items:center;gap:0.4rem;" id="premium-header-title"> Premium Features</h3>
         <p style="font-size:0.8rem;color:var(--slate-light);margin-bottom:1.25rem;">These are enabled by our team after verification. Contact Sales to unlock them.</p>
@@ -274,7 +281,8 @@
           <div class="form-group"><label class="form-label">Business Name *</label><input type="text" id="nb-name" class="form-input"></div>
           <div class="form-group"><label class="form-label">Category *</label><select id="nb-cat" class="form-input"></select></div>
         </div>
-        <div class="form-group"><label class="form-label">Branch of (optional — leave blank if this is a main business)</label><select id="nb-parent" class="form-input"><option value="">Not a branch</option></select></div>
+        <div class="form-group"><label class="form-label">Branch of (optional — leave blank if this is a main business)</label><select id="nb-parent" class="form-input" onchange="onNbParentChange()"><option value="">Not a branch</option></select></div>
+        <div class="form-group" id="nb-owner-email-group" style="display:none;"><label class="form-label">Assign Branch Admin (email, optional — leave blank to manage it yourself)</label><input type="email" id="nb-owner-email" class="form-input" placeholder="branchadmin@example.com"><p style="font-size:0.78rem;color:var(--slate-light);margin-top:0.35rem;">If this email has no account yet, one is created automatically. Use "Reset Branch Admin Password" on the Branches tab afterward to generate a password to share with them.</p></div>
         <div class="form-group"><label class="form-label">Short Description *</label><input type="text" id="nb-short" class="form-input" maxlength="300"></div>
         <div class="form-group"><label class="form-label">Full Description *</label><textarea id="nb-desc" class="form-input" rows="3" style="resize:vertical;"></textarea></div>
         <div class="form-grid-2">
@@ -379,13 +387,22 @@ async function init() {
   const catOpts = cats.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
   document.getElementById('bp-cat').innerHTML = catOpts;
   document.getElementById('nb-cat').innerHTML = catOpts;
-  document.getElementById('nb-parent').innerHTML = '<option value="">Not a branch</option>' + bizList.map(b => `<option value="${b.id}">${b.name}</option>`).join('');
+  // A pure Branch Admin owns only branches (every row has a parent) — they can't
+  // create businesses/branches or assign other Branch Admins, so hide those controls.
+  const isBusinessAdmin = bizList.some(b => !b.parent);
+  document.getElementById('nav-branches').style.display = isBusinessAdmin ? '' : 'none';
+  document.getElementById('nav-create').style.display = isBusinessAdmin ? '' : 'none';
+  document.getElementById('nb-parent').innerHTML = '<option value="">Not a branch</option>' + bizList.filter(b => !b.parent).map(b => `<option value="${b.id}">${b.name}</option>`).join('');
   const sel = document.getElementById('biz-sel');
   if (!bizList.length) { sel.innerHTML = '<option>No businesses yet</option>'; show('create'); return; }
-  sel.innerHTML = bizList.map(b => `<option value="${b.slug}">${b.name}</option>`).join('');
+  sel.innerHTML = bizList.map(b => `<option value="${b.slug}">${b.name}${b.branch_code ? ` (${b.branch_code})` : b.business_code ? ` (${b.business_code})` : ''}</option>`).join('');
   switchBiz(bizList[0].slug);
   const hash = window.location.hash.replace('#','');
-  if (hash) show(hash);
+  if (hash && (isBusinessAdmin || (hash !== 'branches' && hash !== 'create'))) show(hash);
+}
+
+function onNbParentChange() {
+  document.getElementById('nb-owner-email-group').style.display = document.getElementById('nb-parent').value ? 'block' : 'none';
 }
 
 function switchBiz(slug) {
@@ -421,19 +438,42 @@ async function loadBranches() {
     list.innerHTML = `<div class="empty-state"><div class="empty-icon">${uiIcon('branch',40)}</div><h3>No branches yet</h3><p>Add a branch for another location of this business.</p></div>`;
     return;
   }
-  const statusColor = { active: 'var(--success)', pending: 'var(--warning)', suspended: 'var(--danger)' };
+  const statusColor = { active: 'var(--success)', pending: 'var(--warning)', suspended: 'var(--danger)', archived: 'var(--slate-light)' };
   list.innerHTML = `<div class="dash-card">${branches.map(br => `
     <div class="prod-row">
-      <div style="flex:1;min-width:0;"><div style="font-weight:600;font-size:0.9rem;">${br.name}</div><div style="font-size:0.8rem;color:var(--slate-light);">${br.city || ''}</div></div>
+      <div style="flex:1;min-width:0;"><div style="font-weight:600;font-size:0.9rem;">${br.name}</div><div style="font-size:0.8rem;color:var(--slate-light);">${br.city || ''}${br.branch_code ? ` · ${br.branch_code}` : ''}</div></div>
       <span style="font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;color:${statusColor[br.status]||'var(--slate-light)'};">${br.status}</span>
       <button onclick="switchBiz('${br.slug}')" class="btn btn-secondary btn-sm">Manage</button>
+      <button onclick="resetBranchPw('${br.slug}')" class="btn btn-secondary btn-sm">Reset Password</button>
+      ${br.status === 'archived'
+        ? `<button onclick="restoreBranchRow('${br.slug}')" class="btn btn-secondary btn-sm">Restore</button>`
+        : `<button onclick="archiveBranchRow('${br.slug}')" class="btn btn-secondary btn-sm">Archive</button>`}
     </div>`).join('')}</div>`;
+}
+
+async function archiveBranchRow(slug) {
+  if (!confirm('Archive this branch? It will stop appearing in public listings but its data is kept.')) return;
+  const resp = await API.archiveBranch(slug);
+  if (resp.ok) loadBranches(); else alert(resp.data?.error || 'Could not archive this branch.');
+}
+
+async function restoreBranchRow(slug) {
+  const resp = await API.restoreBranch(slug);
+  if (resp.ok) loadBranches(); else alert(resp.data?.error || 'Could not restore this branch.');
+}
+
+async function resetBranchPw(slug) {
+  if (!confirm("Generate a new password for this branch's admin? Their current password stops working immediately.")) return;
+  const resp = await API.resetBranchAdminPassword(slug);
+  if (resp.ok) alert(`New password for ${resp.data.owner_email}:\n\n${resp.data.new_password}\n\nShare this with them now — it will not be shown again.`);
+  else alert(resp.data?.error || 'Could not reset this password.');
 }
 
 function addBranchForCurBiz() {
   if (!curBiz) return;
   show('create');
   document.getElementById('nb-parent').value = curBiz.id;
+  onNbParentChange();
 }
 
 async function loadAnalytics() {
@@ -611,6 +651,13 @@ async function loadProfile() {
   document.getElementById('bp-parking').value = b.has_parking === true ? 'yes' : b.has_parking === false ? 'no' : 'unspecified';
   document.getElementById('bp-delivery').checked = b.offer_delivery === true;
 
+  // The reassignment control only makes sense for a branch, and only for the
+  // Business Admin who owns its parent (i.e. the parent is also in this user's
+  // own bizList as a top-level business) — never the branch's own Branch Admin.
+  const canReassign = !!(curBiz.parent && bizList.some(x => x.id === curBiz.parent && !x.parent));
+  document.getElementById('branch-admin-card').style.display = canReassign ? 'block' : 'none';
+  if (canReassign) document.getElementById('branch-admin-current').textContent = 'Enter an email below to hand this branch to a different Branch Admin login.';
+
   // Show existing logo/banner if present
   const logoPrev = document.getElementById('logo-preview');
   if (b.logo) logoPrev.innerHTML = `<img src="${b.logo}" style="width:100%;height:100%;object-fit:cover;">`;
@@ -686,6 +733,15 @@ async function saveProfile() {
   else UI.toast('Save failed: '+JSON.stringify(resp.data),'error');
 }
 
+async function reassignBranchAdmin() {
+  const email = document.getElementById('bp-owner-email').value.trim();
+  if (!email) { UI.toast('Enter an email first', 'error'); return; }
+  if (!confirm(`Hand this branch over to ${email}? You will lose direct access to its login (you can still manage it here as the business owner).`)) return;
+  const resp = await API.patchBusiness(curBiz.slug, { owner_email: email });
+  if (resp.ok) { UI.toast('Branch reassigned!', 'success'); document.getElementById('bp-owner-email').value=''; }
+  else UI.toast('Reassignment failed: '+JSON.stringify(resp.data), 'error');
+}
+
 function loadHours() {
   const days=['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
   document.getElementById('hours-form').innerHTML=`<h3 style="font-family:var(--font-body);font-size:1rem;font-weight:700;margin-bottom:1.25rem;">Set Opening Hours</h3><div class="hours-rows">${days.map((d,i)=>`<div class="hours-row"><div class="hours-time-group"><div class="hours-day">${d}</div><input type="time" id="op-${i}" class="form-input hours-time-input" value="08:00"><span class="hours-to">to</span><input type="time" id="cl2-${i}" class="form-input hours-time-input" value="21:00"></div><label class="hours-closed-label"><input type="checkbox" id="cl-${i}" onchange="tgDay(${i})"> Closed</label></div>`).join('')}</div><button onclick="saveHours()" class="btn btn-primary" style="margin-top:1.25rem;">Save Hours</button>`;
@@ -719,6 +775,7 @@ async function replyRev(id) {
 
 async function createBiz(btn) {
   const data = { name:document.getElementById('nb-name').value, category:document.getElementById('nb-cat').value, parent:document.getElementById('nb-parent').value || null, short_description:document.getElementById('nb-short').value, description:document.getElementById('nb-desc').value, phone:document.getElementById('nb-phone').value, city:getCityValue('nb'), state:'Gandaki Pradesh', address:document.getElementById('nb-addr').value, latitude:document.getElementById('nb-lat').value, longitude:document.getElementById('nb-lon').value };
+  if (data.parent && document.getElementById('nb-owner-email').value) data.owner_email = document.getElementById('nb-owner-email').value;
   if (!data.name||!data.phone||!data.latitude||!data.longitude) { UI.toast('Please fill all required fields','error'); return; }
   const original = btn?.textContent;
   if (btn) { btn.disabled = true; btn.textContent = 'Registering...'; }

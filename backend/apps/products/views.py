@@ -1,8 +1,15 @@
 from rest_framework import generics, permissions
 from rest_framework.exceptions import ValidationError
+from django.db.models import Q
 from apps.businesses.models import Business
 from .models import Product, ProductCategory
 from .serializers import ProductSerializer, ProductCreateSerializer, ProductCategorySerializer
+
+
+def _owned_business_q(user):
+    """Matches rows whose business is owned directly by `user`, or is a branch of
+    a business `user` owns (Business Admin managing their branches)."""
+    return Q(business__owner=user) | Q(business__parent__owner=user)
 
 
 class BusinessProductListView(generics.ListAPIView):
@@ -22,10 +29,10 @@ class MyProductListView(generics.ListCreateAPIView):
         return ProductSerializer
 
     def get_queryset(self):
-        return Product.objects.filter(business__slug=self.kwargs['slug'], business__owner=self.request.user)
+        return Product.objects.filter(_owned_business_q(self.request.user), business__slug=self.kwargs['slug'])
 
     def perform_create(self, serializer):
-        business = Business.objects.get(slug=self.kwargs['slug'], owner=self.request.user)
+        business = Business.objects.filter(Q(owner=self.request.user) | Q(parent__owner=self.request.user)).get(slug=self.kwargs['slug'])
         category = serializer.validated_data.get('category')
         if category and category.business_id != business.id:
             raise ValidationError({'category': 'Category does not belong to this business.'})
@@ -41,7 +48,7 @@ class MyProductDetailView(generics.RetrieveUpdateDestroyAPIView):
         return ProductSerializer
 
     def get_queryset(self):
-        return Product.objects.filter(business__owner=self.request.user)
+        return Product.objects.filter(_owned_business_q(self.request.user))
 
     def perform_update(self, serializer):
         category = serializer.validated_data.get('category')
@@ -55,10 +62,10 @@ class MyProductCategoryListView(generics.ListCreateAPIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        return ProductCategory.objects.filter(business__slug=self.kwargs['slug'], business__owner=self.request.user)
+        return ProductCategory.objects.filter(_owned_business_q(self.request.user), business__slug=self.kwargs['slug'])
 
     def perform_create(self, serializer):
-        business = Business.objects.get(slug=self.kwargs['slug'], owner=self.request.user)
+        business = Business.objects.filter(Q(owner=self.request.user) | Q(parent__owner=self.request.user)).get(slug=self.kwargs['slug'])
         serializer.save(business=business)
 
 
@@ -67,4 +74,4 @@ class MyProductCategoryDetailView(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        return ProductCategory.objects.filter(business__owner=self.request.user)
+        return ProductCategory.objects.filter(_owned_business_q(self.request.user))

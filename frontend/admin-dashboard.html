@@ -94,6 +94,7 @@ body { font-family: var(--font-body); background: #0F1623; color: white; margin:
 .badge-active { background: rgba(74,222,128,0.15); color: #4ADE80; }
 .badge-pending { background: rgba(251,191,36,0.15); color: #FBBF24; }
 .badge-suspended { background: rgba(248,113,113,0.15); color: #F87171; }
+.badge-archived { background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.5); }
 .badge-customer { background: rgba(96,165,250,0.15); color: #60A5FA; }
 .badge-owner { background: rgba(167,139,250,0.15); color: #A78BFA; }
 .badge-admin { background: rgba(232,99,10,0.15); color: var(--saffron); }
@@ -263,6 +264,7 @@ body { font-family: var(--font-body); background: #0F1623; color: white; margin:
             <button class="filter-tab" onclick="filterBiz('pending', this)">⏳ Pending</button>
             <button class="filter-tab" onclick="filterBiz('active', this)">✅ Active</button>
             <button class="filter-tab" onclick="filterBiz('suspended', this)">🚫 Suspended</button>
+            <button class="filter-tab" onclick="filterBiz('archived', this)">🗄 Archived</button>
           </div>
           <div style="display:flex;gap:0.75rem;align-items:center;flex-wrap:wrap;">
             <input class="admin-search" type="text" placeholder="Search businesses..." oninput="searchBiz(this.value)">
@@ -797,7 +799,7 @@ function renderBizTable(data) {
     <tr class="${b.status==='pending'?'pending-row':''}">
       <td>
         <div style="font-weight:600;">${b.name}</div>
-        <div style="font-size:0.75rem;color:rgba(255,255,255,0.4);">${b.city}${b.parent_name?` · Branch of ${b.parent_name}`:''}</div>
+        <div style="font-size:0.75rem;color:rgba(255,255,255,0.4);">${b.city}${b.parent_name?` · Branch of ${b.parent_name}`:''} · ${b.branch_code || b.business_code || ''}</div>
       </td>
       <td>
         <div style="font-size:0.82rem;">${b.owner_name}</div>
@@ -815,6 +817,10 @@ function renderBizTable(data) {
           ${b.status==='active'?`<button class="act-btn act-reject" onclick="suspendBiz(${b.id}, this)">Suspend</button>`:''}
           ${b.status==='suspended'?`<button class="act-btn act-approve" onclick="approveBiz(${b.id}, this)">Reactivate</button>`:''}
           <button class="act-btn act-feature" onclick="toggleFeature(${b.id}, ${!b.is_featured}, this)">${b.is_featured?'Unfeature':'Feature'}</button>
+          ${b.status==='archived'
+            ? `<button class="act-btn act-approve" onclick="restoreBiz(${b.id}, this)">Restore</button>`
+            : `<button class="act-btn act-reject" onclick="archiveBiz(${b.id}, '${b.name}', ${branchCount}, this)">Archive</button>`}
+          <button class="act-btn act-feature" onclick="resetOwnerPassword(${b.owner_id}, '${b.owner_email}', this)">Reset Password</button>
           <button class="act-btn act-delete" onclick="deleteBiz(${b.id}, '${b.name}', this)">Delete</button>
         </div>
       </td>
@@ -858,6 +864,31 @@ async function deleteBiz(id, name, btn) {
   const resp = await withButtonLoading(btn, 'Deleting...', () => AdminAPI.delete(`/businesses/${id}/delete/`));
   if (resp.ok) { toast('Business deleted', 'success'); loadBusinesses(); }
   else toast(resp.data?.error || 'Failed to delete', 'error');
+}
+
+async function archiveBiz(id, name, branchCount, btn) {
+  let archiveBranches = false;
+  if (branchCount > 0) {
+    archiveBranches = confirm(`"${name}" has ${branchCount} branch(es). Click OK to archive them too, or Cancel to archive only this business.`);
+  } else if (!confirm(`Archive "${name}"? It will stop appearing publicly but its data is kept — you can restore it later.`)) {
+    return;
+  }
+  const resp = await withButtonLoading(btn, 'Archiving...', () => AdminAPI.post(`/businesses/${id}/archive/`, { archive_branches: archiveBranches }));
+  if (resp.ok) { toast('Business archived', 'success'); loadBusinesses(); }
+  else toast(resp.data?.error || 'Failed', 'error');
+}
+
+async function restoreBiz(id, btn) {
+  const resp = await withButtonLoading(btn, 'Restoring...', () => AdminAPI.post(`/businesses/${id}/restore/`));
+  if (resp.ok) { toast('Business restored', 'success'); loadBusinesses(); }
+  else toast(resp.data?.error || 'Failed', 'error');
+}
+
+async function resetOwnerPassword(userId, email, btn) {
+  if (!confirm(`Generate a new password for ${email}? Their current password stops working immediately.`)) return;
+  const resp = await withButtonLoading(btn, 'Resetting...', () => AdminAPI.post(`/users/${userId}/reset-password/`));
+  if (resp.ok) alert(`New password for ${resp.data.email}:\n\n${resp.data.new_password}\n\nShare this with them now — it will not be shown again.`);
+  else toast(resp.data?.error || 'Failed', 'error');
 }
 
 // USERS
@@ -1033,7 +1064,7 @@ async function loadCategories() {
     <tr>
       <td>${categoryIcon(c.slug, 24)}</td>
       <td><span style="font-weight:600;">${c.name}</span></td>
-      <td><span style="font-size:0.78rem;color:rgba(255,255,255,0.4);">${c.slug}</span></td>
+      <td><span style="font-size:0.78rem;color:rgba(255,255,255,0.4);">${c.slug} · ${c.category_code || ''}</span></td>
       <td><span style="font-size:0.875rem;">${c.business_count} businesses</span></td>
       <td><button class="act-btn act-delete" onclick="deleteCategory(${c.id}, '${c.name}', this)">Delete</button></td>
     </tr>`).join('');

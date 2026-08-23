@@ -1,8 +1,27 @@
-from django.db import models
+from django.db import models, transaction
 from django.contrib.auth import get_user_model
 import math
 
 User = get_user_model()
+
+
+class CodeSequence(models.Model):
+    """One row per code type (business/branch/category); next_value() is concurrency-safe
+    via select_for_update so bulk imports/parallel creates never collide or gap unexpectedly.
+    """
+    name = models.CharField(max_length=20, unique=True)
+    last_value = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        db_table = 'code_sequences'
+
+    @classmethod
+    def next_value(cls, name):
+        with transaction.atomic():
+            seq, _ = cls.objects.select_for_update().get_or_create(name=name)
+            seq.last_value += 1
+            seq.save(update_fields=['last_value'])
+            return seq.last_value
 
 
 class BusinessCategory(models.Model):
@@ -11,6 +30,7 @@ class BusinessCategory(models.Model):
     icon = models.CharField(max_length=100)
     description = models.TextField(blank=True)
     order = models.IntegerField(default=0)
+    category_code = models.CharField(max_length=12, unique=True, null=True, blank=True)
 
     class Meta:
         db_table = 'business_categories'
@@ -20,12 +40,18 @@ class BusinessCategory(models.Model):
     def __str__(self):
         return self.name
 
+    def save(self, *args, **kwargs):
+        if not self.category_code:
+            self.category_code = f"CAT{CodeSequence.next_value('category'):04d}"
+        super().save(*args, **kwargs)
+
 
 class Business(models.Model):
     class Status(models.TextChoices):
         ACTIVE = 'active', 'Active'
         PENDING = 'pending', 'Pending'
         SUSPENDED = 'suspended', 'Suspended'
+        ARCHIVED = 'archived', 'Archived'
 
     class TriState(models.TextChoices):
         YES = 'yes', 'Yes'
@@ -40,6 +66,8 @@ class Business(models.Model):
     parent = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True, related_name='branches')
     name = models.CharField(max_length=200)
     slug = models.SlugField(unique=True)
+    business_code = models.CharField(max_length=12, unique=True, null=True, blank=True)
+    branch_code = models.CharField(max_length=12, unique=True, null=True, blank=True)
     category = models.ForeignKey(BusinessCategory, on_delete=models.SET_NULL, null=True, related_name='businesses')
     description = models.TextField(blank=True, default='')
     short_description = models.CharField(max_length=300, blank=True)
@@ -81,6 +109,14 @@ class Business(models.Model):
 
     def __str__(self):
         return self.name
+
+    def save(self, *args, **kwargs):
+        if not self.business_code and not self.branch_code:
+            if self.parent_id:
+                self.branch_code = f"BR{CodeSequence.next_value('branch'):07d}"
+            else:
+                self.business_code = f"B{CodeSequence.next_value('business'):07d}"
+        super().save(*args, **kwargs)
 
     def distance_from(self, lat, lon):
         if self.latitude is None or self.longitude is None:

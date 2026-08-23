@@ -13,5 +13,8 @@ urlpatterns = [
     path('my/<slug:slug>/analytics/', views.business_analytics, name='analytics'),
     path('my/<slug:slug>/gallery/', views.BusinessGalleryListView.as_view(), name='business_gallery'),
     path('gallery/<int:pk>/', views.BusinessGalleryDeleteView.as_view(), name='delete_gallery_photo'),
+    path('my/<slug:slug>/archive/', views.archive_branch, name='archive_branch'),
+    path('my/<slug:slug>/restore/', views.restore_branch, name='restore_branch'),
+    path('my/<slug:slug>/reset-password/', views.reset_branch_admin_password, name='reset_branch_admin_password'),
     path('<slug:slug>/', views.BusinessDetailView.as_view(), name='business_detail'),
 ]
