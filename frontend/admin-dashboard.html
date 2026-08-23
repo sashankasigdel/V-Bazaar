@@ -887,8 +887,15 @@ async function restoreBiz(id, btn) {
 async function resetOwnerPassword(userId, email, btn) {
   if (!confirm(`Generate a new password for ${email}? Their current password stops working immediately.`)) return;
   const resp = await withButtonLoading(btn, 'Resetting...', () => AdminAPI.post(`/users/${userId}/reset-password/`));
-  if (resp.ok) alert(`New password for ${resp.data.email}:\n\n${resp.data.new_password}\n\nShare this with them now — it will not be shown again.`);
-  else toast(resp.data?.error || 'Failed', 'error');
+  if (!resp.ok) { toast(resp.data?.error || 'Failed', 'error'); return; }
+  const { new_password, phone } = resp.data;
+  const message = `Your V-Bazaar login:\nEmail: ${email}\nPassword: ${new_password}\n\nLog in at ${window.location.origin}/login/`;
+  const link = UI.whatsappLink(phone, message);
+  if (link && confirm(`New password for ${email}:\n\n${new_password}\n\nClick OK to open WhatsApp and send it to them now (Cancel to copy it manually).`)) {
+    window.open(link, '_blank');
+  } else if (!link) {
+    alert(`New password for ${email}:\n\n${new_password}\n\n(No phone number on file — share this manually.)`);
+  }
 }
 
 // USERS

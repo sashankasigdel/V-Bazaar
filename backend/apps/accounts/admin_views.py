@@ -84,6 +84,7 @@ def admin_businesses(request):
             'owner_id': b.owner_id,
             'owner_email': b.owner.email,
             'owner_name': b.owner.get_full_name(),
+            'owner_phone': b.owner.phone,
             'category': b.category.name if b.category else '',
             'category_id': b.category_id,
             'status': b.status,
@@ -417,7 +418,7 @@ def admin_reset_user_password(request, pk):
     new_password = secrets.token_urlsafe(9)
     user.set_password(new_password)
     user.save(update_fields=['password'])
-    return Response({'email': user.email, 'new_password': new_password})
+    return Response({'email': user.email, 'phone': user.phone, 'new_password': new_password})
 
 
 @api_view(['DELETE'])

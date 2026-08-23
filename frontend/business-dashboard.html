@@ -465,8 +465,15 @@ async function restoreBranchRow(slug) {
 async function resetBranchPw(slug) {
   if (!confirm("Generate a new password for this branch's admin? Their current password stops working immediately.")) return;
   const resp = await API.resetBranchAdminPassword(slug);
-  if (resp.ok) alert(`New password for ${resp.data.owner_email}:\n\n${resp.data.new_password}\n\nShare this with them now — it will not be shown again.`);
-  else alert(resp.data?.error || 'Could not reset this password.');
+  if (!resp.ok) { alert(resp.data?.error || 'Could not reset this password.'); return; }
+  const { owner_email, owner_phone, new_password } = resp.data;
+  const message = `Your V-Bazaar branch admin login:\nEmail: ${owner_email}\nPassword: ${new_password}\n\nLog in at ${window.location.origin}/login/`;
+  const link = UI.whatsappLink(owner_phone, message);
+  if (link && confirm(`New password for ${owner_email}:\n\n${new_password}\n\nClick OK to open WhatsApp and send it to them now (Cancel to copy it manually).`)) {
+    window.open(link, '_blank');
+  } else if (!link) {
+    alert(`New password for ${owner_email}:\n\n${new_password}\n\n(No phone number on file — share this manually.)`);
+  }
 }
 
 function addBranchForCurBiz() {

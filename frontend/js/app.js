@@ -386,6 +386,15 @@ const UI = {
   formatDate: (d) => new Date(d).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }),
   timeAgo: (d) => { const s = (Date.now() - new Date(d)) / 1000; if (s < 60) return 'just now'; if (s < 3600) return `${Math.floor(s/60)}m ago`; if (s < 86400) return `${Math.floor(s/3600)}h ago`; return `${Math.floor(s/86400)}d ago`; },
   loading: (el, n = 3) => { el.innerHTML = Array(n).fill('<div class="skeleton" style="height:240px;border-radius:18px;"></div>').join(''); },
+  // wa.me needs a full international number with no leading 0/+ — assume Nepal (977)
+  // for a bare 10-digit local mobile number, since that's this app's market.
+  whatsappLink(phone, message) {
+    let digits = (phone || '').replace(/\D/g, '');
+    if (digits.length === 10) digits = `977${digits}`;
+    else if (digits.length === 11 && digits.startsWith('0')) digits = `977${digits.slice(1)}`;
+    if (!digits) return null;
+    return `https://wa.me/${digits}?text=${encodeURIComponent(message)}`;
+  },
 };
 
 // ===== Shared vb- navbar, used by index.html/business.html/search.html so all three match exactly =====

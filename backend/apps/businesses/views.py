@@ -254,4 +254,4 @@ def reset_branch_admin_password(request, slug):
     new_password = secrets.token_urlsafe(9)
     business.owner.set_password(new_password)
     business.owner.save(update_fields=['password'])
-    return Response({'owner_email': business.owner.email, 'new_password': new_password})
+    return Response({'owner_email': business.owner.email, 'owner_phone': business.owner.phone, 'new_password': new_password})
