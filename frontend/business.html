@@ -20,12 +20,17 @@ body{background:var(--cream);}
 .vb-pills-row{display:flex;gap:0.6rem;flex-wrap:wrap;margin-bottom:0.5rem;}
 
 /* Action icons (Call/WhatsApp/Directions/Save) + Outlet Info sit side by side,
-   right below the description, as a strict 50/50 split (grid, not flex, so
-   neither side can grow/shrink relative to the other regardless of content). */
+   right below the description, as equal-height grid siblings — a strict 50/50
+   width split (1fr 1fr) with align-items:stretch so whichever side is taller
+   (normally Outlet Info, since its content is dynamic) sets the row height,
+   and the other side is stretched to match automatically. No JS measurement,
+   no fixed pixel heights: the action-icon grid fills that stretched height
+   with height:100% + flexible 1fr rows, so its 4 buttons redistribute to fill
+   the space themselves rather than leaving blank area below a fixed-size grid. */
 .vb-action-outlet-row{display:grid;grid-template-columns:1fr 1fr;gap:0.9rem;align-items:stretch;margin-top:1.1rem;}
-.vb-action-grid{display:grid;grid-template-columns:repeat(2,1fr);grid-auto-rows:min-content;align-content:start;gap:0.7rem;min-width:0;}
-.vb-outlet-box{min-width:0;}
-.vb-action-btn{width:100%;aspect-ratio:1;border-radius:var(--radius-md);border:1.5px solid var(--border);background:white;display:flex;align-items:center;justify-content:center;color:var(--charcoal);transition:all var(--transition);}
+.vb-action-grid{display:grid;grid-template-columns:repeat(2,1fr);grid-template-rows:repeat(2,1fr);gap:0.7rem;height:100%;min-width:0;}
+.vb-outlet-box{min-width:0;height:100%;}
+.vb-action-btn{width:100%;height:100%;border-radius:var(--radius-md);border:1.5px solid var(--border);background:white;display:flex;align-items:center;justify-content:center;color:var(--charcoal);transition:all var(--transition);}
 .vb-action-btn:hover{border-color:var(--saffron);background:var(--saffron-light);color:var(--saffron-dark);}
 .vb-action-btn.saved{color:var(--saffron);border-color:var(--saffron);background:var(--saffron-light);}
 .vb-outlet-box h4{font-family:var(--font-body);margin-bottom:0.6rem;}
@@ -247,23 +252,10 @@ function syncNavHeight() {
   if (nav) document.documentElement.style.setProperty('--vb-nav-height', nav.offsetHeight + 'px');
 }
 
-// The action-icon grid has no visible container box of its own (just per-button
-// borders), so align-items:stretch alone doesn't make the two columns *look*
-// equal height — Outlet Info just keeps growing past it. Measure the grid's
-// real rendered height and cap Outlet Info to match exactly, scrolling
-// internally if its content doesn't fit.
-function syncOutletHeight() {
-  const grid = document.querySelector('.vb-action-grid');
-  const box = document.querySelector('.vb-outlet-box');
-  if (!grid || !box) return;
-  box.style.maxHeight = grid.offsetHeight + 'px';
-  box.style.overflowY = 'auto';
-}
-
 async function init() {
   renderVbNavbar('vb-nav');
   syncNavHeight();
-  window.addEventListener('resize', () => { syncNavHeight(); syncOutletHeight(); });
+  window.addEventListener('resize', syncNavHeight);
   const resp = await API.getBusiness(slug);
   if (!resp.ok) { document.getElementById('loading').innerHTML = '<div class="empty-state"><div class="empty-icon">😕</div><h3>Not found</h3><a href="/" class="btn btn-primary" style="margin-top:1rem;">Go Home</a></div>'; return; }
   biz = resp.data;
@@ -271,7 +263,6 @@ async function init() {
   document.getElementById('loading').style.display = 'none';
   document.getElementById('content').style.display = 'block';
   render();
-  syncOutletHeight();
   loadProducts();
   loadReviews();
   if (Auth.isLoggedIn()) document.getElementById('review-form').style.display = 'block';
