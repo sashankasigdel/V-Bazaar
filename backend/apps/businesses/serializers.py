@@ -105,7 +105,7 @@ class BusinessDetailSerializer(serializers.ModelSerializer):
                   'status', 'is_featured', 'accepts_orders', 'is_verified',
                   'payment_mode', 'card_payment', 'free_wifi', 'smoking', 'offer_package',
                   'is_registered', 'has_parking', 'offer_delivery',
-                  'average_rating', 'total_reviews', 'total_orders',
+                  'average_rating', 'total_reviews', 'total_orders', 'total_views',
                   'parent', 'parent_name', 'parent_slug', 'branches',
                   'hours', 'gallery', 'is_open', 'is_saved', 'distance', 'created_at']
 
