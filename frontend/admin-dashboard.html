@@ -157,6 +157,18 @@ body { font-family: var(--font-body); background: #0F1623; color: white; margin:
   .admin-content { padding: 1.5rem; }
 }
 
+/* Text-only action buttons on tablet/desktop where full labels fit; below 600px
+   the label hides and the icon (with a title tooltip) carries the meaning, so a
+   row of 7-8 actions doesn't force excessive horizontal scroll. */
+.act-btn { display: inline-flex; align-items: center; gap: 0.35rem; }
+.act-btn .act-icon { display: none; }
+@media (max-width: 600px) {
+  .act-btn .act-label { display: none; }
+  .act-btn .act-icon { display: inline; }
+  .act-btn { padding: 0.4rem 0.55rem !important; font-size: 0.95rem; }
+  .col-optional { display: none; }
+}
+
 @media (max-width: 768px) {
   .admin-layout { grid-template-columns: 1fr; }
   .admin-sidebar {
@@ -278,7 +290,7 @@ body { font-family: var(--font-body); background: #0F1623; color: white; margin:
           <div class="admin-card-header"><h3 id="biz-table-title">All Businesses</h3><span id="biz-count" style="font-size:0.82rem;color:rgba(255,255,255,0.4);"></span></div>
           <div style="overflow-x:auto;">
             <table class="admin-table">
-              <thead><tr><th>Business</th><th>Owner</th><th>Category</th><th>Status</th><th>Orders</th><th>Rating</th><th>Actions</th></tr></thead>
+              <thead><tr><th>Business</th><th>Owner</th><th class="col-optional">Category</th><th>Status</th><th>Orders</th><th class="col-optional">Rating</th><th>Views</th><th>Actions</th></tr></thead>
               <tbody id="biz-table-body"></tbody>
             </table>
           </div>
@@ -299,7 +311,7 @@ body { font-family: var(--font-body); background: #0F1623; color: white; margin:
           <div class="admin-card-header"><h3>Users</h3><span id="users-count" style="font-size:0.82rem;color:rgba(255,255,255,0.4);"></span></div>
           <div style="overflow-x:auto;">
             <table class="admin-table">
-              <thead><tr><th>User</th><th>Role</th><th>Phone</th><th>Status</th><th>Joined</th><th>Actions</th></tr></thead>
+              <thead><tr><th>User</th><th>Role</th><th class="col-optional">Phone</th><th>Status</th><th class="col-optional">Joined</th><th>Actions</th></tr></thead>
               <tbody id="users-table-body"></tbody>
             </table>
           </div>
@@ -790,11 +802,15 @@ async function loadBusinesses() {
   renderBizTable(bizData);
 }
 
+function actBtn(cls, onclick, icon, label) {
+  return `<button class="act-btn act-${cls}" onclick="${onclick}" title="${label}"><span class="act-icon">${icon}</span><span class="act-label">${label}</span></button>`;
+}
+
 function renderBizTable(data) {
   const filtered = bizFilter ? data.filter(b => b.status === bizFilter) : data;
   document.getElementById('biz-count').textContent = `${filtered.length} businesses`;
   const tbody = document.getElementById('biz-table-body');
-  if (!filtered.length) { tbody.innerHTML = '<tr><td colspan="7"><div class="admin-empty"><div class="empty-icon">🏪</div><p>No businesses found</p></div></td></tr>'; return; }
+  if (!filtered.length) { tbody.innerHTML = '<tr><td colspan="8"><div class="admin-empty"><div class="empty-icon">🏪</div><p>No businesses found</p></div></td></tr>'; return; }
   tbody.innerHTML = filtered.map(b => {
     const branchCount = bizData.filter(x => x.parent_id === b.id).length;
     return `
@@ -807,24 +823,25 @@ function renderBizTable(data) {
         <div style="font-size:0.82rem;">${b.owner_name}</div>
         <div style="font-size:0.72rem;color:rgba(255,255,255,0.4);">${b.owner_email}</div>
       </td>
-      <td><span style="font-size:0.82rem;">${b.category}</span></td>
+      <td class="col-optional"><span style="font-size:0.82rem;">${b.category}</span></td>
       <td><span class="badge badge-${b.status}">${b.status}</span></td>
       <td><span style="font-size:0.875rem;">${b.total_orders}</span></td>
-      <td><span style="color:#FBBF24;">★ ${parseFloat(b.average_rating).toFixed(1)}</span></td>
+      <td class="col-optional"><span style="color:#FBBF24;">★ ${parseFloat(b.average_rating).toFixed(1)}</span></td>
+      <td><span style="font-size:0.875rem;">👁 ${b.total_views}</span></td>
       <td>
         <div style="display:flex;gap:0.4rem;flex-wrap:wrap;">
-          <button class="act-btn act-feature" onclick="openBizModalForEdit(${b.id})">Modify</button>
-          <button class="act-btn act-feature" onclick="openBranchesModal(${b.id})">🔗 Branches${branchCount ? ` (${branchCount})` : ''}</button>
-          ${b.status==='pending'?`<button class="act-btn act-approve" onclick="approveBiz(${b.id}, this)">Approve</button>`:'' }
-          ${b.status==='active'?`<button class="act-btn act-reject" onclick="suspendBiz(${b.id}, this)">Suspend</button>`:''}
-          ${b.status==='suspended'?`<button class="act-btn act-approve" onclick="approveBiz(${b.id}, this)">Reactivate</button>`:''}
-          <button class="act-btn act-feature" onclick="toggleFeature(${b.id}, ${!b.is_featured}, this)">${b.is_featured?'Unfeature':'Feature'}</button>
-          <button class="act-btn act-feature" onclick="downloadBizQrAdmin(${b.id}, '${b.slug}')">QR</button>
+          ${actBtn('feature', `openBizModalForEdit(${b.id})`, '✏️', 'Modify')}
+          ${actBtn('feature', `openBranchesModal(${b.id})`, '🔗', `Branches${branchCount ? ` (${branchCount})` : ''}`)}
+          ${b.status==='pending'?actBtn('approve', `approveBiz(${b.id}, this)`, '✅', 'Approve'):'' }
+          ${b.status==='active'?actBtn('reject', `suspendBiz(${b.id}, this)`, '⏸️', 'Suspend'):''}
+          ${b.status==='suspended'?actBtn('approve', `approveBiz(${b.id}, this)`, '▶️', 'Reactivate'):''}
+          ${actBtn('feature', `toggleFeature(${b.id}, ${!b.is_featured}, this)`, '⭐', b.is_featured?'Unfeature':'Feature')}
+          ${actBtn('feature', `downloadBizQrAdmin(${b.id}, '${b.slug}')`, '🔳', 'QR')}
           ${b.status==='archived'
-            ? `<button class="act-btn act-approve" onclick="restoreBiz(${b.id}, this)">Restore</button>`
-            : `<button class="act-btn act-reject" onclick="archiveBiz(${b.id}, '${b.name}', ${branchCount}, this)">Archive</button>`}
-          <button class="act-btn act-feature" onclick="resetOwnerPassword(${b.owner_id}, '${b.owner_email}', this)">Reset Password</button>
-          <button class="act-btn act-delete" onclick="deleteBiz(${b.id}, '${b.name}', this)">Delete</button>
+            ? actBtn('approve', `restoreBiz(${b.id}, this)`, '♻️', 'Restore')
+            : actBtn('reject', `archiveBiz(${b.id}, '${b.name}', ${branchCount}, this)`, '🗄️', 'Archive')}
+          ${actBtn('feature', `resetOwnerPassword(${b.owner_id}, '${b.owner_email}', this)`, '🔑', 'Reset Password')}
+          ${actBtn('delete', `deleteBiz(${b.id}, '${b.name}', this)`, '🗑️', 'Delete')}
         </div>
       </td>
     </tr>`;
@@ -927,19 +944,19 @@ function renderUsersTable(data) {
         <div style="font-size:0.75rem;color:rgba(255,255,255,0.4);">${u.email}</div>
       </td>
       <td><span class="badge badge-${u.role}">${u.role.replace('_', ' ')}</span></td>
-      <td><span style="font-size:0.82rem;">${u.phone || '—'}</span></td>
+      <td class="col-optional"><span style="font-size:0.82rem;">${u.phone || '—'}</span></td>
       <td>
         ${u.is_active
           ? '<span style="color:#4ADE80;font-size:0.82rem;">● Active</span>'
           : '<span style="color:#F87171;font-size:0.82rem;">● Banned</span>'}
       </td>
-      <td><span style="font-size:0.82rem;">${formatDate(u.date_joined)}</span></td>
+      <td class="col-optional"><span style="font-size:0.82rem;">${formatDate(u.date_joined)}</span></td>
       <td>
         <div style="display:flex;gap:0.4rem;flex-wrap:wrap;">
           ${u.is_active
-            ? `<button class="act-btn act-ban" onclick="banUser(${u.id}, this)">Ban</button>`
-            : `<button class="act-btn act-unban" onclick="unbanUser(${u.id}, this)">Unban</button>`}
-          <button class="act-btn act-delete" onclick="deleteUser(${u.id}, '${(u.full_name||u.email).replace(/'/g,"&#39;")}', this)">Delete</button>
+            ? actBtn('ban', `banUser(${u.id}, this)`, '🚫', 'Ban')
+            : actBtn('unban', `unbanUser(${u.id}, this)`, '✅', 'Unban')}
+          ${actBtn('delete', `deleteUser(${u.id}, '${(u.full_name||u.email).replace(/'/g,"&#39;")}', this)`, '🗑️', 'Delete')}
         </div>
       </td>
     </tr>`).join('');
@@ -1038,11 +1055,11 @@ async function loadReviews() {
       </td>
       <td>${r.is_approved ? '<span style="color:#4ADE80;font-size:0.82rem;">✅ Approved</span>' : '<span style="color:#FBBF24;font-size:0.82rem;">⏳ Hidden</span>'}</td>
       <td>
-        <div style="display:flex;gap:0.4rem;">
+        <div style="display:flex;gap:0.4rem;flex-wrap:wrap;">
           ${r.is_approved
-            ? `<button class="act-btn act-reject" onclick="hideReview(${r.id}, this)">Hide</button>`
-            : `<button class="act-btn act-approve" onclick="approveReview(${r.id}, this)">Approve</button>`}
-          <button class="act-btn act-delete" onclick="deleteReview(${r.id}, this)">Delete</button>
+            ? actBtn('reject', `hideReview(${r.id}, this)`, '🙈', 'Hide')
+            : actBtn('approve', `approveReview(${r.id}, this)`, '✅', 'Approve')}
+          ${actBtn('delete', `deleteReview(${r.id}, this)`, '🗑️', 'Delete')}
         </div>
       </td>
     </tr>`).join('');

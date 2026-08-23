@@ -17,11 +17,15 @@
 .hours-to{font-size:0.8rem;color:var(--slate-light);flex-shrink:0;}
 .hours-closed-label{display:flex;align-items:center;gap:0.4rem;font-size:0.8rem;cursor:pointer;flex-shrink:0;}
 .hours-scroll-hint{display:none;font-size:0.72rem;color:var(--slate-light);margin-bottom:0.5rem;}
+.act-icon{display:none;}
 @media(max-width:600px){
   .hours-scroll-hint{display:block;}
   .prod-modal-box{padding:1.5rem 1.25rem !important;}
   .prod-row{flex-wrap:wrap;gap:0.6rem;}
   .stats-grid{grid-template-columns:repeat(2,1fr);}
+  .act-label{display:none;}
+  .act-icon{display:inline;}
+  .prod-row .btn-sm{padding:0.4rem 0.55rem !important;font-size:0.95rem;}
 }
 @media(max-width:480px){
   .hours-day{width:64px;font-size:0.8rem;}
@@ -445,6 +449,10 @@ function show(name) {
   if (name==='branches') loadBranches();
 }
 
+function mAct(onclick, icon, label) {
+  return `<button onclick="${onclick}" class="btn btn-secondary btn-sm" title="${label}"><span class="act-icon">${icon}</span><span class="act-label">${label}</span></button>`;
+}
+
 async function loadBranches() {
   if (!curBiz) return;
   const list = document.getElementById('branches-list');
@@ -461,12 +469,12 @@ async function loadBranches() {
     <div class="prod-row">
       <div style="flex:1;min-width:0;"><div style="font-weight:600;font-size:0.9rem;">${br.name}</div><div style="font-size:0.8rem;color:var(--slate-light);">${br.city || ''}${br.branch_code ? ` · ${br.branch_code}` : ''}</div></div>
       <span style="font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;color:${statusColor[br.status]||'var(--slate-light)'};">${br.status}</span>
-      <button onclick="switchBiz('${br.slug}')" class="btn btn-secondary btn-sm">Manage</button>
-      <button onclick="downloadBranchQr('${br.slug}')" class="btn btn-secondary btn-sm">QR</button>
-      <button onclick="resetBranchPw('${br.slug}')" class="btn btn-secondary btn-sm">Reset Password</button>
+      ${mAct(`switchBiz('${br.slug}')`, '⚙️', 'Manage')}
+      ${mAct(`downloadBranchQr('${br.slug}')`, '🔳', 'QR')}
+      ${mAct(`resetBranchPw('${br.slug}')`, '🔑', 'Reset Password')}
       ${br.status === 'archived'
-        ? `<button onclick="restoreBranchRow('${br.slug}')" class="btn btn-secondary btn-sm">Restore</button>`
-        : `<button onclick="archiveBranchRow('${br.slug}')" class="btn btn-secondary btn-sm">Archive</button>`}
+        ? mAct(`restoreBranchRow('${br.slug}')`, '♻️', 'Restore')
+        : mAct(`archiveBranchRow('${br.slug}')`, '🗄️', 'Archive')}
     </div>`).join('')}</div>`;
 }
 
@@ -500,10 +508,10 @@ async function loadAnalytics() {
   const resp = await API.getAnalytics(curBiz.slug);
   const a = resp.data || {};
   document.getElementById('stats-grid').innerHTML = `
-    <div class="stat-card"><div style="margin-bottom:0.5rem;">${uiIcon('eye',24)}</div><div class="stat-value">${curBiz.total_views||0}</div><div class="stat-label">Total Views</div></div>
-    <div class="stat-card"><div style="margin-bottom:0.5rem;">${uiIcon('box',24)}</div><div class="stat-value">${curBiz.total_orders||0}</div><div class="stat-label">Total Orders</div></div>
-    <div class="stat-card"><div style="margin-bottom:0.5rem;">${uiIcon('reviews',24)}</div><div class="stat-value">${parseFloat(curBiz.average_rating||0).toFixed(1)}</div><div class="stat-label">Avg Rating</div></div>
-    <div class="stat-card"><div style="margin-bottom:0.5rem;">${uiIcon('message',24)}</div><div class="stat-value">${curBiz.total_reviews||0}</div><div class="stat-label">Reviews</div></div>`;
+    <div class="stat-card"><div style="margin-bottom:0.5rem;">${uiIcon('eye',24)}</div><div class="stat-value">${a.total_views||0}</div><div class="stat-label">Total Views</div></div>
+    <div class="stat-card"><div style="margin-bottom:0.5rem;">${uiIcon('box',24)}</div><div class="stat-value">${a.total_orders||0}</div><div class="stat-label">Total Orders</div></div>
+    <div class="stat-card"><div style="margin-bottom:0.5rem;">${uiIcon('reviews',24)}</div><div class="stat-value">${parseFloat(a.average_rating||0).toFixed(1)}</div><div class="stat-label">Avg Rating</div></div>
+    <div class="stat-card"><div style="margin-bottom:0.5rem;">${uiIcon('message',24)}</div><div class="stat-value">${a.total_reviews||0}</div><div class="stat-label">Reviews</div></div>`;
   document.getElementById('status-card').style.display = 'block';
   document.getElementById('status-msg').innerHTML = curBiz.status==='active'
     ? '<span style="color:var(--success);font-weight:600;">✅ Active</span> — visible to customers'
