@@ -3,12 +3,17 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from django.contrib.auth import get_user_model
 from django.db.models import Count, Sum, Q
+from django.http import HttpResponse
 from django.utils import timezone
 from datetime import timedelta
 from apps.businesses.models import Business, BusinessCategory, Advertisement
+from apps.businesses.qr import generate_qr_card, business_target_url
+from apps.businesses.export import businesses_to_excel
 from apps.orders.models import Order
 from apps.reviews.models import Review
 from apps.products.models import Product
+import io
+import zipfile
 
 User = get_user_model()
 
@@ -360,6 +365,59 @@ def admin_restore_business(request, pk):
     business.status = Business.Status.ACTIVE
     business.save(update_fields=['status'])
     return Response({'id': business.id, 'status': business.status})
+
+
+@api_view(['GET'])
+@permission_classes([IsAdminUser])
+def admin_business_qr(request, pk):
+    try:
+        business = Business.objects.get(pk=pk)
+    except Business.DoesNotExist:
+        return Response({'error': 'Not found.'}, status=404)
+    buf = generate_qr_card(business, business_target_url(business, request))
+    return HttpResponse(buf.getvalue(), content_type='image/png',
+                         headers={'Content-Disposition': f'attachment; filename="{business.slug}-qr.png"'})
+
+
+@api_view(['GET'])
+@permission_classes([IsAdminUser])
+def admin_business_qr_bulk(request):
+    """?ids=1,2,3 for a hand-picked subset, omitted for every business."""
+    qs = Business.objects.all()
+    ids_param = request.query_params.get('ids')
+    if ids_param:
+        ids = [int(x) for x in ids_param.split(',') if x.strip().isdigit()]
+        qs = qs.filter(id__in=ids)
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, 'w') as zf:
+        for b in qs:
+            png = generate_qr_card(b, business_target_url(b, request))
+            zf.writestr(f"{b.slug}-qr.png", png.getvalue())
+    buf.seek(0)
+    return HttpResponse(buf.getvalue(), content_type='application/zip',
+                         headers={'Content-Disposition': 'attachment; filename="vbazaar-qr-codes.zip"'})
+
+
+@api_view(['GET'])
+@permission_classes([IsAdminUser])
+def admin_business_export(request):
+    """?status= and ?search= mirror admin_businesses' own filtering."""
+    status_filter = request.query_params.get('status', '')
+    search = request.query_params.get('search', '')
+    qs = Business.objects.all().order_by('name')
+    if status_filter:
+        qs = qs.filter(status=status_filter)
+    if search:
+        q = Q(name__icontains=search)
+        if search.isdigit():
+            q |= Q(id=int(search))
+        qs = qs.filter(q)
+    buf = businesses_to_excel(qs)
+    return HttpResponse(
+        buf.getvalue(),
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        headers={'Content-Disposition': 'attachment; filename="vbazaar-businesses.xlsx"'},
+    )
 
 
 @api_view(['GET'])

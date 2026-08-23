@@ -20,6 +20,8 @@
 @media(max-width:600px){
   .hours-scroll-hint{display:block;}
   .prod-modal-box{padding:1.5rem 1.25rem !important;}
+  .prod-row{flex-wrap:wrap;gap:0.6rem;}
+  .stats-grid{grid-template-columns:repeat(2,1fr);}
 }
 @media(max-width:480px){
   .hours-day{width:64px;font-size:0.8rem;}
@@ -72,7 +74,7 @@
       <div class="dash-card" id="status-card" style="display:none;">
         <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem;">
           <div><h4 style="font-family:var(--font-body);margin-bottom:0.25rem;">Business Status</h4><p id="status-msg" style="font-size:0.875rem;margin:0;"></p></div>
-          <div style="display:flex;gap:0.75rem;"><a id="q-view" href="#" target="_blank" class="btn btn-secondary btn-sm"><span id="ic-qview"></span> Public Page</a><button onclick="show('products')" class="btn btn-ghost btn-sm">+ Add Products</button></div>
+          <div style="display:flex;gap:0.75rem;flex-wrap:wrap;"><a id="q-view" href="#" target="_blank" class="btn btn-secondary btn-sm"><span id="ic-qview"></span> Public Page</a><button onclick="downloadCurBizQr()" class="btn btn-secondary btn-sm">Download QR</button><button onclick="exportMyBusinesses()" class="btn btn-secondary btn-sm">Export to Excel</button><button onclick="show('products')" class="btn btn-ghost btn-sm">+ Add Products</button></div>
         </div>
       </div>
     </div>
@@ -110,7 +112,7 @@
     </div>
 
     <div id="sec-profile" style="display:none;">
-      <h2 style="font-family:var(--font-body);font-weight:700;font-size:1.25rem;margin-bottom:1.5rem;">Business Profile</h2>
+      <h2 style="font-family:var(--font-body);font-weight:700;font-size:1.25rem;margin-bottom:1.5rem;" id="profile-section-title">Business Profile</h2>
 
       <div class="dash-card" style="max-width:640px;">
         <h3 style="font-family:var(--font-body);font-size:1rem;font-weight:700;margin-bottom:1.25rem;">Logo & Banner</h3>
@@ -222,6 +224,12 @@
         <button onclick="saveProfile()" class="btn btn-primary">Save Profile</button>
       </div>
 
+      <div class="dash-card" style="max-width:640px;">
+        <h3 style="font-family:var(--font-body);font-size:1rem;font-weight:700;margin-bottom:0.4rem;">QR Code</h3>
+        <p style="font-size:0.8rem;color:var(--slate-light);margin-bottom:1rem;">Print this and display it in-store — scanning it opens this business/branch's public page.</p>
+        <button onclick="downloadCurBizQr()" class="btn btn-secondary btn-sm">Download QR</button>
+      </div>
+
       <div class="dash-card" id="branch-admin-card" style="max-width:640px;display:none;">
         <h3 style="font-family:var(--font-body);font-size:1rem;font-weight:700;margin-bottom:0.4rem;">Branch Admin</h3>
         <p style="font-size:0.8rem;color:var(--slate-light);margin-bottom:1rem;" id="branch-admin-current"></p>
@@ -268,7 +276,11 @@
     <div id="sec-branches" style="display:none;">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;flex-wrap:wrap;gap:1rem;">
         <h2 style="font-family:var(--font-body);font-weight:700;font-size:1.25rem;">Branches</h2>
-        <button onclick="addBranchForCurBiz()" class="btn btn-primary btn-sm">+ Add Branch</button>
+        <div style="display:flex;gap:0.5rem;flex-wrap:wrap;">
+          <button onclick="downloadAllQr()" class="btn btn-secondary btn-sm">Download All QR</button>
+          <button onclick="exportMyBusinesses()" class="btn btn-secondary btn-sm">Export to Excel</button>
+          <button onclick="addBranchForCurBiz()" class="btn btn-primary btn-sm">+ Add Branch</button>
+        </div>
       </div>
       <p style="font-size:0.85rem;color:var(--slate-light);margin-bottom:1.25rem;max-width:560px;">Branches are separate listings for another location of this business — each gets its own profile, products, and orders, and you can switch between them using the "Managing" dropdown above.</p>
       <div id="branches-list" style="max-width:640px;"></div>
@@ -349,7 +361,7 @@ const NEXT = {pending:'confirmed',confirmed:'preparing',preparing:'ready',ready:
 const LABELS = {pending:'Pending',confirmed:'Confirmed',preparing:'Preparing',ready:'Ready',out_for_delivery:'On the Way',delivered:'Delivered',cancelled:'Cancelled'};
 const SCLS = {pending:'status-pending',confirmed:'status-confirmed',preparing:'status-preparing',delivered:'status-delivered',cancelled:'status-cancelled',ready:'status-confirmed',out_for_delivery:'status-preparing'};
 
-let bizList = [], curBiz = null, allOrders = [];
+let bizList = [], curBiz = null, allOrders = [], isBusinessAdmin = false;
 
 async function pickLocation(prefix) {
   const status = document.getElementById(`${prefix}-loc-status`);
@@ -389,16 +401,14 @@ async function init() {
   document.getElementById('nb-cat').innerHTML = catOpts;
   // A pure Branch Admin owns only branches (every row has a parent) — they can't
   // create businesses/branches or assign other Branch Admins, so hide those controls.
-  const isBusinessAdmin = bizList.some(b => !b.parent);
-  document.getElementById('nav-branches').style.display = isBusinessAdmin ? '' : 'none';
-  document.getElementById('nav-create').style.display = isBusinessAdmin ? '' : 'none';
+  isBusinessAdmin = bizList.some(b => !b.parent);
   document.getElementById('nb-parent').innerHTML = '<option value="">Not a branch</option>' + bizList.filter(b => !b.parent).map(b => `<option value="${b.id}">${b.name}</option>`).join('');
   const sel = document.getElementById('biz-sel');
   if (!bizList.length) { sel.innerHTML = '<option>No businesses yet</option>'; show('create'); return; }
   sel.innerHTML = bizList.map(b => `<option value="${b.slug}">${b.name}${b.branch_code ? ` (${b.branch_code})` : b.business_code ? ` (${b.business_code})` : ''}</option>`).join('');
   switchBiz(bizList[0].slug);
   const hash = window.location.hash.replace('#','');
-  if (hash && (isBusinessAdmin || (hash !== 'branches' && hash !== 'create'))) show(hash);
+  if (hash && document.getElementById('nav-'+hash) && document.getElementById('nav-'+hash).style.display !== 'none') show(hash);
 }
 
 function onNbParentChange() {
@@ -410,6 +420,14 @@ function switchBiz(slug) {
   if (!curBiz) return;
   document.getElementById('view-btn').href = `/business/?slug=${slug}`;
   document.getElementById('q-view').href = `/business/?slug=${slug}`;
+  // "Branches" / "Add New Business" only make sense while managing a top-level
+  // business you Business-Admin — never while managing one of its branches
+  // (no sub-branches), and never for a pure Branch Admin at all.
+  const showBusinessLevelNav = isBusinessAdmin && !curBiz.parent;
+  document.getElementById('nav-branches').style.display = showBusinessLevelNav ? '' : 'none';
+  document.getElementById('nav-create').style.display = showBusinessLevelNav ? '' : 'none';
+  document.getElementById('nav-profile').innerHTML = uiIcon('shop') + (curBiz.parent ? ' My Branch' : ' My Business');
+  document.getElementById('profile-section-title').textContent = curBiz.parent ? 'Branch Profile' : 'Business Profile';
   show('analytics');
 }
 
@@ -444,6 +462,7 @@ async function loadBranches() {
       <div style="flex:1;min-width:0;"><div style="font-weight:600;font-size:0.9rem;">${br.name}</div><div style="font-size:0.8rem;color:var(--slate-light);">${br.city || ''}${br.branch_code ? ` · ${br.branch_code}` : ''}</div></div>
       <span style="font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;color:${statusColor[br.status]||'var(--slate-light)'};">${br.status}</span>
       <button onclick="switchBiz('${br.slug}')" class="btn btn-secondary btn-sm">Manage</button>
+      <button onclick="downloadBranchQr('${br.slug}')" class="btn btn-secondary btn-sm">QR</button>
       <button onclick="resetBranchPw('${br.slug}')" class="btn btn-secondary btn-sm">Reset Password</button>
       ${br.status === 'archived'
         ? `<button onclick="restoreBranchRow('${br.slug}')" class="btn btn-secondary btn-sm">Restore</button>`
@@ -466,14 +485,7 @@ async function resetBranchPw(slug) {
   if (!confirm("Generate a new password for this branch's admin? Their current password stops working immediately.")) return;
   const resp = await API.resetBranchAdminPassword(slug);
   if (!resp.ok) { alert(resp.data?.error || 'Could not reset this password.'); return; }
-  const { owner_email, owner_phone, new_password } = resp.data;
-  const message = `Your V-Bazaar branch admin login:\nEmail: ${owner_email}\nPassword: ${new_password}\n\nLog in at ${window.location.origin}/login/`;
-  const link = UI.whatsappLink(owner_phone, message);
-  if (link && confirm(`New password for ${owner_email}:\n\n${new_password}\n\nClick OK to open WhatsApp and send it to them now (Cancel to copy it manually).`)) {
-    window.open(link, '_blank');
-  } else if (!link) {
-    alert(`New password for ${owner_email}:\n\n${new_password}\n\n(No phone number on file — share this manually.)`);
-  }
+  UI.showCredentialsModal({ email: resp.data.owner_email, password: resp.data.new_password, phone: resp.data.owner_phone });
 }
 
 function addBranchForCurBiz() {
@@ -738,6 +750,23 @@ async function saveProfile() {
   const resp = await API.updateBusiness(curBiz.slug,data);
   if (resp.ok) { UI.toast('Profile saved!','success'); const i=bizList.findIndex(b=>b.slug===curBiz.slug); if(i>=0){bizList[i]={...bizList[i],...data};curBiz=bizList[i];} }
   else UI.toast('Save failed: '+JSON.stringify(resp.data),'error');
+}
+
+function downloadCurBizQr() {
+  if (!curBiz) return;
+  UI.downloadAuthedFile(API.qrUrl(curBiz.slug), `${curBiz.slug}-qr.png`, Auth.getToken());
+}
+
+function downloadBranchQr(slug) {
+  UI.downloadAuthedFile(API.qrUrl(slug), `${slug}-qr.png`, Auth.getToken());
+}
+
+function downloadAllQr() {
+  UI.downloadAuthedFile(API.qrBulkUrl(), 'vbazaar-qr-codes.zip', Auth.getToken());
+}
+
+function exportMyBusinesses() {
+  UI.downloadAuthedFile(`${API_BASE}/businesses/my/export/`, 'my-businesses.xlsx', Auth.getToken());
 }
 
 async function reassignBranchAdmin() {

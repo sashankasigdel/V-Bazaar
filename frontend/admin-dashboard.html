@@ -121,7 +121,7 @@ body { font-family: var(--font-body); background: #0F1623; color: white; margin:
 .admin-search:focus { outline: none; border-color: var(--saffron); }
 
 /* FILTER TABS */
-.filter-tabs { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; }
+.filter-tabs { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
 .filter-tab { padding: 0.4rem 1rem; border-radius: 999px; font-size: 0.82rem; font-weight: 600; cursor: pointer; border: 1px solid rgba(255,255,255,0.1); color: rgba(255,255,255,0.5); transition: all 0.2s; background: transparent; }
 .filter-tab:hover { color: white; border-color: rgba(255,255,255,0.3); }
 .filter-tab.active { background: var(--saffron); color: white; border-color: var(--saffron); }
@@ -268,6 +268,8 @@ body { font-family: var(--font-body); background: #0F1623; color: white; margin:
           </div>
           <div style="display:flex;gap:0.75rem;align-items:center;flex-wrap:wrap;">
             <input class="admin-search" type="text" placeholder="Search businesses..." oninput="searchBiz(this.value)">
+            <button onclick="downloadAllQrAdmin()" style="background:rgba(255,255,255,0.06);color:white;border:1px solid rgba(255,255,255,0.1);padding:0.5rem 1.25rem;border-radius:8px;font-size:0.875rem;font-weight:600;cursor:pointer;">🔳 Download All QR</button>
+            <button onclick="exportBusinessesAdmin()" style="background:rgba(255,255,255,0.06);color:white;border:1px solid rgba(255,255,255,0.1);padding:0.5rem 1.25rem;border-radius:8px;font-size:0.875rem;font-weight:600;cursor:pointer;">📊 Export to Excel</button>
             <button onclick="openBulkModal()" style="background:rgba(255,255,255,0.06);color:white;border:1px solid rgba(255,255,255,0.1);padding:0.5rem 1.25rem;border-radius:8px;font-size:0.875rem;font-weight:600;cursor:pointer;">⬆ Bulk Import</button>
             <button onclick="openBizModal()" style="background:var(--saffron);color:white;border:none;padding:0.5rem 1.25rem;border-radius:8px;font-size:0.875rem;font-weight:600;cursor:pointer;">+ Add Business</button>
           </div>
@@ -817,6 +819,7 @@ function renderBizTable(data) {
           ${b.status==='active'?`<button class="act-btn act-reject" onclick="suspendBiz(${b.id}, this)">Suspend</button>`:''}
           ${b.status==='suspended'?`<button class="act-btn act-approve" onclick="approveBiz(${b.id}, this)">Reactivate</button>`:''}
           <button class="act-btn act-feature" onclick="toggleFeature(${b.id}, ${!b.is_featured}, this)">${b.is_featured?'Unfeature':'Feature'}</button>
+          <button class="act-btn act-feature" onclick="downloadBizQrAdmin(${b.id}, '${b.slug}')">QR</button>
           ${b.status==='archived'
             ? `<button class="act-btn act-approve" onclick="restoreBiz(${b.id}, this)">Restore</button>`
             : `<button class="act-btn act-reject" onclick="archiveBiz(${b.id}, '${b.name}', ${branchCount}, this)">Archive</button>`}
@@ -884,18 +887,23 @@ async function restoreBiz(id, btn) {
   else toast(resp.data?.error || 'Failed', 'error');
 }
 
+function downloadBizQrAdmin(id, slug) {
+  UI.downloadAuthedFile(`${API_BASE}/admin-panel/businesses/${id}/qr/`, `${slug}-qr.png`, AdminAuth.getToken());
+}
+
+function downloadAllQrAdmin() {
+  UI.downloadAuthedFile(`${API_BASE}/admin-panel/businesses/qr/bulk/`, 'vbazaar-qr-codes.zip', AdminAuth.getToken());
+}
+
+function exportBusinessesAdmin() {
+  UI.downloadAuthedFile(`${API_BASE}/admin-panel/businesses/export/`, 'vbazaar-businesses.xlsx', AdminAuth.getToken());
+}
+
 async function resetOwnerPassword(userId, email, btn) {
   if (!confirm(`Generate a new password for ${email}? Their current password stops working immediately.`)) return;
   const resp = await withButtonLoading(btn, 'Resetting...', () => AdminAPI.post(`/users/${userId}/reset-password/`));
   if (!resp.ok) { toast(resp.data?.error || 'Failed', 'error'); return; }
-  const { new_password, phone } = resp.data;
-  const message = `Your V-Bazaar login:\nEmail: ${email}\nPassword: ${new_password}\n\nLog in at ${window.location.origin}/login/`;
-  const link = UI.whatsappLink(phone, message);
-  if (link && confirm(`New password for ${email}:\n\n${new_password}\n\nClick OK to open WhatsApp and send it to them now (Cancel to copy it manually).`)) {
-    window.open(link, '_blank');
-  } else if (!link) {
-    alert(`New password for ${email}:\n\n${new_password}\n\n(No phone number on file — share this manually.)`);
-  }
+  UI.showCredentialsModal({ email, password: resp.data.new_password, phone: resp.data.phone });
 }
 
 // USERS

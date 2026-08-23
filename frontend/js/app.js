@@ -314,6 +314,8 @@ const API = {
   archiveBranch: (slug) => http.post(`/businesses/my/${slug}/archive/`),
   restoreBranch: (slug) => http.post(`/businesses/my/${slug}/restore/`),
   resetBranchAdminPassword: (slug) => http.post(`/businesses/my/${slug}/reset-password/`),
+  qrUrl: (slug) => `${API_BASE}/businesses/my/${slug}/qr/`,
+  qrBulkUrl: () => `${API_BASE}/businesses/my/qr-bulk/`,
   getProducts: (slug) => http.get(`/products/${slug}/products/`),
   getMyProducts: (slug) => http.get(`/products/${slug}/products/manage/`),
   createProduct: (slug, formData) => http.post(`/products/${slug}/products/manage/`, formData, true),
@@ -386,6 +388,21 @@ const UI = {
   formatDate: (d) => new Date(d).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }),
   timeAgo: (d) => { const s = (Date.now() - new Date(d)) / 1000; if (s < 60) return 'just now'; if (s < 3600) return `${Math.floor(s/60)}m ago`; if (s < 86400) return `${Math.floor(s/3600)}h ago`; return `${Math.floor(s/86400)}d ago`; },
   loading: (el, n = 3) => { el.innerHTML = Array(n).fill('<div class="skeleton" style="height:240px;border-radius:18px;"></div>').join(''); },
+  // Binary downloads (QR PNGs/zips, Excel exports) need the Bearer token, so a
+  // plain <a href> won't work — fetch as a blob and trigger the save via a
+  // synthetic, immediately-clicked anchor.
+  async downloadAuthedFile(url, filename, token) {
+    try {
+      const resp = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
+      if (!resp.ok) { UI.toast('Download failed', 'error'); return; }
+      const blob = await resp.blob();
+      const objUrl = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = objUrl; a.download = filename;
+      document.body.appendChild(a); a.click(); a.remove();
+      URL.revokeObjectURL(objUrl);
+    } catch { UI.toast('Download failed', 'error'); }
+  },
   // wa.me needs a full international number with no leading 0/+ — assume Nepal (977)
   // for a bare 10-digit local mobile number, since that's this app's market.
   whatsappLink(phone, message) {
@@ -394,6 +411,44 @@ const UI = {
     else if (digits.length === 11 && digits.startsWith('0')) digits = `977${digits.slice(1)}`;
     if (!digits) return null;
     return `https://wa.me/${digits}?text=${encodeURIComponent(message)}`;
+  },
+  // A generated password needs: a Copy button (native alert()/confirm() text can't be
+  // copied), and a real <a> for WhatsApp — a window.open() called after an awaited
+  // fetch is no longer "in response to a user gesture" in most browsers and gets
+  // silently popup-blocked, whereas a genuine anchor click always works.
+  showCredentialsModal({ email, password, phone, loginPath = '/login/' }) {
+    let modal = document.getElementById('vb-cred-modal');
+    if (!modal) {
+      modal = document.createElement('div');
+      modal.id = 'vb-cred-modal';
+      modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.55);display:flex;align-items:center;justify-content:center;z-index:99999;padding:1rem;';
+      document.body.appendChild(modal);
+      modal.addEventListener('click', (e) => { if (e.target === modal) modal.style.display = 'none'; });
+    }
+    const message = `Your V-Bazaar login:\nEmail: ${email}\nPassword: ${password}\n\nLog in at ${window.location.origin}${loginPath}`;
+    const waLink = UI.whatsappLink(phone, message);
+    modal.innerHTML = `
+      <div style="background:white;border-radius:14px;padding:1.5rem;max-width:380px;width:100%;font-family:system-ui,sans-serif;color:#1a1a1a;box-shadow:0 20px 60px rgba(0,0,0,0.3);">
+        <h3 style="margin:0 0 0.25rem;font-size:1.05rem;">New password generated</h3>
+        <p style="font-size:0.82rem;color:#777;margin:0 0 1rem;word-break:break-all;">${email}</p>
+        <div style="display:flex;gap:0.5rem;margin-bottom:1rem;">
+          <input type="text" readonly value="${password}" id="vb-cred-pw-input" style="flex:1;min-width:0;padding:0.65rem 0.75rem;border:1.5px solid #ddd;border-radius:8px;font-family:monospace;font-size:0.95rem;color:#1a1a1a;background:#fafafa;">
+          <button id="vb-cred-copy-btn" type="button" style="padding:0.65rem 1rem;border-radius:8px;border:none;background:#EE6C29;color:white;font-weight:600;cursor:pointer;white-space:nowrap;">Copy</button>
+        </div>
+        ${waLink
+          ? `<a href="${waLink}" target="_blank" rel="noopener" style="display:block;text-align:center;padding:0.75rem;border-radius:8px;background:#25D366;color:white;text-decoration:none;font-weight:700;margin-bottom:0.75rem;">Send via WhatsApp</a>`
+          : `<p style="font-size:0.8rem;color:#999;margin-bottom:0.75rem;">No phone number on file — share this manually.</p>`}
+        <button id="vb-cred-close-btn" type="button" style="width:100%;padding:0.65rem;border-radius:8px;border:1.5px solid #ddd;background:none;color:#1a1a1a;cursor:pointer;">Close</button>
+      </div>`;
+    modal.style.display = 'flex';
+    document.getElementById('vb-cred-copy-btn').onclick = () => {
+      const input = document.getElementById('vb-cred-pw-input');
+      const btn = document.getElementById('vb-cred-copy-btn');
+      const done = () => { btn.textContent = 'Copied!'; setTimeout(() => { btn.textContent = 'Copy'; }, 1500); };
+      if (navigator.clipboard?.writeText) navigator.clipboard.writeText(password).then(done).catch(() => { input.select(); document.execCommand('copy'); done(); });
+      else { input.select(); document.execCommand('copy'); done(); }
+    };
+    document.getElementById('vb-cred-close-btn').onclick = () => { modal.style.display = 'none'; };
   },
 };
 

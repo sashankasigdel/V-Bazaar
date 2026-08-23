@@ -1,6 +1,7 @@
 from rest_framework import generics, permissions, status, filters
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
+from django.http import HttpResponse
 from django_filters.rest_framework import DjangoFilterBackend
 from django.db.models import Count, Q
 from .models import Business, BusinessCategory, BusinessHours, BusinessGallery, Advertisement
@@ -9,7 +10,11 @@ from .serializers import (
     BusinessCreateUpdateSerializer, BusinessCategorySerializer,
     BusinessHoursSerializer, BusinessGallerySerializer, AdvertisementSerializer
 )
+from .qr import generate_qr_card, business_target_url
+from .export import businesses_to_excel
 import math
+import io
+import zipfile
 
 
 class BusinessCategoryListView(generics.ListAPIView):
@@ -255,3 +260,44 @@ def reset_branch_admin_password(request, slug):
     business.owner.set_password(new_password)
     business.owner.save(update_fields=['password'])
     return Response({'owner_email': business.owner.email, 'owner_phone': business.owner.phone, 'new_password': new_password})
+
+
+@api_view(['GET'])
+@permission_classes([permissions.IsAuthenticated])
+def business_qr(request, slug):
+    """Business Admin: QR for their business or any of its branches.
+    Branch Admin: QR for their own branch only."""
+    try:
+        business = _owned_businesses(request.user).get(slug=slug)
+    except Business.DoesNotExist:
+        return Response({'error': 'Not found.'}, status=404)
+    buf = generate_qr_card(business, business_target_url(business, request))
+    return HttpResponse(buf.getvalue(), content_type='image/png',
+                         headers={'Content-Disposition': f'attachment; filename="{business.slug}-qr.png"'})
+
+
+@api_view(['GET'])
+@permission_classes([permissions.IsAuthenticated])
+def business_qr_bulk(request):
+    """Zip of QR codes for every business/branch this user administers."""
+    businesses = _owned_businesses(request.user)
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, 'w') as zf:
+        for b in businesses:
+            png = generate_qr_card(b, business_target_url(b, request))
+            zf.writestr(f"{b.slug}-qr.png", png.getvalue())
+    buf.seek(0)
+    return HttpResponse(buf.getvalue(), content_type='application/zip',
+                         headers={'Content-Disposition': 'attachment; filename="vbazaar-qr-codes.zip"'})
+
+
+@api_view(['GET'])
+@permission_classes([permissions.IsAuthenticated])
+def business_export(request):
+    """Excel export of every business/branch this user administers."""
+    buf = businesses_to_excel(_owned_businesses(request.user).order_by('name'))
+    return HttpResponse(
+        buf.getvalue(),
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        headers={'Content-Disposition': 'attachment; filename="my-businesses.xlsx"'},
+    )
