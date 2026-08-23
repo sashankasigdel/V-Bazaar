@@ -247,10 +247,23 @@ function syncNavHeight() {
   if (nav) document.documentElement.style.setProperty('--vb-nav-height', nav.offsetHeight + 'px');
 }
 
+// The action-icon grid has no visible container box of its own (just per-button
+// borders), so align-items:stretch alone doesn't make the two columns *look*
+// equal height — Outlet Info just keeps growing past it. Measure the grid's
+// real rendered height and cap Outlet Info to match exactly, scrolling
+// internally if its content doesn't fit.
+function syncOutletHeight() {
+  const grid = document.querySelector('.vb-action-grid');
+  const box = document.querySelector('.vb-outlet-box');
+  if (!grid || !box) return;
+  box.style.maxHeight = grid.offsetHeight + 'px';
+  box.style.overflowY = 'auto';
+}
+
 async function init() {
   renderVbNavbar('vb-nav');
   syncNavHeight();
-  window.addEventListener('resize', syncNavHeight);
+  window.addEventListener('resize', () => { syncNavHeight(); syncOutletHeight(); });
   const resp = await API.getBusiness(slug);
   if (!resp.ok) { document.getElementById('loading').innerHTML = '<div class="empty-state"><div class="empty-icon">😕</div><h3>Not found</h3><a href="/" class="btn btn-primary" style="margin-top:1rem;">Go Home</a></div>'; return; }
   biz = resp.data;
@@ -258,6 +271,7 @@ async function init() {
   document.getElementById('loading').style.display = 'none';
   document.getElementById('content').style.display = 'block';
   render();
+  syncOutletHeight();
   loadProducts();
   loadReviews();
   if (Auth.isLoggedIn()) document.getElementById('review-form').style.display = 'block';
