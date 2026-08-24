@@ -293,7 +293,7 @@ select.form-input{appearance:none;background-image:url("data:image/svg+xml,%3Csv
    footer) stay scoped inside each page's own <style> block. */
 html[data-theme="dark"] body{background:#1F2222;}
 
-.vb-nav{position:sticky;top:0;z-index:100;background:white;border-bottom:1px solid var(--border);padding:0.75rem 1.5rem;display:flex;align-items:center;gap:0.75rem;box-shadow:var(--shadow-sm);overflow:hidden;}
+.vb-nav{position:sticky;top:0;z-index:100;background:white;border-bottom:1px solid var(--border);padding:0.75rem 1.5rem;display:flex;align-items:center;justify-content:space-evenly;gap:0.75rem;box-shadow:var(--shadow-sm);overflow:hidden;}
 .vb-nav-left{display:flex;align-items:center;gap:0.75rem;flex-shrink:0;}
 .vb-nav-center{flex:1;min-width:0;max-width:620px;}
 .vb-nav-right{display:flex;align-items:center;gap:0.6rem;flex-shrink:0;}
